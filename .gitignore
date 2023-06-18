@@ -1,0 +1,7 @@
+*/.idea/*.xml
+.idea/*.xml
+.gradle
+*/.idea/artifacts
+*/.idea/modules
+*/.name
+*.iml
