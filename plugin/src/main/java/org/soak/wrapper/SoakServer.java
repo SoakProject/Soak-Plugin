@@ -1,0 +1,779 @@
+package org.soak.wrapper;
+
+import com.destroystokyo.paper.entity.ai.MobGoals;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import io.papermc.paper.datapack.DatapackManager;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.boss.*;
+import org.bukkit.command.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.help.HelpMap;
+import org.bukkit.inventory.*;
+import org.bukkit.loot.LootTable;
+import org.bukkit.map.MapView;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.ServicesManager;
+import org.bukkit.plugin.messaging.Messenger;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.util.CachedServerIcon;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.soak.map.SoakMessageMap;
+import org.soak.plugin.SoakPlugin;
+import org.soak.plugin.exception.NotImplementedException;
+import org.soak.plugin.utils.Singleton;
+import org.soak.plugin.utils.Unfinal;
+import org.soak.wrapper.plugin.SoakPluginManager;
+import org.spongepowered.api.Sponge;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+public class SoakServer implements SimpServer {
+
+    private final Supplier<org.spongepowered.api.Server> serverSupplier;
+    private final Singleton<SoakPluginManager> pluginManager = new Singleton<>(() -> new SoakPluginManager(Sponge::pluginManager));
+    private final Singleton<SoakUnsafeValues> unsafeValues = new Singleton<>(SoakUnsafeValues::new);
+
+    public SoakServer(Supplier<org.spongepowered.api.Server> serverSupplier) {
+        this.serverSupplier = serverSupplier;
+    }
+
+    public org.spongepowered.api.Server spongeServer() {
+        return this.serverSupplier.get();
+    }
+
+    @Override
+    public <T extends Keyed> Tag<T> getTag(@NotNull String registry, @NotNull NamespacedKey tag, @NotNull Class<T> clazz) {
+        throw NotImplementedException.createByLazy(Server.class, "getTag", String.class, NamespacedKey.class, Class.class);
+    }
+
+    @Override
+    public @NotNull Spigot spigot() {
+        throw NotImplementedException.createByLazy(Server.class, "spigot");
+    }
+
+    @Override
+    public @NotNull File getWorldContainer() {
+        throw NotImplementedException.createByLazy(Server.class, "getWorldContainer");
+    }
+
+    @Override
+    public @NotNull String getName() {
+        return SoakPlugin.plugin().container().metadata().id();
+    }
+
+    @Override
+    public @NotNull String getVersion() {
+        return SoakPlugin.plugin().container().metadata().version().toString();
+    }
+
+    @Override
+    public @NotNull String getBukkitVersion() {
+        return SoakPlugin.plugin().container().metadata().id() + "-MC" + getMinecraftVersion() + "-RC" + getVersion();
+    }
+
+    @Override
+    public @NotNull String getMinecraftVersion() {
+        return Sponge.platform().minecraftVersion().name();
+    }
+
+    @Override
+    public @NotNull Collection<? extends Player> getOnlinePlayers() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getOnlinePlayers");
+    }
+
+    @Override
+    public int getMaxPlayers() {
+        return this.spongeServer().maxPlayers();
+    }
+
+    @Override
+    public void setMaxPlayers(int maxPlayers) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "setMaxPlayers", int.class);
+    }
+
+    @Override
+    public int getPort() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getPort");
+    }
+
+    @Override
+    public int getViewDistance() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getViewDistance");
+    }
+
+    @Override
+    public @NotNull String getIp() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getIp");
+    }
+
+    @Override
+    public @NotNull String getWorldType() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getWorldType");
+    }
+
+    @Override
+    public boolean getGenerateStructures() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getGenerateStructures");
+    }
+
+    @Override
+    public int getMaxWorldSize() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getMaxWorldSize");
+    }
+
+    @Override
+    public boolean getAllowEnd() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getAllowEnd");
+    }
+
+    @Override
+    public boolean getAllowNether() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getAllowNether");
+    }
+
+    @Override
+    public void setWhitelist(boolean value) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "setWhitelist", boolean.class);
+    }
+
+    @Override
+    public @NotNull Set<OfflinePlayer> getWhitelistedPlayers() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getWhitelistedPlayers");
+    }
+
+    @Override
+    public void reloadWhitelist() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "reloadWhitelist");
+    }
+
+    @Override
+    @Deprecated
+    public int broadcastMessage(@NotNull String message) {
+        return this.broadcast(SoakMessageMap.mapToComponent(message));
+    }
+
+    @Override
+    public @NotNull String getUpdateFolder() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getUpdateFolder");
+    }
+
+    @Override
+    public @NotNull File getUpdateFolderFile() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getUpdateFolderFile");
+    }
+
+    @Override
+    public long getConnectionThrottle() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getConnectionThrottle");
+    }
+
+    @Override
+    public int getTicksPerAnimalSpawns() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getTicksPerAnimalSpawn");
+    }
+
+    @Override
+    public int getTicksPerMonsterSpawns() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getTicksPerMonsterSpawn");
+    }
+
+    @Override
+    public int getTicksPerWaterSpawns() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getTicksPerWaterSpawns");
+    }
+
+    @Override
+    public int getTicksPerWaterAmbientSpawns() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getTicksPerWaterAnbientSpawns");
+    }
+
+    @Override
+    public int getTicksPerAmbientSpawns() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getTicksPerAmbientSpawns");
+    }
+
+    @Override
+    public @Nullable Player getPlayerExact(@NotNull String name) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getPlayerExact", String.class);
+    }
+
+    @Override
+    public @NotNull List<Player> matchPlayer(@NotNull String name) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "matchPlayer", String.class);
+    }
+
+    @Override
+    public @Nullable UUID getPlayerUniqueId(@NotNull String playerName) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getPlayerUniqueId", String.class);
+    }
+
+    @Override
+    public @NotNull SoakPluginManager getPluginManager() {
+        return this.pluginManager.get();
+    }
+
+    @Override
+    public @NotNull BukkitScheduler getScheduler() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getScheduler");
+    }
+
+    @Override
+    public @NotNull ServicesManager getServicesManager() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getServicesManager");
+    }
+
+    @Override
+    public @NotNull List<World> getWorlds() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getWorlds");
+    }
+
+    @Override
+    public @Nullable World createWorld(@NotNull WorldCreator creator) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "createWorld", WorldCreator.class);
+    }
+
+    @Override
+    public boolean unloadWorld(@NotNull World world, boolean save) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "unloadWorld", World.class, boolean.class);
+    }
+
+    @Override
+    public @Nullable MapView getMap(int id) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getMap", int.class);
+    }
+
+    @Override
+    public @NotNull MapView createMap(@NotNull World world) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "createMap", World.class);
+    }
+
+    @Override
+    public @NotNull ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "createExplorerMap", World.class, Location.class, StructureType.class);
+    }
+
+    @Override
+    public @NotNull ItemStack createExplorerMap(@NotNull World world, @NotNull Location location, @NotNull StructureType structureType, int radius, boolean findUnexplored) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "createExplorerMap", World.class, Location.class, StructureType.class, boolean.class);
+    }
+
+    @Override
+    public void reload() {
+        SoakPlugin.plugin().logger().warn("A Bukkit plugin attempted to reload the plugin list. This is not possible in Sponge, reloading the data instead");
+        reloadData();
+    }
+
+    @Override
+    public void reloadData() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "reloadData");
+    }
+
+    @Override
+    public @Nullable PluginCommand getPluginCommand(@NotNull String name) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getPluginCommand", String.class);
+    }
+
+    @Override
+    public void savePlayers() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "savePlayers");
+    }
+
+    @Override
+    public boolean dispatchCommand(@NotNull CommandSender sender, @NotNull String commandLine) throws CommandException {
+        throw NotImplementedException.createByLazy(SoakServer.class, "dispatchCommand", CommandSender.class, String.class);
+    }
+
+    @Override
+    public boolean addRecipe(@Nullable Recipe recipe) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "addRecipe", Recipe.class);
+    }
+
+    @Override
+    public @NotNull Iterator<Recipe> recipeIterator() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "recipeIterator");
+    }
+
+    @Override
+    public void clearRecipes() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "clearRecipes");
+    }
+
+    @Override
+    public void resetRecipes() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "resetRecipes");
+    }
+
+    @Override
+    public boolean removeRecipe(@NotNull NamespacedKey key) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "removeRecipe", NamespacedKey.class);
+    }
+
+    @Override
+    public @NotNull Map<String, String[]> getCommandAliases() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getCommandAliases", Map.class);
+    }
+
+    @Override
+    public int getSpawnRadius() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getSpawnRadius");
+    }
+
+    @Override
+    public void setSpawnRadius(int value) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "setSpawnRadius", int.class);
+    }
+
+    @Override
+    public boolean getOnlineMode() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getOnlineMode");
+    }
+
+    @Override
+    public boolean getAllowFlight() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getAllowFlight");
+    }
+
+    @Override
+    public boolean isHardcore() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "isHardcore");
+    }
+
+    @Override
+    public @NotNull OfflinePlayer getOfflinePlayer(@NotNull String name) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getOfflinePlayer", String.class);
+    }
+
+    @Override
+    public @Nullable OfflinePlayer getOfflinePlayerIfCached(@NotNull String name) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getOfflinePlayerIfCached", String.class);
+    }
+
+    @Override
+    public @NotNull OfflinePlayer getOfflinePlayer(@NotNull UUID id) {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getOfflinePlayer", UUID.class);
+    }
+
+    @Override
+    public @NotNull Set<String> getIPBans() {
+        throw NotImplementedException.createByLazy(SoakServer.class, "getIPBans");
+    }
+
+    @Override
+    public void banIP(@NotNull String arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "banIP", String.class);
+    }
+
+    @Override
+    public void unbanIP(@NotNull String arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "unbanIP", String.class);
+    }
+
+    @Override
+    public @NotNull Set<OfflinePlayer> getBannedPlayers() {
+        throw NotImplementedException.createByLazy(Server.class, "getBannedPlayers");
+    }
+
+    @Override
+    public @NotNull BanList getBanList(@NotNull BanList.Type type) {
+        throw NotImplementedException.createByLazy(Server.class, "getBanList", BanList.Type.class);
+    }
+
+    @Override
+    public @NotNull Set<OfflinePlayer> getOperators() {
+        throw NotImplementedException.createByLazy(Server.class, "getOperators");
+    }
+
+    @Override
+    public @NotNull GameMode getDefaultGameMode() {
+        throw NotImplementedException.createByLazy(Server.class, "getDefaultGameMode");
+    }
+
+    @Override
+    public void setDefaultGameMode(@NotNull GameMode arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "setDefaultGameMode", GameMode.class);
+    }
+
+    @Override
+    public @NotNull ConsoleCommandSender getConsoleSender() {
+        throw NotImplementedException.createByLazy(Server.class, "getConsoleSender");
+    }
+
+    @Override
+    public OfflinePlayer[] getOfflinePlayers() {
+        throw NotImplementedException.createByLazy(Server.class, "getOfflinePlayers");
+    }
+
+    @Override
+    public @NotNull Messenger getMessenger() {
+        throw NotImplementedException.createByLazy(Server.class, "getMessenger");
+    }
+
+    @Override
+    public @NotNull HelpMap getHelpMap() {
+        throw NotImplementedException.createByLazy(Server.class, "getHelpMap");
+    }
+
+    @Override
+    public @NotNull Inventory createInventory(InventoryHolder arg0, @NotNull InventoryType arg1) {
+        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, InventoryType.class);
+    }
+
+    @Override
+    public @NotNull Inventory createInventory(InventoryHolder arg0, @NotNull InventoryType arg1, @NotNull Component arg2) {
+        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, InventoryType.class, Component.class);
+    }
+
+    @Deprecated
+    @Override
+    public @NotNull Inventory createInventory(InventoryHolder arg0, @NotNull InventoryType arg1, @NotNull String arg2) {
+        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, InventoryType.class, String.class);
+    }
+
+    @Override
+    public @NotNull Inventory createInventory(InventoryHolder arg0, int arg1) {
+        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, int.class);
+    }
+
+    @Override
+    public @NotNull Inventory createInventory(InventoryHolder arg0, int arg1, @NotNull Component arg2) {
+        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, int.class, Component.class);
+    }
+
+    @Deprecated
+    @Override
+    public @NotNull Inventory createInventory(InventoryHolder arg0, int arg1, @NotNull String arg2) {
+        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, int.class, String.class);
+    }
+
+    @Deprecated
+    @Override
+    public @NotNull Merchant createMerchant(String arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createMerchant", String.class);
+    }
+
+    @Override
+    public @NotNull Merchant createMerchant(Component arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createMerchant", Component.class);
+    }
+
+    @Override
+    public int getMonsterSpawnLimit() {
+        throw NotImplementedException.createByLazy(Server.class, "getMonsterSpawnLimit");
+    }
+
+    @Override
+    public int getAnimalSpawnLimit() {
+        throw NotImplementedException.createByLazy(Server.class, "getAnimalSpawnLimit");
+    }
+
+    @Override
+    public int getWaterAnimalSpawnLimit() {
+        throw NotImplementedException.createByLazy(Server.class, "getWaterAnimalSpawnLimit");
+    }
+
+    @Override
+    public int getWaterAmbientSpawnLimit() {
+        throw NotImplementedException.createByLazy(Server.class, "getWaterAmbientSpawnLimit");
+    }
+
+    @Override
+    public int getAmbientSpawnLimit() {
+        throw NotImplementedException.createByLazy(Server.class, "getAmbientSpawnLimit");
+    }
+
+    @Override
+    public boolean isPrimaryThread() {
+        return this.spongeServer().onMainThread();
+    }
+
+    @Override
+    public @NotNull Component motd() {
+        throw NotImplementedException.createByLazy(Server.class, "motd");
+    }
+
+    @Deprecated
+    @Override
+    public @NotNull String getMotd() {
+        return SoakMessageMap.mapToBukkit(this.motd());
+    }
+
+    @Override
+    public Component shutdownMessage() {
+        throw NotImplementedException.createByLazy(Server.class, "shutdownMessage");
+    }
+
+    @Deprecated
+    @Override
+    public String getShutdownMessage() {
+        throw NotImplementedException.createByLazy(Server.class, "getShutdownMessage");
+    }
+
+    @Override
+    public Warning.@NotNull WarningState getWarningState() {
+        throw NotImplementedException.createByLazy(Server.class, "getWarningState");
+    }
+
+    @Override
+    public @NotNull ItemFactory getItemFactory() {
+        throw NotImplementedException.createByLazy(Server.class, "getItemFactory");
+    }
+
+    @Override
+    public @NotNull ScoreboardManager getScoreboardManager() {
+        throw NotImplementedException.createByLazy(Server.class, "getScoreboardManager");
+    }
+
+    @Override
+    public CachedServerIcon getServerIcon() {
+        throw NotImplementedException.createByLazy(Server.class, "getServerIcon");
+    }
+
+    @Override
+    public @NotNull CachedServerIcon loadServerIcon(@NotNull BufferedImage arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "loadServerIcon", BufferedImage.class);
+    }
+
+    @Override
+    public @NotNull CachedServerIcon loadServerIcon(@NotNull File arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "loadServerIcon", File.class);
+    }
+
+    @Override
+    public int getIdleTimeout() {
+        throw NotImplementedException.createByLazy(Server.class, "getIdleTimeout");
+    }
+
+    @Override
+    public void setIdleTimeout(int arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "setIdleTimeout", int.class);
+    }
+
+    @Override
+    public ChunkGenerator.@NotNull ChunkData createChunkData(@NotNull World arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createChunkData", World.class);
+    }
+
+    @Override
+    public ChunkGenerator.@NotNull ChunkData createVanillaChunkData(@NotNull World arg0, int arg1, int arg2) {
+        throw NotImplementedException.createByLazy(Server.class, "createVanillaChunkData", World.class, int.class, int.class);
+    }
+
+    @Override
+    public @NotNull KeyedBossBar createBossBar(@NotNull NamespacedKey arg0, String arg1, @NotNull BarColor arg2, @NotNull BarStyle arg3, BarFlag[] arg4) {
+        throw NotImplementedException.createByLazy(Server.class, "createBossBar", NamespacedKey.class, String.class, BarColor.class, BarStyle.class, BarFlag[].class);
+    }
+
+    @Override
+    public @NotNull BossBar createBossBar(String arg0, @NotNull BarColor arg1, @NotNull BarStyle arg2, BarFlag[] arg3) {
+        throw NotImplementedException.createByLazy(Server.class, "createBossBar", String.class, BarColor.class, BarStyle.class, BarFlag[].class);
+    }
+
+    @Override
+    public @NotNull Iterator<KeyedBossBar> getBossBars() {
+        throw NotImplementedException.createByLazy(Server.class, "getBossBars");
+    }
+
+    @Override
+    public KeyedBossBar getBossBar(@NotNull NamespacedKey arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "getBossBar", NamespacedKey.class);
+    }
+
+    @Override
+    public boolean removeBossBar(@NotNull NamespacedKey arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "removeBossBar", NamespacedKey.class);
+    }
+
+    @Override
+    public Entity getEntity(@NotNull UUID arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "getEntity", UUID.class);
+    }
+
+    @Override
+    public double[] getTPS() {
+        throw NotImplementedException.createByLazy(Server.class, "getTPS");
+    }
+
+    @Override
+    public long[] getTickTimes() {
+        throw NotImplementedException.createByLazy(Server.class, "getTickTimes");
+    }
+
+    @Override
+    public double getAverageTickTime() {
+        throw NotImplementedException.createByLazy(Server.class, "getAverageTickTime");
+    }
+
+    @Override
+    public @NotNull CommandMap getCommandMap() {
+        throw NotImplementedException.createByLazy(Server.class, "getCommandMap");
+    }
+
+    @Override
+    public Advancement getAdvancement(@NotNull NamespacedKey arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "getAdvancement", NamespacedKey.class);
+    }
+
+    @Override
+    public @NotNull Iterator<Advancement> advancementIterator() {
+        throw NotImplementedException.createByLazy(Server.class, "advancementIterator");
+    }
+
+    @Override
+    public @NotNull BlockData createBlockData(@NotNull String arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createBlockData", String.class);
+    }
+
+    @Override
+    public @NotNull BlockData createBlockData(@NotNull Material arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class);
+    }
+
+    @Override
+    public @NotNull BlockData createBlockData(@NotNull Material arg0, Consumer arg1) {
+        throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, Consumer.class);
+    }
+
+    @Override
+    public @NotNull BlockData createBlockData(Material arg0, String arg1) {
+        throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, String.class);
+    }
+
+    @Override
+    public @NotNull <T extends Keyed> Iterable<Tag<T>> getTags(@NotNull String registry, @NotNull Class<T> clazz) {
+        throw NotImplementedException.createByLazy(Server.class, "getTags", String.class, Class.class);
+    }
+
+    @Override
+    public LootTable getLootTable(@NotNull NamespacedKey arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "getLootTable", NamespacedKey.class);
+    }
+
+    @Override
+    public @NotNull List<Entity> selectEntities(@NotNull CommandSender sender, @NotNull String selector) throws IllegalArgumentException {
+        throw NotImplementedException.createByLazy(Server.class, "selectEntities", CommandSender.class, String.class);
+    }
+
+    @Override
+    public void reloadPermissions() {
+        throw NotImplementedException.createByLazy(Server.class, "reloadPermissions");
+    }
+
+    @Override
+    public boolean reloadCommandAliases() {
+        throw NotImplementedException.createByLazy(Server.class, "reloadCommandAliases");
+    }
+
+    @Override
+    public boolean suggestPlayerNamesWhenNullTabCompletions() {
+        throw NotImplementedException.createByLazy(Server.class, "suggestPlayerNamesWhenNullTabCompletions");
+    }
+
+    @Override
+    public @NotNull String getPermissionMessage() {
+        throw NotImplementedException.createByLazy(Server.class, "getPermissionMessage");
+    }
+
+    @Override
+    public @NotNull PlayerProfile createProfile(@NotNull UUID arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class);
+    }
+
+    @Override
+    public @NotNull PlayerProfile createProfile(UUID arg0, String arg1) {
+        throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class, String.class);
+    }
+
+    @Override
+    public @NotNull PlayerProfile createProfile(@NotNull String arg0) {
+        throw NotImplementedException.createByLazy(Server.class, "createProfile", String.class);
+    }
+
+    @Override
+    public int getCurrentTick() {
+        throw NotImplementedException.createByLazy(Server.class, "getCurrentTick");
+    }
+
+    @Override
+    public boolean isStopping() {
+        throw NotImplementedException.createByLazy(Server.class, "isStopping");
+    }
+
+    @Override
+    public @NotNull MobGoals getMobGoals() {
+        throw NotImplementedException.createByLazy(Server.class, "getMobGoals");
+    }
+
+    @Override
+    public @NotNull DatapackManager getDatapackManager() {
+        throw NotImplementedException.createByLazy(Server.class, "getDatapackManager");
+    }
+
+    @Override
+    public boolean hasWhitelist() {
+        throw NotImplementedException.createByLazy(Server.class, "hasWhitelist");
+    }
+
+    @Override
+    public void shutdown() {
+        this.spongeServer().shutdown();
+    }
+
+    @Deprecated
+    @Override
+    public @NotNull UnsafeValues getUnsafe() {
+        return this.unsafeValues.get();
+    }
+
+    @Override
+    public @NotNull java.util.logging.Logger getLogger() {
+        return java.util.logging.Logger.getLogger("soak");
+    }
+
+    @Deprecated
+    @Override
+    public int broadcast(@NotNull String arg0, @NotNull String arg1) {
+        return broadcast(SoakMessageMap.mapToComponent(arg0), arg1);
+    }
+
+    @Override
+    public int broadcast(@NotNull Component arg0, @NotNull String arg1) {
+        throw NotImplementedException.createByLazy(Server.class, "broadcast", Component.class, String.class);
+    }
+
+    @Override
+    public int broadcast(@NotNull Component message) {
+        Audience audience = this.spongeServer().broadcastAudience();
+        Unfinal<Integer> count = new Unfinal<>(0);
+        audience.forEachAudience((au) -> count.set(count.get() + 1));
+        audience.sendMessage(message);
+        return count.get();
+    }
+
+    @Override
+    public @NotNull Iterable<? extends Audience> audiences() {
+        return this.spongeServer().audiences();
+    }
+
+    @Override
+    public void sendPluginMessage(@NotNull Plugin source, @NotNull String channel, byte[] message) {
+        throw NotImplementedException.createByLazy(Server.class, "sendPluginMessage", Plugin.class, String.class, byte[].class);
+    }
+
+    @Override
+    public @NotNull Set<String> getListeningPluginChannels() {
+        throw NotImplementedException.createByLazy(Server.class, "getListeningPluginChannels");
+    }
+}
