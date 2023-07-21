@@ -10,3 +10,4 @@
 rootProject.name = "soak"
 include("plugin")
 include("bukkit-api")
+include("VanillaMaterials")

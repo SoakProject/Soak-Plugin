@@ -3,6 +3,7 @@ package org.soak.impl.command;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.PluginCommand;
 import org.soak.map.SoakMessageMap;
+import org.soak.map.SoakSubjectMap;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandCompletion;
@@ -18,27 +19,33 @@ import java.util.stream.Collectors;
 
 public class BukkitRawCommand implements Command.Raw {
 
-    private final PluginCommand command;
+    private final org.bukkit.command.Command command;
 
 
-    public BukkitRawCommand(PluginCommand command) {
+    public BukkitRawCommand(org.bukkit.command.Command command) {
         this.command = command;
     }
 
     @Override
     public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) throws CommandException {
-        return null;
+        String command = cause.context().get(EventContextKeys.COMMAND).orElse("");
+        String[] args = arguments.input().split(" ");
+        boolean result = this.command.execute(SoakSubjectMap.mapToBukkit(cause.subject()), command, args);
+        return result ? CommandResult.success() : CommandResult.error(this.usage(cause));
     }
 
     @Override
     public List<CommandCompletion> complete(CommandCause cause, ArgumentReader.Mutable arguments) throws CommandException {
-        if (this.command.getTabCompleter() == null) {
+        if (!(this.command instanceof PluginCommand plCmd)) {
+            return Collections.emptyList();
+        }
+        if (plCmd.getTabCompleter() == null) {
             return Collections.emptyList();
         }
         String command = cause.context().get(EventContextKeys.COMMAND).orElse("");
         String[] args = arguments.input().split(" ");
 
-        List<String> commands = this.command.getTabCompleter().onTabComplete(null, this.command, command, args);
+        List<String> commands = plCmd.getTabCompleter().onTabComplete(SoakSubjectMap.mapToBukkit(cause.subject()), this.command, command, args);
         if (commands == null) {
             return Collections.emptyList();
         }

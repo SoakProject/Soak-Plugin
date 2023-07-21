@@ -8,12 +8,14 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.sponge.SoakPluginContainer;
 import org.spongepowered.api.plugin.PluginManager;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Supplier;
@@ -22,6 +24,7 @@ public class SoakPluginManager implements SimpPluginManager {
 
     private final Supplier<PluginManager> spongePluginManager;
     private final Collection<PluginLoader> loaders = new LinkedTransferQueue<>();
+    private final Collection<EventSingleListenerWrapper<?>> events = new HashSet<>();
 
     public SoakPluginManager(Supplier<PluginManager> manager) {
         this.spongePluginManager = manager;
@@ -61,22 +64,44 @@ public class SoakPluginManager implements SimpPluginManager {
 
     @Override
     public @NotNull Plugin[] getPlugins() {
-        return this.spongeManager().plugins().stream().filter(container -> container instanceof SoakPluginContainer).map(container -> ((SoakPluginContainer) container).instance()).toArray(Plugin[]::new);
+        return this
+                .spongeManager()
+                .plugins()
+                .stream()
+                .filter(container -> container instanceof SoakPluginContainer)
+                .map(container -> ((SoakPluginContainer) container).plugin())
+                .toArray(Plugin[]::new);
     }
 
     @Override
     public void callEvent(@NotNull Event event) throws IllegalStateException {
-        throw NotImplementedException.createByLazy(SoakPluginManager.class, "callEvent", Event.class);
+        for (EventPriority priority : EventPriority.values()) {
+            this
+                    .events
+                    .stream()
+                    .filter(wrapper -> wrapper.event().getName().equals(event.getClass().getName()))
+                    .filter(wrapper -> wrapper.priority().equals(priority))
+                    .forEach(wrapper -> {
+                        callEvent(wrapper, event, priority);
+                    });
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends Event> void callEvent(EventSingleListenerWrapper<?> wrapper, T event, EventPriority priority) {
+        ((EventSingleListenerWrapper<T>) wrapper).invoke(event, priority);
     }
 
     @Override
     public void registerEvents(@NotNull Listener listener, @NotNull Plugin plugin) {
-        throw NotImplementedException.createByLazy(SoakPluginManager.class, "registerEvents", Listener.class, Plugin.class);
+        Collection<EventSingleListenerWrapper<?>> events = EventSingleListenerWrapper.findEventHandlers(plugin, listener);
+        this.events.addAll(events);
     }
 
     @Override
     public void registerEvent(@NotNull Class<? extends Event> event, @NotNull Listener listener, @NotNull EventPriority priority, @NotNull EventExecutor executor, @NotNull Plugin plugin, boolean ignoreCancelled) {
-        throw NotImplementedException.createByLazy(SoakPluginManager.class, "registerEvent", Class.class, Listener.class, EventPriority.class, EventExecutor.class, Plugin.class, boolean.class);
+        EventSingleListenerWrapper<?> wrapper = new EventSingleListenerWrapper<>(listener, plugin, event, priority, ignoreCancelled);
+        this.events.add(wrapper);
     }
 
     @Override

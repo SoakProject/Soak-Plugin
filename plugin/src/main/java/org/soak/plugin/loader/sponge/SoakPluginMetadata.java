@@ -1,8 +1,8 @@
 package org.soak.plugin.loader.sponge;
 
 import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.VersionRange;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.utils.StringHelper;
 import org.spongepowered.plugin.metadata.Container;
@@ -12,18 +12,19 @@ import org.spongepowered.plugin.metadata.model.PluginContributor;
 import org.spongepowered.plugin.metadata.model.PluginDependency;
 import org.spongepowered.plugin.metadata.model.PluginLinks;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SoakPluginMetadata implements PluginMetadata {
 
-    private Plugin plugin;
     private final ArtifactVersion artifactVersion;
+    private Plugin plugin;
+    private SoakPluginContainer container;
 
     private SoakPluginMetadata(Plugin plugin,
-            ArtifactVersion artifactVersion
+                               ArtifactVersion artifactVersion
     ) {
         this.plugin = plugin;
         this.artifactVersion = artifactVersion;
@@ -56,7 +57,8 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     @Override
     public Optional<String> description() {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        String description = this.plugin.getDescription().getDescription();
+        return Optional.ofNullable(description);
     }
 
     @Override
@@ -66,36 +68,113 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     @Override
     public PluginBranding branding() {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        return new PluginBranding() {
+
+            @Override
+            public Optional<String> icon() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<String> logo() {
+                return Optional.empty();
+            }
+        };
     }
 
     @Override
     public PluginLinks links() {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        return new PluginLinks() {
+            @Override
+            public Optional<URL> homepage() {
+                return Optional.ofNullable(plugin.getDescription().getWebsite()).flatMap(web -> {
+                    try {
+                        return Optional.of(new URL(web));
+                    } catch (MalformedURLException e) {
+                        return Optional.empty();
+                    }
+                });
+            }
+
+            @Override
+            public Optional<URL> source() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<URL> issues() {
+                return Optional.empty();
+            }
+        };
     }
 
     @Override
     public List<PluginContributor> contributors() {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        return this.plugin.getDescription().getContributors().stream().map(name -> {
+            return new PluginContributor() {
+                @Override
+                public String name() {
+                    return name;
+                }
+
+                @Override
+                public Optional<String> description() {
+                    return Optional.empty();
+                }
+            };
+        }).collect(Collectors.toList());
     }
 
     @Override
     public Optional<PluginDependency> dependency(String id) {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        return dependencies().stream().filter(pd -> pd.id().equals(id)).findFirst();
     }
 
     @Override
     public Set<PluginDependency> dependencies() {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        Set<PluginDependency> hardDepends = this.plugin.getDescription().getDepend().stream().map(name -> new BukkitPluginDependency(name, true, false)).collect(Collectors.toSet());
+        Set<PluginDependency> softDepends = this.plugin.getDescription().getSoftDepend().stream().map(name -> new BukkitPluginDependency(name, false, false)).collect(Collectors.toSet());
+        Set<PluginDependency> beforeDepends = this.plugin.getDescription().getLoadBefore().stream().map(name -> new BukkitPluginDependency(name, false, true)).collect(Collectors.toSet());
+
+        Set<PluginDependency> ret = new HashSet<>();
+        ret.addAll(hardDepends);
+        ret.addAll(softDepends);
+        ret.addAll(beforeDepends);
+        return ret;
     }
 
     @Override
     public <T> Optional<T> property(String key) {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        throw NotImplementedException.createByLazy(PluginMetadata.class, "property", String.class);
     }
 
     @Override
     public Map<String, Object> properties() {
-        throw NotImplementedException.createByLazy(PluginMetadata.class, "container");
+        throw NotImplementedException.createByLazy(PluginMetadata.class, "properties");
+    }
+
+    private record BukkitPluginDependency(String name, boolean hardDependency,
+                                          boolean loadBefore) implements PluginDependency {
+
+        @Override
+        public String id() {
+            return StringHelper.toId(name);
+        }
+
+        @Override
+        public VersionRange version() {
+            return VersionRange.createFromVersion("0.0.0");
+        }
+
+        @Override
+        public LoadOrder loadOrder() {
+            return this.loadBefore ? LoadOrder.BEFORE : LoadOrder.AFTER;
+        }
+
+        @Override
+        public boolean optional() {
+            return !this.hardDependency;
+        }
+
     }
 }

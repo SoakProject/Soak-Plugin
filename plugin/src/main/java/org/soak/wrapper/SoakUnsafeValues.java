@@ -6,6 +6,7 @@ import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.UnsafeValues;
@@ -181,7 +182,10 @@ public class SoakUnsafeValues implements UnsafeValues {
 
     @Override
     public boolean isSupportedApiVersion(String arg0) {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "isSupportedApiVersion", String.class);
+        //example: 1.19
+        DefaultArtifactVersion thisVersion = new DefaultArtifactVersion(arg0);
+        DefaultArtifactVersion minVersion = new DefaultArtifactVersion("1.13");
+        return thisVersion.compareTo(minVersion) >= 0;
     }
 
     @Override

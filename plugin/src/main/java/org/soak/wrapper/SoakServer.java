@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakMessageMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.plugin.loader.sponge.SoakPluginContainer;
 import org.soak.plugin.utils.Singleton;
 import org.soak.plugin.utils.Unfinal;
 import org.soak.wrapper.plugin.SoakPluginManager;
@@ -283,7 +284,19 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @Nullable PluginCommand getPluginCommand(@NotNull String name) {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getPluginCommand", String.class);
+        return Sponge
+                .pluginManager()
+                .plugins()
+                .stream()
+                .filter(pl -> pl instanceof SoakPluginContainer)
+                .sorted(Comparator.comparing(pl -> pl.metadata().id()))
+                .map(pl -> ((SoakPluginContainer) pl).instance())
+                .flatMap(pl -> pl.commands().stream())
+                .filter(cmd -> cmd.getName().equalsIgnoreCase(name))
+                .filter(cmd -> cmd instanceof PluginCommand)
+                .findFirst()
+                .map(cmd -> (PluginCommand)cmd)
+                .orElse(null);
     }
 
     @Override
