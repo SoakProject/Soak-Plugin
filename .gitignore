@@ -1,6 +1,7 @@
 */.idea/*.xml
 .idea/*.xml
 .gradle
+build
 */.idea/artifacts
 */.idea/modules
 */.name
