@@ -32,7 +32,7 @@ tasks.jar {
                 return@map zipTree(it)
             }
     from(fat).exclude {
-        return@exclude it.name.equals("JavaPluginLoader.class")
+        return@exclude it.name.equals("JavaPluginLoader.class") || it.name.equals("Material.class") || it.name.equals("EntityType.class")
     }
 }
 

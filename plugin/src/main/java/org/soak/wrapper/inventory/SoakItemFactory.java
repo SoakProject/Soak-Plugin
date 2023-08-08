@@ -11,7 +11,12 @@ import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.inventory.meta.AbstractItemMeta;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.inventory.ItemStackComparators;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 import java.util.Objects;
 import java.util.function.UnaryOperator;
@@ -33,7 +38,17 @@ public class SoakItemFactory implements ItemFactory {
 
     @Override
     public boolean equals(ItemMeta arg0, ItemMeta arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "equals", ItemMeta.class, ItemMeta.class);
+        if (arg0 == null && arg1 == null) {
+            return true;
+        }
+        if (arg0 == null) {
+            return false;
+        }
+        if (arg1 == null) {
+            return false;
+        }
+
+        return ItemStackComparators.IGNORE_SIZE.get().compare(SoakItemStackMap.toSponge(arg0), SoakItemStackMap.toSponge(arg1)) == 0;
     }
 
     @Override
@@ -43,7 +58,8 @@ public class SoakItemFactory implements ItemFactory {
 
     @Override
     public ItemMeta getItemMeta(@NotNull Material arg0) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "getItemMeta", Material.class);
+        ItemType type = arg0.asItem().orElseThrow(() -> new IllegalStateException("Material of " + arg0.name() + " is not a item"));
+        return SoakItemStackMap.toBukkitMeta(org.spongepowered.api.item.inventory.ItemStack.of(type));
     }
 
     @Override
@@ -51,25 +67,44 @@ public class SoakItemFactory implements ItemFactory {
         throw NotImplementedException.createByLazy(ItemFactory.class, "isApplicable", ItemMeta.class, ItemStack.class);
     }
 
+    private boolean isMetadataTypeApplicable(ItemMeta arg0, ItemMeta compare) {
+        Class<?> targetType = compare.getClass();
+        return arg0.getClass().isAssignableFrom(targetType);
+    }
+
     @Override
     public boolean isApplicable(ItemMeta arg0, Material arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "isApplicable", ItemMeta.class, Material.class);
+        return isMetadataTypeApplicable(arg0, this.getItemMeta(arg1));
     }
 
     @Override
     public ItemMeta asMetaFor(@NotNull ItemMeta arg0, @NotNull ItemStack arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "asMetaFor", ItemMeta.class, ItemStack.class);
+        ItemMeta stacksMeta = arg1.hasItemMeta() ? arg1.getItemMeta() : SoakItemStackMap.toBukkitMeta(org.spongepowered.api.item.inventory.ItemStack.of(arg1.getType().asItem().orElseThrow(() -> new RuntimeException("Material is not item in itemstack")), arg1.getAmount()));
+        if (!(stacksMeta instanceof AbstractItemMeta stacksSoakMeta)) {
+            throw new RuntimeException("An item meta was not of abstract type: From: " + stacksMeta.getClass().getSimpleName());
+        }
+        stacksSoakMeta.copyInto(arg0);
+        return stacksSoakMeta;
     }
 
     @Override
     public ItemMeta asMetaFor(@NotNull ItemMeta arg0, @NotNull Material arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "asMetaFor", ItemMeta.class, Material.class);
+        return asMetaFor(arg0, new ItemStack(arg1));
     }
 
-    @Deprecated
     @Override
     public @NotNull Material updateMaterial(@NotNull ItemMeta arg0, @NotNull Material arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "updateMaterial", ItemMeta.class, Material.class);
+        if (!(arg0 instanceof AbstractItemMeta abstractMeta)) {
+            throw new RuntimeException("ItemMeta is not extending AbstractItemMeta (" + arg0.getClass().getName() + ")");
+        }
+        abstractMeta.manipulate(container -> {
+            ItemType type = arg1.asItem().orElseThrow(() -> new RuntimeException("Material is not a item"));
+            if (container instanceof org.spongepowered.api.item.inventory.ItemStack stack) {
+                return org.spongepowered.api.item.inventory.ItemStack.builder().fromItemStack(stack).itemType(type).build();
+            }
+            return org.spongepowered.api.item.inventory.ItemStack.builder().fromSnapshot((ItemStackSnapshot) container).itemType(type).build().createSnapshot();
+        });
+        return arg1;
     }
 
     @Override

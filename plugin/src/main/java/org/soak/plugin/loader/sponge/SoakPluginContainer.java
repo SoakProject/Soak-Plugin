@@ -29,6 +29,10 @@ public class SoakPluginContainer implements PluginContainer {
         this.mainInstance = new SoakMainPluginWrapper(this);
     }
 
+    public File getPluginFile(){
+        return this.bukkitPluginFile;
+    }
+
     public Plugin plugin() {
         return this.plugin;
     }

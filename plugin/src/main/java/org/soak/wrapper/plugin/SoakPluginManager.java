@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;
 
 import java.io.File;
@@ -55,6 +56,17 @@ public class SoakPluginManager implements SimpPluginManager {
             throw ude;
         }
         throw (RuntimeException) e;
+    }
+
+    @Override
+    public boolean isPluginEnabled(@Nullable Plugin plugin) {
+        return Sponge
+                .pluginManager()
+                .plugins()
+                .stream()
+                .filter(container -> container instanceof SoakPluginContainer)
+                .map(container -> (SoakPluginContainer) container)
+                .anyMatch(container -> container.plugin().equals(plugin));
     }
 
     @Override

@@ -17,102 +17,103 @@ import java.util.function.Supplier;
 
 //dummy class -> Not meant for production use
 //look at vanillaMaterials or extended materials for actual implementation
-public interface Material {
+public abstract class Material {
 
-    Material AIR = null;
+    public static final Material AIR = null;
 
     static @Nullable Material getMaterial(@NotNull String name) {
         return null;
     }
 
-    static Material[] values() {
+    public static Material[] values() {
         return new Material[0];
     }
 
-    static @Nullable Material matchMaterial(@NotNull String name) {
+    public static @Nullable Material matchMaterial(@NotNull String name) {
         return null;
     }
 
-    static Optional<Material> getBlockMaterial(BlockType type) {
-        return Optional.empty();
+    public static @NotNull Material getBlockMaterial(BlockType type) {
+        throw new RuntimeException("This is a dummy class, something didn't go right in gradle");
     }
 
-    static Optional<Material> getBlockMaterial(Supplier<BlockType> type) {
-        return Optional.empty();
+    public static @NotNull Material getBlockMaterial(Supplier<BlockType> type) {
+        throw new RuntimeException("This is a dummy class, something didn't go right in gradle");
     }
 
-    static Optional<Material> getItemMaterial(ItemType type) {
-        return Optional.empty();
+    public static @NotNull Material getItemMaterial(ItemType type) {
+        throw new RuntimeException("This is a dummy class, something didn't go right in gradle");
     }
 
-    static Optional<Material> getItemMaterial(Supplier<ItemType> type) {
-        return Optional.empty();
+    public static @NotNull Material getItemMaterial(Supplier<ItemType> type) {
+        throw new RuntimeException("This is a dummy class, something didn't go right in gradle");
     }
 
-    Optional<BlockType> asBlock();
+    public abstract Optional<BlockType> asBlock();
 
-    Optional<ItemType> asItem();
+    public abstract Optional<ItemType> asItem();
 
-    BlockData createBlockData();
+    public abstract BlockData createBlockData();
 
-    BlockData createBlockData(@Nullable String data);
+    public abstract BlockData createBlockData(@Nullable String data);
 
-    BlockData createBlockData(@Nullable Consumer<BlockData> consumer);
+    public abstract BlockData createBlockData(@Nullable Consumer<BlockData> consumer);
 
-    float getBlastResistance();
+    public abstract float getBlastResistance();
 
     @Nullable
-    Material getCraftingRemainingItem();
+    public abstract Material getCraftingRemainingItem();
 
     //do not suggest below
     //@Deprecated @NotNull Class<? extends MaterialData> getData();
-    @NotNull EquipmentSlot getEquipmentSlot();
+    public abstract @NotNull EquipmentSlot getEquipmentSlot();
 
-    float getHardness();
+    public abstract float getHardness();
 
     //do not suggest below
     //@Deprecated int getId();
-    Multimap<Attribute, AttributeModifier> getItemAttributes(EquipmentSlot slot);
+    public abstract Multimap<Attribute, AttributeModifier> getItemAttributes(EquipmentSlot slot);
 
-    ItemRarity getItemRarity();
+    public abstract ItemRarity getItemRarity();
 
-    @NotNull NamespacedKey getKey();
+    public abstract @NotNull NamespacedKey getKey();
 
-    short getMaxDurability();
+    public abstract short getMaxDurability();
 
-    int getMaxStackSize();
-    String name();
+    public abstract int getMaxStackSize();
 
-    @NotNull String getTranslationKey();
+    public abstract String name();
 
-    boolean hasGravity();
+    public abstract @NotNull String getTranslationKey();
 
-    boolean isAir();
+    public abstract boolean hasGravity();
 
-    boolean isBlock();
+    public abstract boolean isAir();
 
-    boolean isBurnable();
+    public abstract boolean isBlock();
 
-    boolean isEdible();
+    public abstract boolean isBurnable();
 
-    boolean isEmpty();
+    public abstract boolean isEdible();
 
-    boolean isFlammable();
+    public abstract boolean isEmpty();
 
-    boolean isFuel();
+    public abstract boolean isFlammable();
 
-    boolean isInteractable();
+    public abstract boolean isFuel();
 
-    boolean isItem();
+    public abstract boolean isInteractable();
 
-    boolean isOccluding();
+    public abstract boolean isItem();
+
+    public abstract boolean isOccluding();
 
     @Deprecated
-    boolean isTransparent();
+    public abstract boolean isTransparent();
 
-    boolean isRecord();
+    public abstract boolean isRecord();
 
-    boolean isSolid();
+    public abstract boolean isSolid();
 
 
 }

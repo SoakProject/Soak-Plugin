@@ -354,9 +354,10 @@ public final class JavaPluginLoader implements PluginLoader {
             try {
                 jPlugin.setEnabled(true);
             } catch (Throwable ex) {
-                server.getLogger().log(Level.SEVERE, "Error occurred while enabling " + plugin.getDescription().getFullName() + " (Is it up to date?)", ex);
+                /*server.getLogger().log(Level.SEVERE, "Error occurred while enabling " + plugin.getDescription().getFullName() + " (Is it up to date?)", ex);
                 // Paper start - Disable plugins that fail to load
-                server.getPluginManager().disablePlugin(jPlugin, true); // Paper - close Classloader on disable - She's dead jim
+                server.getPluginManager().disablePlugin(jPlugin, true);*/ // Paper - close Classloader on disable - She's dead jim
+                SoakPlugin.plugin().displayError(ex, jPlugin);
                 return;
                 // Paper end
             }

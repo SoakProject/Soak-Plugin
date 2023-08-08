@@ -2,7 +2,10 @@ package org.soak.wrapper.entity;
 
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.EntityEffect;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.entity.Entity;
@@ -14,33 +17,40 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.Metadatable;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataHolder;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.soak.map.SoakDirectionMap;
 import org.soak.map.SoakMessageMap;
+import org.soak.map.SoakVectorMap;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.SoakWorld;
 import org.soak.wrapper.command.SoakCommandSender;
+import org.soak.wrapper.persistence.SoakMutablePersistentDataContainer;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.AABB;
+import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.Ticks;
+import org.spongepowered.api.world.server.ServerWorld;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public class SoakEntity extends SoakCommandSender implements Entity {
+public class SoakEntity<E extends org.spongepowered.api.entity.Entity> extends SoakCommandSender implements Entity {
 
-    private final org.spongepowered.api.entity.Entity entity;
+    private final E entity;
 
-    public SoakEntity(Subject subject, Audience audience, org.spongepowered.api.entity.Entity entity) {
+    public SoakEntity(Subject subject, Audience audience, E entity) {
         super(subject, audience);
         this.entity = entity;
     }
 
-    public org.spongepowered.api.entity.Entity spongeEntity() {
+    public E spongeEntity() {
         return this.entity;
     }
 
@@ -55,12 +65,12 @@ public class SoakEntity extends SoakCommandSender implements Entity {
     }
 
     @Override
-    public boolean hasMetadata(String arg0) {
+    public boolean hasMetadata(@NotNull String arg0) {
         throw NotImplementedException.createByLazy(Metadatable.class, "hasMetadata", String.class);
     }
 
     @Override
-    public void removeMetadata(String arg0, Plugin arg1) {
+    public void removeMetadata(@NotNull String arg0, @NotNull Plugin arg1) {
         throw NotImplementedException.createByLazy(Metadatable.class, "removeMetadata", String.class, Plugin.class);
     }
 
@@ -117,7 +127,7 @@ public class SoakEntity extends SoakCommandSender implements Entity {
 
     @Override
     public @NotNull World getWorld() {
-        throw NotImplementedException.createByLazy(Entity.class, "getWorld");
+        return new SoakWorld((ServerWorld) this.entity.world());
     }
 
     @Override
@@ -152,27 +162,32 @@ public class SoakEntity extends SoakCommandSender implements Entity {
 
     @Override
     public @NotNull Vector getVelocity() {
-        throw NotImplementedException.createByLazy(Entity.class, "getVelocity");
+        return SoakVectorMap.toBukkit(this.entity.velocity().get());
     }
 
     @Override
     public void setVelocity(@NotNull Vector arg0) {
-        throw NotImplementedException.createByLazy(Entity.class, "setVelocity", Vector.class);
+        this.entity.offer(Keys.VELOCITY, SoakVectorMap.to3d(arg0));
     }
 
     @Override
     public double getHeight() {
-        throw NotImplementedException.createByLazy(Entity.class, "getHeight");
+        return this.entity.boundingBox().map(box -> box.size().z()).orElse(-1.0);
     }
 
     @Override
     public double getWidth() {
-        throw NotImplementedException.createByLazy(Entity.class, "getWidth");
+        return this.entity.boundingBox().map(box -> box.size().x()).orElse(-1.0);
     }
 
     @Override
     public @NotNull BoundingBox getBoundingBox() {
-        throw NotImplementedException.createByLazy(Entity.class, "getBoundingBox");
+        Optional<AABB> opBoundingBox = this.entity.boundingBox();
+        if (opBoundingBox.isEmpty()) {
+            throw new RuntimeException("Entity of " + this.getType().name() + " does not have a bounding box");
+        }
+        AABB box = opBoundingBox.get();
+        return BoundingBox.of(SoakVectorMap.toBukkit(box.min()), SoakVectorMap.toBukkit(box.max()));
     }
 
     @Override
@@ -218,11 +233,6 @@ public class SoakEntity extends SoakCommandSender implements Entity {
     @Override
     public boolean isValid() {
         throw NotImplementedException.createByLazy(Entity.class, "isValid");
-    }
-
-    @Override
-    public @NotNull Server getServer() {
-        return Bukkit.getServer();
     }
 
     @Override
@@ -406,7 +416,9 @@ public class SoakEntity extends SoakCommandSender implements Entity {
 
     @Override
     public @NotNull BlockFace getFacing() {
-        throw NotImplementedException.createByLazy(Entity.class, "getFacing");
+        var rotation = this.entity.rotation();
+        var direction = Direction.closestHorizontal(rotation);
+        return SoakDirectionMap.toBukkit(direction);
     }
 
     @Override
@@ -471,6 +483,6 @@ public class SoakEntity extends SoakCommandSender implements Entity {
 
     @Override
     public @NotNull PersistentDataContainer getPersistentDataContainer() {
-        throw NotImplementedException.createByLazy(PersistentDataHolder.class, "getPersistentDataContainer");
+        return new SoakMutablePersistentDataContainer<>(this.entity);
     }
 }

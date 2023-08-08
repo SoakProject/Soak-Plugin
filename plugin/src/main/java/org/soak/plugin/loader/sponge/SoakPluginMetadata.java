@@ -3,6 +3,7 @@ package org.soak.plugin.loader.sponge;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.bukkit.plugin.Plugin;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.utils.StringHelper;
 import org.spongepowered.plugin.metadata.Container;
@@ -140,6 +141,8 @@ public class SoakPluginMetadata implements PluginMetadata {
         ret.addAll(hardDepends);
         ret.addAll(softDepends);
         ret.addAll(beforeDepends);
+
+        ret.add(new BukkitPluginDependency(SoakPlugin.plugin().container().metadata().id(), true, false));
         return ret;
     }
 

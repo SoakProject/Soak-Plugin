@@ -3,6 +3,7 @@ package org.soak.plugin.loader.sponge;
 import org.bukkit.command.PluginCommandYamlParser;
 import org.bukkit.plugin.Plugin;
 import org.soak.impl.command.BukkitRawCommand;
+import org.soak.plugin.SoakPlugin;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.Listener;
@@ -43,8 +44,11 @@ public class SoakMainPluginWrapper {
     @Listener
     public void onPluginLoad(StartingEngineEvent<Server> event) {
         Plugin plugin = this.pluginContainer.plugin();
-        plugin.onLoad();
-        plugin.getPluginLoader().enablePlugin(plugin);
-        plugin.onEnable();
+        try {
+            plugin.onLoad();
+            plugin.getPluginLoader().enablePlugin(plugin);
+        } catch (Throwable e) {
+            SoakPlugin.plugin().displayError(e, plugin);
+        }
     }
 }

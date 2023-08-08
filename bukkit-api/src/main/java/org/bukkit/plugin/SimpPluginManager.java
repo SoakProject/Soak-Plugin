@@ -25,13 +25,8 @@ public interface SimpPluginManager extends PluginManager {
     @Override
     @Deprecated
     default boolean isPluginEnabled(@NotNull String name) {
-        throw new NeverImplementException("isPluginEnabled");
-    }
-
-    @Override
-    @Deprecated
-    default boolean isPluginEnabled(@Nullable Plugin plugin) {
-        throw new NeverImplementException("isPluginEnabled");
+        Plugin plugin = this.getPlugin(name);
+        return isPluginEnabled(plugin);
     }
 
     @Override

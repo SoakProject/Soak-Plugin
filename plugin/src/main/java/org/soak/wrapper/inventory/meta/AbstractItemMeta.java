@@ -11,38 +11,76 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.tags.CustomItemTagContainer;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.SoakLogMessages;
 import org.soak.map.SoakMessageMap;
+import org.soak.map.item.EnchantmentTypeMap;
+import org.soak.map.item.SoakItemFlagMap;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.plugin.utils.DataHelper;
+import org.soak.wrapper.persistence.SoakImmutablePersistentDataContainer;
+import org.soak.wrapper.persistence.SoakMutablePersistentDataContainer;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.ListValue;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.data.value.ValueContainer;
 import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractItemMeta implements ItemMeta {
+public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     protected ValueContainer container;
 
-    public AbstractItemMeta(ItemStack stack) {
-        this.container = stack;
+    protected AbstractItemMeta(ValueContainer container) {
+        if (!(container instanceof ItemStack || container instanceof ItemStackSnapshot)) {
+            throw new RuntimeException("Must be either a ItemStack or ItemStackSnapshot");
+        }
+        this.container = container;
     }
 
-    public AbstractItemMeta(ItemStackSnapshot stack) {
-        this.container = stack;
+    public void manipulate(Function<ValueContainer, ValueContainer> function) {
+        this.container = function.apply(this.container);
+    }
+
+    public boolean isSnapshot() {
+        return this.container instanceof ItemStackSnapshot;
+    }
+
+    public void copyInto(ItemMeta meta) {
+        if (!(meta instanceof AbstractItemMeta into)) {
+            throw new RuntimeException("ItemMeta must implement AbstractItemMeta");
+        }
+        if (into.container instanceof ItemStack stack) {
+            this.container = DataHelper.copyInto(stack, this.asSnapshot());
+            return;
+        }
+        this.container = DataHelper.copyInto((ItemStackSnapshot) into.container, this.asSnapshot());
+    }
+
+    public ItemStack asStack() {
+        if (this.container instanceof ItemStack stack) {
+            return stack;
+        }
+        return ((ItemStackSnapshot) this.container).createStack();
+    }
+
+    public ItemStackSnapshot asSnapshot() {
+        if (this.container instanceof ItemStack stack) {
+            return stack.createSnapshot();
+        }
+        return ((ItemStackSnapshot) this.container);
     }
 
     protected ItemStackSnapshot copyToSnapshot() {
@@ -52,7 +90,7 @@ public abstract class AbstractItemMeta implements ItemMeta {
         return ((ItemStackSnapshot) this.container).copy();
     }
 
-    private <T> void set(@NotNull Key<Value<T>> key, @Nullable T value) {
+    protected <T> void set(@NotNull Key<Value<T>> key, @Nullable T value) {
         if (value == null) {
             remove(key);
             return;
@@ -61,10 +99,12 @@ public abstract class AbstractItemMeta implements ItemMeta {
             stack.offer(key, value);
             return;
         }
-        this.container = ((ItemStackSnapshot) this.container).with(key, value).orElseThrow(() -> new RuntimeException("Key of " + key.key().formatted() + " is not supported with ItemStackSnapshot"));
+        this.container = ((ItemStackSnapshot) this.container).with(key, value)
+                .orElseThrow(() -> new RuntimeException("Key of " + key.key()
+                        .formatted() + " is not supported with ItemStackSnapshot"));
     }
 
-    private <T> void setList(@NotNull Key<ListValue<T>> key, @Nullable List<T> value) {
+    protected <T> void setList(@NotNull Key<ListValue<T>> key, @Nullable List<T> value) {
         if (value == null) {
             remove(key);
             return;
@@ -73,7 +113,9 @@ public abstract class AbstractItemMeta implements ItemMeta {
             stack.offer(key, value);
             return;
         }
-        this.container = ((ItemStackSnapshot) this.container).with(key, value).orElseThrow(() -> new RuntimeException("Key of " + key.key().formatted() + " is not supported with ItemStackSnapshot"));
+        this.container = ((ItemStackSnapshot) this.container).with(key, value)
+                .orElseThrow(() -> new RuntimeException("Key of " + key.key()
+                        .formatted() + " is not supported with ItemStackSnapshot"));
     }
 
     private ItemType type() {
@@ -83,27 +125,29 @@ public abstract class AbstractItemMeta implements ItemMeta {
         return ((ItemStackSnapshot) this.container).type();
     }
 
-    private void remove(@NotNull Key<?> key) {
+    protected void remove(@NotNull Key<?> key) {
         if (this.container instanceof ItemStack stack) {
             stack.remove(key);
             return;
         }
-        this.container = ((ItemStackSnapshot) this.container).without(key).orElseThrow(() -> new RuntimeException("Key of " + key.key().formatted() + " is not supported with ItemStackSnapshot"));
+        this.container = ((ItemStackSnapshot) this.container).without(key)
+                .orElseThrow(() -> new RuntimeException("Key of " + key.key()
+                        .formatted() + " is not supported with ItemStackSnapshot"));
     }
 
     @Override
     public boolean hasDisplayName() {
-        return this.container.get(Keys.DISPLAY_NAME).isPresent();
+        return this.container.get(Keys.CUSTOM_NAME).isPresent();
     }
 
     @Override
     public @Nullable Component displayName() {
-        return this.container.get(Keys.DISPLAY_NAME).orElse(null);
+        return this.container.get(Keys.CUSTOM_NAME).orElse(null);
     }
 
     @Override
     public void displayName(@Nullable Component displayName) {
-        this.set(Keys.DISPLAY_NAME, displayName);
+        this.set(Keys.CUSTOM_NAME, displayName);
     }
 
     @Override
@@ -118,7 +162,7 @@ public abstract class AbstractItemMeta implements ItemMeta {
     @Override
     public void setDisplayName(@Nullable String name) {
         if (name == null) {
-            remove(Keys.DISPLAY_NAME);
+            remove(Keys.CUSTOM_NAME);
             return;
         }
         Component displayName = SoakMessageMap.mapToComponent(name);
@@ -132,7 +176,9 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public void setDisplayNameComponent(@Nullable BaseComponent[] component) {
-        throw NotImplementedException.createByLazy(AbstractItemMeta.class, "setDisplayNameComponent", BaseComponent.class);
+        throw NotImplementedException.createByLazy(AbstractItemMeta.class,
+                "setDisplayNameComponent",
+                BaseComponent.class);
     }
 
     @Override
@@ -197,7 +243,9 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public boolean hasCustomModelData() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "hasCustomModelData");
+        //throw NotImplementedException.createByLazy(ItemMeta.class, "hasCustomModelData");
+        //DOESN'T SUPPORT CUSTOM MODEL SO RETURN FALSE
+        return false;
     }
 
     @Override
@@ -207,7 +255,28 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public void setCustomModelData(@Nullable Integer data) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "setCustomModelData", Integer.class);
+        var stacktrace = Thread.currentThread().getStackTrace();
+        String className = null;
+        for (int i = 2; i < stacktrace.length; i++) {
+            String stackClass = stacktrace[i].getClassName();
+            if (stackClass.startsWith("org.soak")) {
+                continue;
+            }
+            if (stackClass.startsWith("org.bukkit")) {
+                continue;
+            }
+            if (stackClass.startsWith("java")) {
+                continue;
+            }
+            className = stackClass;
+            break;
+        }
+
+        if (!SoakLogMessages.hasSentCustomModelData(className)) {
+            System.err.println("A plugin (" + className + ") has attempted to set custom model data. This will not show on Soak");
+        }
+
+        //throw NotImplementedException.createByLazy(ItemMeta.class, "setCustomModelData", Integer.class);
     }
 
     @Override
@@ -217,27 +286,73 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public boolean hasEnchant(@NotNull Enchantment ench) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "hasEnchant", Enchantment.class);
+        var enchantmentType = EnchantmentTypeMap.toSponge(ench);
+        return this.container.get(Keys.APPLIED_ENCHANTMENTS)
+                .orElse(Collections.emptyList())
+                .stream()
+                .anyMatch(encha -> encha.type().equals(enchantmentType));
     }
 
     @Override
     public int getEnchantLevel(@NotNull Enchantment ench) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getEnchantLevel", Enchantment.class);
+        var enchantmentType = EnchantmentTypeMap.toSponge(ench);
+        var spongeEnchantments = this.container.get(Keys.APPLIED_ENCHANTMENTS).orElse(new LinkedList<>());
+        return spongeEnchantments.stream()
+                .filter(encha -> encha.type().equals(enchantmentType))
+                .findAny()
+                .map(org.spongepowered.api.item.enchantment.Enchantment::level)
+                .orElse(-1);
     }
 
     @Override
     public @NotNull Map<Enchantment, Integer> getEnchants() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getEnchants");
+        List<org.spongepowered.api.item.enchantment.Enchantment> spongeEnchantments = this.container.get(Keys.APPLIED_ENCHANTMENTS)
+                .orElse(new LinkedList<>());
+        return spongeEnchantments
+                .stream()
+                .collect(Collectors.toMap(ench -> EnchantmentTypeMap.toBukkit(ench.type()),
+                        org.spongepowered.api.item.enchantment.Enchantment::level));
     }
 
     @Override
     public boolean addEnchant(@NotNull Enchantment ench, int level, boolean ignoreLevelRestriction) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "addEnchant", Enchantment.class, int.class, boolean.class);
+        var enchantment = org.spongepowered.api.item.enchantment.Enchantment.of(EnchantmentTypeMap.toSponge(ench),
+                level);
+        return modifyEnchantments(enchantments -> {
+            enchantments.add(enchantment);
+            return enchantments;
+        });
+    }
+
+    private boolean modifyEnchantments(Function<List<org.spongepowered.api.item.enchantment.Enchantment>, List<org.spongepowered.api.item.enchantment.Enchantment>> apply) {
+        try {
+            List<org.spongepowered.api.item.enchantment.Enchantment> appliedEnchantments = this.container.get(Keys.APPLIED_ENCHANTMENTS)
+                    .orElse(new LinkedList<>());
+            List<org.spongepowered.api.item.enchantment.Enchantment> appliedChanges = apply.apply(appliedEnchantments);
+            this.setList(Keys.APPLIED_ENCHANTMENTS, appliedChanges);
+
+            if (this.container.supports(Keys.STORED_ENCHANTMENTS)) {
+                var storedEnchantments = this.container.get(Keys.STORED_ENCHANTMENTS).orElse(new LinkedList<>());
+                var storedChanges = apply.apply(storedEnchantments);
+                this.setList(Keys.STORED_ENCHANTMENTS, storedChanges);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean removeEnchant(@NotNull Enchantment ench) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "removeEnchant", Enchantment.class);
+        EnchantmentType type = EnchantmentTypeMap.toSponge(ench);
+        return modifyEnchantments(enchantments -> {
+            Collection<org.spongepowered.api.item.enchantment.Enchantment> toRemove = enchantments.stream()
+                    .filter(enchantment -> enchantment.type().equals(type))
+                    .collect(Collectors.toSet());
+            enchantments.removeAll(toRemove);
+            return enchantments;
+        });
     }
 
     @Override
@@ -247,22 +362,35 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public void addItemFlags(@NotNull ItemFlag... itemFlags) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "addItemFlags", ItemFlag.class);
+        modifyItemFlags(true, itemFlags);
     }
 
     @Override
     public void removeItemFlags(@NotNull ItemFlag... itemFlags) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "removeItemFlags", ItemFlag.class);
+        modifyItemFlags(false, itemFlags);
+    }
+
+    private void modifyItemFlags(boolean as, ItemFlag... itemFlags) {
+        for (ItemFlag flag : itemFlags) {
+            this.set(SoakItemFlagMap.toSponge(flag), as);
+        }
     }
 
     @Override
     public @NotNull Set<ItemFlag> getItemFlags() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getItemFlags");
+        return this.container.getKeys().stream().map(key -> {
+            try {
+                return SoakItemFlagMap.toBukkit(key);
+            } catch (RuntimeException e) {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     @Override
     public boolean hasItemFlag(@NotNull ItemFlag flag) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "hasItemFlags", ItemFlag.class);
+        Key<Value<Boolean>> key = SoakItemFlagMap.toSponge(flag);
+        return this.container.get(key).orElse(false);
     }
 
     @Override
@@ -303,7 +431,10 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public boolean addAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "addAttributeModifiers", Attribute.class, AttributeModifier.class);
+        throw NotImplementedException.createByLazy(ItemMeta.class,
+                "addAttributeModifiers",
+                Attribute.class,
+                AttributeModifier.class);
     }
 
     @Override
@@ -318,7 +449,10 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public boolean removeAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "removeAttributeModifier", Attribute.class, AttributeModifier.class);
+        throw NotImplementedException.createByLazy(ItemMeta.class,
+                "removeAttributeModifier",
+                Attribute.class,
+                AttributeModifier.class);
     }
 
     @Override
@@ -390,6 +524,32 @@ public abstract class AbstractItemMeta implements ItemMeta {
 
     @Override
     public @NotNull PersistentDataContainer getPersistentDataContainer() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getPersistentDataContainer");
+        if (this.container instanceof ItemStack stack) {
+            return new SoakMutablePersistentDataContainer<>(stack);
+        }
+        return new SoakImmutablePersistentDataContainer<>((ItemStackSnapshot) this.container);
     }
+
+    @Override
+    public boolean hasDamage() {
+        return getDamage() != 0;
+    }
+
+    @Override
+    public int getDamage() {
+        return this.container.getInt(Keys.MAX_DURABILITY).orElse(0) - this.container.getInt(Keys.ITEM_DURABILITY)
+                .orElse(0);
+    }
+
+    @Override
+    public void setDamage(int damage) {
+        int durability = this.container.getInt(Keys.MAX_DURABILITY).orElse(0) - damage;
+        if (durability < 0) {
+            return;
+        }
+        this.set(Keys.ITEM_DURABILITY, durability);
+    }
+
+    @Override
+    public abstract @NotNull AbstractItemMeta clone();
 }
