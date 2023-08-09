@@ -5,19 +5,49 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.soak.commands.SoakArguments;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.loader.sponge.SoakPluginContainer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.parameter.Parameter;
 
 import java.util.Comparator;
 
 public class SoakCommand {
 
+    private static Command.Parameterized createCommandsForCommand() {
+        Parameter.Value<SoakPluginContainer> pluginParameter = SoakArguments.soakPlugins(((context, pluginContainer) -> pluginContainer.plugin() instanceof JavaPlugin && !pluginContainer.plugin()
+                        .getDescription()
+                        .getCommands()
+                        .isEmpty()))
+                .key("plugin")
+                .build();
+        return Command.builder().addParameter(pluginParameter).executor(context -> {
+            SoakPluginContainer pluginContainer = context.requireOne(pluginParameter);
+            JavaPlugin plugin = (JavaPlugin) pluginContainer.plugin();
+            pluginContainer.plugin().getDescription().getCommands().keySet().forEach(cmdName -> {
+                PluginCommand pluginCommand = plugin.getCommand(cmdName);
+                if (pluginCommand == null) {
+                    SoakPlugin.plugin()
+                            .logger()
+                            .error("plugin (" + plugin.getName() + ") has " + cmdName + " as a command in it's plugin.yml yet cannot be found when receiving");
+                    return;
+                }
+                context.sendMessage(Identity.nil(),
+                        Component.text(pluginCommand.getName() + ": " + pluginCommand.getDescription() + ": " + pluginCommand.getUsage()));
+            });
+            return CommandResult.success();
+        }).build();
+    }
+
     private static Command.Parameterized createPluginsCommand() {
         return Command
                 .builder()
+                .addChild(createCommandsForCommand(), "commands")
                 .executor(context -> {
                     var plugins = Sponge
                             .pluginManager()
@@ -26,11 +56,14 @@ public class SoakCommand {
                             .filter(pc -> pc instanceof SoakPluginContainer)
                             .map(pc -> (SoakPluginContainer) pc)
                             .map(SoakPluginContainer::plugin)
-                            .sorted(Comparator.comparing(plugin -> ((JavaPlugin) plugin).isEnabled()).thenComparing(plugin -> ((JavaPlugin) plugin).getName()))
-                            .map(plugin -> Component.text(plugin.getName()).color(plugin.isEnabled() ? NamedTextColor.GREEN : NamedTextColor.RED))
+                            .sorted(Comparator.comparing(plugin -> ((JavaPlugin) plugin).isEnabled())
+                                    .thenComparing(plugin -> ((JavaPlugin) plugin).getName()))
+                            .map(plugin -> Component.text(plugin.getName())
+                                    .color(plugin.isEnabled() ? NamedTextColor.GREEN : NamedTextColor.RED))
                             .toList();
 
-                    Component pluginsLine = Component.join(JoinConfiguration.separator(Component.text(",    ")), plugins);
+                    Component pluginsLine = Component.join(JoinConfiguration.separator(Component.text(",    ")),
+                            plugins);
 
                     context.cause().sendMessage(Identity.nil(), Component
                             .text("(" + plugins.size() + ")")

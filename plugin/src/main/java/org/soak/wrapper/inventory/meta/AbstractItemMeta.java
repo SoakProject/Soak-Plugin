@@ -17,7 +17,6 @@ import org.bukkit.inventory.meta.tags.CustomItemTagContainer;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.soak.SoakLogMessages;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.item.EnchantmentTypeMap;
 import org.soak.map.item.SoakItemFlagMap;
@@ -243,40 +242,24 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public boolean hasCustomModelData() {
-        //throw NotImplementedException.createByLazy(ItemMeta.class, "hasCustomModelData");
-        //DOESN'T SUPPORT CUSTOM MODEL SO RETURN FALSE
-        return false;
+        return this.container.get(Keys.CUSTOM_MODEL_DATA).isPresent();
     }
 
     @Override
     public int getCustomModelData() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getCustomModelData");
+        return this.container.get(Keys.CUSTOM_MODEL_DATA).orElse(-1);
     }
 
     @Override
     public void setCustomModelData(@Nullable Integer data) {
-        var stacktrace = Thread.currentThread().getStackTrace();
-        String className = null;
-        for (int i = 2; i < stacktrace.length; i++) {
-            String stackClass = stacktrace[i].getClassName();
-            if (stackClass.startsWith("org.soak")) {
-                continue;
-            }
-            if (stackClass.startsWith("org.bukkit")) {
-                continue;
-            }
-            if (stackClass.startsWith("java")) {
-                continue;
-            }
-            className = stackClass;
-            break;
+        if (this.container instanceof ItemStackSnapshot) {
+            return; //not supported on snapshot -> maybe a issue
         }
-
-        if (!SoakLogMessages.hasSentCustomModelData(className)) {
-            System.err.println("A plugin (" + className + ") has attempted to set custom model data. This will not show on Soak");
+        if (data == null) {
+            this.remove(Keys.CUSTOM_MODEL_DATA);
+            return;
         }
-
-        //throw NotImplementedException.createByLazy(ItemMeta.class, "setCustomModelData", Integer.class);
+        this.set(Keys.CUSTOM_MODEL_DATA, data);
     }
 
     @Override

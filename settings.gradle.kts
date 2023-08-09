@@ -11,3 +11,5 @@ rootProject.name = "soak"
 include("plugin")
 include("bukkit-api")
 include("VanillaMaterials")
+include("nms-bounce")
+include("nms-replicate")

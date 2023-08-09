@@ -39,18 +39,25 @@ import org.soak.plugin.utils.Singleton;
 import org.soak.plugin.utils.Unfinal;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
+import org.soak.wrapper.inventory.SoakComplexRecipe;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.recipe.RecipeTypes;
 import org.spongepowered.api.item.recipe.cooking.CookingRecipe;
 import org.spongepowered.api.item.recipe.crafting.Ingredient;
 import org.spongepowered.api.item.recipe.crafting.ShapedCraftingRecipe;
 import org.spongepowered.api.item.recipe.crafting.ShapelessCraftingRecipe;
+import org.spongepowered.api.item.recipe.crafting.SpecialCraftingRecipe;
 import org.spongepowered.api.item.recipe.single.StoneCutterRecipe;
 import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.tag.BlockTypeTags;
+import org.spongepowered.api.tag.FluidTypeTags;
+import org.spongepowered.api.tag.ItemTypeTags;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -102,6 +109,65 @@ public class SoakServer implements SimpServer {
                         opTag.get().values().stream().map(EntityType::fromSponge).collect(Collectors.toList()));
             }
         }
+
+
+        //overrides
+        if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:coral_blocks")) {
+            return (Tag<T>) (Object) new MaterialSetTag(tag,
+                    ItemTypes.registry()
+                            .stream()
+                            .filter(item -> item.key(RegistryTypes.ITEM_TYPE).value().contains("coral_blocks"))
+                            .map(item -> Material.getItemMaterial(item))
+                            .toList());
+        }
+
+        if (registry.equals(Tag.REGISTRY_BLOCKS) && tag.asString()
+                .equals("minecraft:wool_carpets")) {
+            Set<Material> itemTypes = BlockTypeTags.CARPETS.get()
+                    .values()
+                    .stream()
+                    .map(blockType -> Material.getBlockMaterial(blockType))
+                    .collect(
+                            Collectors.toSet());
+            return (Tag<T>) (Object) new MaterialSetTag(tag, itemTypes);
+        }
+
+        if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:wool_carpets")) {
+            Set<Material> itemTypes = ItemTypeTags.CARPETS.get()
+                    .values()
+                    .stream()
+                    .map(itemType -> Material.getItemMaterial(itemType))
+                    .collect(
+                            Collectors.toSet());
+            return (Tag<T>) (Object) new MaterialSetTag(tag, itemTypes);
+
+        }
+
+        if (registry.equals(Tag.REGISTRY_FLUIDS) && tag.asString().equals("minecraft:water")) {
+            return (Tag<T>) (Object) new SoakFluidTag(FluidTypeTags.WATER.get());
+        }
+
+        if (registry.equals(Tag.REGISTRY_FLUIDS) && tag.asString().equals("minecraft:lava")) {
+            return (Tag<T>) (Object) new SoakFluidTag(FluidTypeTags.LAVA.get());
+        }
+
+        if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:crops")) {
+            var items = ItemTypes.registry()
+                    .stream()
+                    .filter(item -> org.spongepowered.api.item.inventory.ItemStack.of(item).get(Keys.REPLENISHED_FOOD).isPresent())
+                    .map(Material::getItemMaterial)
+                    .collect(Collectors.toSet());
+            return (Tag<T>) (Object) new MaterialSetTag(tag, items);
+        }
+        if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:furnace_materials")) {
+            var items = ItemTypes.registry()
+                    .stream()
+                    .filter(item -> org.spongepowered.api.item.inventory.ItemStack.of(item).get(Keys.MAX_COOK_TIME).isPresent())
+                    .map(Material::getItemMaterial)
+                    .collect(Collectors.toSet());
+            return (Tag<T>) (Object) new MaterialSetTag(tag, items);
+        }
+
 
         System.err.println("No tag found of registry: '" + registry + "' Type: " + clazz.getSimpleName() + " id: " + tag.asString());
         return null;
@@ -388,8 +454,9 @@ public class SoakServer implements SimpServer {
                 .all()
                 .stream()
                 .<Recipe>map(recipe -> {
+                    NamespacedKey key;
                     try {
-                        var key = SoakResourceKeyMap.mapToBukkit(recipe.key());
+                        key = SoakResourceKeyMap.mapToBukkit(recipe.key());
                     } catch (AbstractMethodError e) {
                         return null;
                     }
@@ -432,6 +499,10 @@ public class SoakServer implements SimpServer {
                         return new StonecuttingRecipe(key, result, input);
                     }
 
+                    if (recipe instanceof SpecialCraftingRecipe specialCrafting) {
+                        return new SoakComplexRecipe(specialCrafting);
+                    }
+
 
                     if (recipe instanceof ShapedCraftingRecipe shapedCrafting) {
                         var shaped = new ShapedRecipe(key, result);
@@ -469,7 +540,7 @@ public class SoakServer implements SimpServer {
                     }
                     throw new RuntimeException("Unknown mapping for recipetype " + recipe.type()
                             .key(RegistryTypes.RECIPE_TYPE)
-                            .formatted());
+                            .formatted() + ": " + recipe.getClass().getName());
                 })
                 .filter(Objects::nonNull)
                 .iterator();

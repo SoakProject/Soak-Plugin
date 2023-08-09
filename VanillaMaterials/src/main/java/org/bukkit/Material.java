@@ -13,8 +13,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.Constants;
 import org.soak.map.SoakResourceKeyMap;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.block.data.AbstractBlockData;
 import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.Keys;
@@ -22,8 +25,10 @@ import org.spongepowered.api.data.type.MatterTypes;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.state.StateContainer;
 import org.spongepowered.api.tag.ItemTypeTags;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -229,7 +234,8 @@ public enum Material {
     DARK_OAK_PRESSURE_PLATE(BlockTypes.DARK_OAK_PRESSURE_PLATE, ItemTypes.DARK_OAK_PRESSURE_PLATE),
     CRIMSON_PRESSURE_PLATE(BlockTypes.CRIMSON_PRESSURE_PLATE, ItemTypes.CRIMSON_PRESSURE_PLATE),
     WARPED_PRESSURE_PLATE(BlockTypes.WARPED_PRESSURE_PLATE, ItemTypes.WARPED_PRESSURE_PLATE),
-    POLISHED_BLACKSTONE_PRESSURE_PLATE(BlockTypes.POLISHED_BLACKSTONE_PRESSURE_PLATE, ItemTypes.POLISHED_BLACKSTONE_PRESSURE_PLATE),
+    POLISHED_BLACKSTONE_PRESSURE_PLATE(BlockTypes.POLISHED_BLACKSTONE_PRESSURE_PLATE,
+            ItemTypes.POLISHED_BLACKSTONE_PRESSURE_PLATE),
     REDSTONE_ORE(BlockTypes.REDSTONE_ORE, ItemTypes.REDSTONE_ORE),
     REDSTONE_TORCH(BlockTypes.REDSTONE_TORCH, ItemTypes.REDSTONE_TORCH),
     SNOW(BlockTypes.SNOW, ItemTypes.SNOW),
@@ -1003,110 +1009,116 @@ public enum Material {
     CHISELED_POLISHED_BLACKSTONE(BlockTypes.CHISELED_POLISHED_BLACKSTONE, ItemTypes.CHISELED_POLISHED_BLACKSTONE),
     POLISHED_BLACKSTONE_BRICKS(BlockTypes.POLISHED_BLACKSTONE_BRICKS, ItemTypes.POLISHED_BLACKSTONE_BRICKS),
     POLISHED_BLACKSTONE_BRICK_SLAB(BlockTypes.POLISHED_BLACKSTONE_BRICK_SLAB, ItemTypes.POLISHED_BLACKSTONE_BRICK_SLAB),
-    POLISHED_BLACKSTONE_BRICK_STAIRS(BlockTypes.POLISHED_BLACKSTONE_BRICK_STAIRS, ItemTypes.POLISHED_BLACKSTONE_BRICK_STAIRS),
-    CRACKED_POLISHED_BLACKSTONE_BRICKS(BlockTypes.CRACKED_POLISHED_BLACKSTONE_BRICKS, ItemTypes.CRACKED_POLISHED_BLACKSTONE_BRICKS),
+    POLISHED_BLACKSTONE_BRICK_STAIRS(BlockTypes.POLISHED_BLACKSTONE_BRICK_STAIRS,
+            ItemTypes.POLISHED_BLACKSTONE_BRICK_STAIRS),
+    CRACKED_POLISHED_BLACKSTONE_BRICKS(BlockTypes.CRACKED_POLISHED_BLACKSTONE_BRICKS,
+            ItemTypes.CRACKED_POLISHED_BLACKSTONE_BRICKS),
     RESPAWN_ANCHOR(BlockTypes.RESPAWN_ANCHOR, ItemTypes.RESPAWN_ANCHOR),
-    WATER(BlockTypes.WATER, null),
-    LAVA(BlockTypes.LAVA, null),
-    TALL_SEAGRASS(BlockTypes.TALL_SEAGRASS, null),
-    PISTON_HEAD(BlockTypes.PISTON_HEAD, null),
-    MOVING_PISTON(BlockTypes.MOVING_PISTON, null),
-    WALL_TORCH(BlockTypes.WALL_TORCH, null),
-    FIRE(BlockTypes.FIRE, null),
-    SOUL_FIRE(BlockTypes.SOUL_FIRE, null),
-    REDSTONE_WIRE(BlockTypes.REDSTONE_WIRE, null),
-    OAK_WALL_SIGN(BlockTypes.OAK_WALL_SIGN, null),
-    SPRUCE_WALL_SIGN(BlockTypes.SPRUCE_WALL_SIGN, null),
-    BIRCH_WALL_SIGN(BlockTypes.BIRCH_WALL_SIGN, null),
-    ACACIA_WALL_SIGN(BlockTypes.ACACIA_WALL_SIGN, null),
-    JUNGLE_WALL_SIGN(BlockTypes.JUNGLE_WALL_SIGN, null),
-    DARK_OAK_WALL_SIGN(BlockTypes.DARK_OAK_WALL_SIGN, null),
-    REDSTONE_WALL_TORCH(BlockTypes.REDSTONE_WALL_TORCH, null),
-    SOUL_WALL_TORCH(BlockTypes.SOUL_WALL_TORCH, null),
-    NETHER_PORTAL(BlockTypes.NETHER_PORTAL, null),
-    ATTACHED_PUMPKIN_STEM(BlockTypes.ATTACHED_PUMPKIN_STEM, null),
-    ATTACHED_MELON_STEM(BlockTypes.ATTACHED_MELON_STEM, null),
-    PUMPKIN_STEM(BlockTypes.PUMPKIN_STEM, null),
-    MELON_STEM(BlockTypes.MELON_STEM, null),
-    END_PORTAL(BlockTypes.END_PORTAL, null),
-    COCOA(BlockTypes.COCOA, null),
-    TRIPWIRE(BlockTypes.TRIPWIRE, null),
-    POTTED_OAK_SAPLING(BlockTypes.POTTED_OAK_SAPLING, null),
-    POTTED_SPRUCE_SAPLING(BlockTypes.POTTED_SPRUCE_SAPLING, null),
-    POTTED_BIRCH_SAPLING(BlockTypes.POTTED_BIRCH_SAPLING, null),
-    POTTED_JUNGLE_SAPLING(BlockTypes.POTTED_JUNGLE_SAPLING, null),
-    POTTED_ACACIA_SAPLING(BlockTypes.POTTED_ACACIA_SAPLING, null),
-    POTTED_DARK_OAK_SAPLING(BlockTypes.POTTED_DARK_OAK_SAPLING, null),
-    POTTED_FERN(BlockTypes.POTTED_FERN, null),
-    POTTED_DANDELION(BlockTypes.POTTED_DANDELION, null),
-    POTTED_POPPY(BlockTypes.POTTED_POPPY, null),
-    POTTED_BLUE_ORCHID(BlockTypes.POTTED_BLUE_ORCHID, null),
-    POTTED_ALLIUM(BlockTypes.POTTED_ALLIUM, null),
-    POTTED_AZURE_BLUET(BlockTypes.POTTED_AZURE_BLUET, null),
-    POTTED_RED_TULIP(BlockTypes.POTTED_RED_TULIP, null),
-    POTTED_ORANGE_TULIP(BlockTypes.POTTED_ORANGE_TULIP, null),
-    POTTED_WHITE_TULIP(BlockTypes.POTTED_WHITE_TULIP, null),
-    POTTED_PINK_TULIP(BlockTypes.POTTED_PINK_TULIP, null),
-    POTTED_OXEYE_DAISY(BlockTypes.POTTED_OXEYE_DAISY, null),
-    POTTED_CORNFLOWER(BlockTypes.POTTED_CORNFLOWER, null),
-    POTTED_LILY_OF_THE_VALLEY(BlockTypes.POTTED_LILY_OF_THE_VALLEY, null),
-    POTTED_WITHER_ROSE(BlockTypes.POTTED_WITHER_ROSE, null),
-    POTTED_RED_MUSHROOM(BlockTypes.POTTED_RED_MUSHROOM, null),
-    POTTED_BROWN_MUSHROOM(BlockTypes.POTTED_BROWN_MUSHROOM, null),
-    POTTED_DEAD_BUSH(BlockTypes.POTTED_DEAD_BUSH, null),
-    POTTED_CACTUS(BlockTypes.POTTED_CACTUS, null),
-    CARROTS(BlockTypes.CARROTS, null),
-    POTATOES(BlockTypes.POTATOES, null),
-    SKELETON_WALL_SKULL(BlockTypes.SKELETON_WALL_SKULL, null),
-    WITHER_SKELETON_WALL_SKULL(BlockTypes.WITHER_SKELETON_WALL_SKULL, null),
-    ZOMBIE_WALL_HEAD(BlockTypes.ZOMBIE_WALL_HEAD, null),
-    PLAYER_WALL_HEAD(BlockTypes.PLAYER_WALL_HEAD, null),
-    CREEPER_WALL_HEAD(BlockTypes.CREEPER_WALL_HEAD, null),
-    DRAGON_WALL_HEAD(BlockTypes.DRAGON_WALL_HEAD, null),
-    WHITE_WALL_BANNER(BlockTypes.WHITE_WALL_BANNER, null),
-    ORANGE_WALL_BANNER(BlockTypes.ORANGE_WALL_BANNER, null),
-    MAGENTA_WALL_BANNER(BlockTypes.MAGENTA_WALL_BANNER, null),
-    LIGHT_BLUE_WALL_BANNER(BlockTypes.LIGHT_BLUE_WALL_BANNER, null),
-    YELLOW_WALL_BANNER(BlockTypes.YELLOW_WALL_BANNER, null),
-    LIME_WALL_BANNER(BlockTypes.LIME_WALL_BANNER, null),
-    PINK_WALL_BANNER(BlockTypes.PINK_WALL_BANNER, null),
-    GRAY_WALL_BANNER(BlockTypes.GRAY_WALL_BANNER, null),
-    LIGHT_GRAY_WALL_BANNER(BlockTypes.LIGHT_GRAY_WALL_BANNER, null),
-    CYAN_WALL_BANNER(BlockTypes.CYAN_WALL_BANNER, null),
-    PURPLE_WALL_BANNER(BlockTypes.PURPLE_WALL_BANNER, null),
-    BLUE_WALL_BANNER(BlockTypes.BLUE_WALL_BANNER, null),
-    BROWN_WALL_BANNER(BlockTypes.BROWN_WALL_BANNER, null),
-    GREEN_WALL_BANNER(BlockTypes.GREEN_WALL_BANNER, null),
-    RED_WALL_BANNER(BlockTypes.RED_WALL_BANNER, null),
-    BLACK_WALL_BANNER(BlockTypes.BLACK_WALL_BANNER, null),
-    BEETROOTS(BlockTypes.BEETROOTS, null),
-    END_GATEWAY(BlockTypes.END_GATEWAY, null),
-    FROSTED_ICE(BlockTypes.FROSTED_ICE, null),
-    KELP_PLANT(BlockTypes.KELP_PLANT, null),
-    DEAD_TUBE_CORAL_WALL_FAN(BlockTypes.DEAD_TUBE_CORAL_WALL_FAN, null),
-    DEAD_BRAIN_CORAL_WALL_FAN(BlockTypes.DEAD_BRAIN_CORAL_WALL_FAN, null),
-    DEAD_BUBBLE_CORAL_WALL_FAN(BlockTypes.DEAD_BUBBLE_CORAL_WALL_FAN, null),
-    DEAD_FIRE_CORAL_WALL_FAN(BlockTypes.DEAD_FIRE_CORAL_WALL_FAN, null),
-    DEAD_HORN_CORAL_WALL_FAN(BlockTypes.DEAD_HORN_CORAL_WALL_FAN, null),
-    TUBE_CORAL_WALL_FAN(BlockTypes.TUBE_CORAL_WALL_FAN, null),
-    BRAIN_CORAL_WALL_FAN(BlockTypes.BRAIN_CORAL_WALL_FAN, null),
-    BUBBLE_CORAL_WALL_FAN(BlockTypes.BUBBLE_CORAL_WALL_FAN, null),
-    FIRE_CORAL_WALL_FAN(BlockTypes.FIRE_CORAL_WALL_FAN, null),
-    HORN_CORAL_WALL_FAN(BlockTypes.HORN_CORAL_WALL_FAN, null),
-    BAMBOO_SAPLING(BlockTypes.BAMBOO_SAPLING, null),
-    POTTED_BAMBOO(BlockTypes.POTTED_BAMBOO, null),
-    VOID_AIR(BlockTypes.VOID_AIR, null),
-    CAVE_AIR(BlockTypes.CAVE_AIR, null),
-    BUBBLE_COLUMN(BlockTypes.BUBBLE_COLUMN, null),
-    SWEET_BERRY_BUSH(BlockTypes.SWEET_BERRY_BUSH, null),
-    WEEPING_VINES_PLANT(BlockTypes.WEEPING_VINES_PLANT, null),
-    TWISTING_VINES_PLANT(BlockTypes.TWISTING_VINES_PLANT, null),
-    CRIMSON_WALL_SIGN(BlockTypes.CRIMSON_WALL_SIGN, null),
-    WARPED_WALL_SIGN(BlockTypes.WARPED_WALL_SIGN, null),
-    POTTED_CRIMSON_FUNGUS(BlockTypes.POTTED_CRIMSON_FUNGUS, null),
-    POTTED_WARPED_FUNGUS(BlockTypes.POTTED_WARPED_FUNGUS, null),
-    POTTED_CRIMSON_ROOTS(BlockTypes.POTTED_CRIMSON_ROOTS, null),
-    POTTED_WARPED_ROOTS(BlockTypes.POTTED_WARPED_ROOTS, null);
+    WATER(BlockTypes.WATER,
+            ItemTypes.WATER_BUCKET), //Water_Bucket has been added here as this is the itemtype for water on Bukkit
+    LAVA(BlockTypes.LAVA,
+            ItemTypes.LAVA_BUCKET), //Lava_Bucket has been added here as this is the itemtype for lava on Bukkit
+    TALL_SEAGRASS(BlockTypes.TALL_SEAGRASS, ItemTypes.SEAGRASS), //itemtype for this maybe wrong
+    PISTON_HEAD(BlockTypes.PISTON_HEAD, ItemTypes.PISTON), //Piston is apparently the item for the block piston_head
+    MOVING_PISTON(BlockTypes.MOVING_PISTON,
+            ItemTypes.PISTON), //Piston is apparently the item for the block moving_piston
+    WALL_TORCH(BlockTypes.WALL_TORCH, ItemTypes.TORCH),
+    FIRE(BlockTypes.FIRE, ItemTypes.FIRE_CHARGE), //this maybe wrong
+    SOUL_FIRE(BlockTypes.SOUL_FIRE, ItemTypes.FIRE_CHARGE), //this maybe wrong
+    REDSTONE_WIRE(BlockTypes.REDSTONE_WIRE, ItemTypes.REDSTONE),
+    OAK_WALL_SIGN(BlockTypes.OAK_WALL_SIGN, ItemTypes.OAK_SIGN),
+    SPRUCE_WALL_SIGN(BlockTypes.SPRUCE_WALL_SIGN, ItemTypes.SPRUCE_SIGN),
+    BIRCH_WALL_SIGN(BlockTypes.BIRCH_WALL_SIGN, ItemTypes.BIRCH_SIGN),
+    ACACIA_WALL_SIGN(BlockTypes.ACACIA_WALL_SIGN, ItemTypes.ACACIA_SIGN),
+    JUNGLE_WALL_SIGN(BlockTypes.JUNGLE_WALL_SIGN, ItemTypes.JUNGLE_SIGN),
+    DARK_OAK_WALL_SIGN(BlockTypes.DARK_OAK_WALL_SIGN, ItemTypes.DARK_OAK_SIGN),
+    REDSTONE_WALL_TORCH(BlockTypes.REDSTONE_WALL_TORCH, ItemTypes.REDSTONE_TORCH),
+    SOUL_WALL_TORCH(BlockTypes.SOUL_WALL_TORCH, ItemTypes.SOUL_TORCH),
+    NETHER_PORTAL(BlockTypes.NETHER_PORTAL,
+            ItemTypes.OBSIDIAN), //bukkit says there is a item for nether portals? What is this item?
+    ATTACHED_PUMPKIN_STEM(BlockTypes.ATTACHED_PUMPKIN_STEM, ItemTypes.PUMPKIN_SEEDS),
+    ATTACHED_MELON_STEM(BlockTypes.ATTACHED_MELON_STEM, ItemTypes.MELON_SEEDS),
+    PUMPKIN_STEM(BlockTypes.PUMPKIN_STEM, ItemTypes.PUMPKIN_SEEDS),
+    MELON_STEM(BlockTypes.MELON_STEM, ItemTypes.MELON_SEEDS),
+    END_PORTAL(BlockTypes.END_PORTAL, ItemTypes.END_PORTAL_FRAME),
+    COCOA(BlockTypes.COCOA, ItemTypes.COCOA_BEANS),
+    TRIPWIRE(BlockTypes.TRIPWIRE, ItemTypes.STRING),
+    POTTED_OAK_SAPLING(BlockTypes.POTTED_OAK_SAPLING, ItemTypes.FLOWER_POT),
+    POTTED_SPRUCE_SAPLING(BlockTypes.POTTED_SPRUCE_SAPLING, ItemTypes.FLOWER_POT),
+    POTTED_BIRCH_SAPLING(BlockTypes.POTTED_BIRCH_SAPLING, ItemTypes.FLOWER_POT),
+    POTTED_JUNGLE_SAPLING(BlockTypes.POTTED_JUNGLE_SAPLING, ItemTypes.FLOWER_POT),
+    POTTED_ACACIA_SAPLING(BlockTypes.POTTED_ACACIA_SAPLING, ItemTypes.FLOWER_POT),
+    POTTED_DARK_OAK_SAPLING(BlockTypes.POTTED_DARK_OAK_SAPLING, ItemTypes.FLOWER_POT),
+    POTTED_FERN(BlockTypes.POTTED_FERN, ItemTypes.FLOWER_POT),
+    POTTED_DANDELION(BlockTypes.POTTED_DANDELION, ItemTypes.FLOWER_POT),
+    POTTED_POPPY(BlockTypes.POTTED_POPPY, ItemTypes.FLOWER_POT),
+    POTTED_BLUE_ORCHID(BlockTypes.POTTED_BLUE_ORCHID, ItemTypes.FLOWER_POT),
+    POTTED_ALLIUM(BlockTypes.POTTED_ALLIUM, ItemTypes.FLOWER_POT),
+    POTTED_AZURE_BLUET(BlockTypes.POTTED_AZURE_BLUET, ItemTypes.FLOWER_POT),
+    POTTED_RED_TULIP(BlockTypes.POTTED_RED_TULIP, ItemTypes.FLOWER_POT),
+    POTTED_ORANGE_TULIP(BlockTypes.POTTED_ORANGE_TULIP, ItemTypes.FLOWER_POT),
+    POTTED_WHITE_TULIP(BlockTypes.POTTED_WHITE_TULIP, ItemTypes.FLOWER_POT),
+    POTTED_PINK_TULIP(BlockTypes.POTTED_PINK_TULIP, ItemTypes.FLOWER_POT),
+    POTTED_OXEYE_DAISY(BlockTypes.POTTED_OXEYE_DAISY, ItemTypes.FLOWER_POT),
+    POTTED_CORNFLOWER(BlockTypes.POTTED_CORNFLOWER, ItemTypes.FLOWER_POT),
+    POTTED_LILY_OF_THE_VALLEY(BlockTypes.POTTED_LILY_OF_THE_VALLEY, ItemTypes.FLOWER_POT),
+    POTTED_WITHER_ROSE(BlockTypes.POTTED_WITHER_ROSE, ItemTypes.FLOWER_POT),
+    POTTED_RED_MUSHROOM(BlockTypes.POTTED_RED_MUSHROOM, ItemTypes.FLOWER_POT),
+    POTTED_BROWN_MUSHROOM(BlockTypes.POTTED_BROWN_MUSHROOM, ItemTypes.FLOWER_POT),
+    POTTED_DEAD_BUSH(BlockTypes.POTTED_DEAD_BUSH, ItemTypes.FLOWER_POT),
+    POTTED_CACTUS(BlockTypes.POTTED_CACTUS, ItemTypes.FLOWER_POT),
+    CARROTS(BlockTypes.CARROTS, ItemTypes.CARROT),
+    POTATOES(BlockTypes.POTATOES, ItemTypes.POTATO),
+    SKELETON_WALL_SKULL(BlockTypes.SKELETON_WALL_SKULL, ItemTypes.SKELETON_SKULL),
+    WITHER_SKELETON_WALL_SKULL(BlockTypes.WITHER_SKELETON_WALL_SKULL, ItemTypes.WITHER_SKELETON_SKULL),
+    ZOMBIE_WALL_HEAD(BlockTypes.ZOMBIE_WALL_HEAD, ItemTypes.ZOMBIE_HEAD),
+    PLAYER_WALL_HEAD(BlockTypes.PLAYER_WALL_HEAD, ItemTypes.PLAYER_HEAD),
+    CREEPER_WALL_HEAD(BlockTypes.CREEPER_WALL_HEAD, ItemTypes.CREEPER_HEAD),
+    DRAGON_WALL_HEAD(BlockTypes.DRAGON_WALL_HEAD, ItemTypes.DRAGON_HEAD),
+    WHITE_WALL_BANNER(BlockTypes.WHITE_WALL_BANNER, ItemTypes.WHITE_BANNER),
+    ORANGE_WALL_BANNER(BlockTypes.ORANGE_WALL_BANNER, ItemTypes.ORANGE_BANNER),
+    MAGENTA_WALL_BANNER(BlockTypes.MAGENTA_WALL_BANNER, ItemTypes.MAGENTA_BANNER),
+    LIGHT_BLUE_WALL_BANNER(BlockTypes.LIGHT_BLUE_WALL_BANNER, ItemTypes.LIGHT_BLUE_BANNER),
+    YELLOW_WALL_BANNER(BlockTypes.YELLOW_WALL_BANNER, ItemTypes.YELLOW_BANNER),
+    LIME_WALL_BANNER(BlockTypes.LIME_WALL_BANNER, ItemTypes.LIME_BANNER),
+    PINK_WALL_BANNER(BlockTypes.PINK_WALL_BANNER, ItemTypes.PINK_BANNER),
+    GRAY_WALL_BANNER(BlockTypes.GRAY_WALL_BANNER, ItemTypes.GRAY_BANNER),
+    LIGHT_GRAY_WALL_BANNER(BlockTypes.LIGHT_GRAY_WALL_BANNER, ItemTypes.LIGHT_GRAY_BANNER),
+    CYAN_WALL_BANNER(BlockTypes.CYAN_WALL_BANNER, ItemTypes.CYAN_BANNER),
+    PURPLE_WALL_BANNER(BlockTypes.PURPLE_WALL_BANNER, ItemTypes.PURPLE_BANNER),
+    BLUE_WALL_BANNER(BlockTypes.BLUE_WALL_BANNER, ItemTypes.BLUE_BANNER),
+    BROWN_WALL_BANNER(BlockTypes.BROWN_WALL_BANNER, ItemTypes.BROWN_BANNER),
+    GREEN_WALL_BANNER(BlockTypes.GREEN_WALL_BANNER, ItemTypes.GREEN_BANNER),
+    RED_WALL_BANNER(BlockTypes.RED_WALL_BANNER, ItemTypes.RED_BANNER),
+    BLACK_WALL_BANNER(BlockTypes.BLACK_WALL_BANNER, ItemTypes.BLACK_BANNER),
+    BEETROOTS(BlockTypes.BEETROOTS, ItemTypes.BEETROOT),
+    END_GATEWAY(BlockTypes.END_GATEWAY, ItemTypes.END_PORTAL_FRAME),
+    FROSTED_ICE(BlockTypes.FROSTED_ICE, ItemTypes.BLUE_ICE),
+    KELP_PLANT(BlockTypes.KELP_PLANT, ItemTypes.KELP),
+    DEAD_TUBE_CORAL_WALL_FAN(BlockTypes.DEAD_TUBE_CORAL_WALL_FAN, ItemTypes.DEAD_TUBE_CORAL_FAN),
+    DEAD_BRAIN_CORAL_WALL_FAN(BlockTypes.DEAD_BRAIN_CORAL_WALL_FAN, ItemTypes.DEAD_BRAIN_CORAL_FAN),
+    DEAD_BUBBLE_CORAL_WALL_FAN(BlockTypes.DEAD_BUBBLE_CORAL_WALL_FAN, ItemTypes.DEAD_BUBBLE_CORAL_FAN),
+    DEAD_FIRE_CORAL_WALL_FAN(BlockTypes.DEAD_FIRE_CORAL_WALL_FAN, ItemTypes.DEAD_FIRE_CORAL_FAN),
+    DEAD_HORN_CORAL_WALL_FAN(BlockTypes.DEAD_HORN_CORAL_WALL_FAN, ItemTypes.DEAD_HORN_CORAL_FAN),
+    TUBE_CORAL_WALL_FAN(BlockTypes.TUBE_CORAL_WALL_FAN, ItemTypes.TUBE_CORAL_FAN),
+    BRAIN_CORAL_WALL_FAN(BlockTypes.BRAIN_CORAL_WALL_FAN, ItemTypes.BRAIN_CORAL_FAN),
+    BUBBLE_CORAL_WALL_FAN(BlockTypes.BUBBLE_CORAL_WALL_FAN, ItemTypes.BUBBLE_CORAL_FAN),
+    FIRE_CORAL_WALL_FAN(BlockTypes.FIRE_CORAL_WALL_FAN, ItemTypes.FIRE_CORAL_FAN),
+    HORN_CORAL_WALL_FAN(BlockTypes.HORN_CORAL_WALL_FAN, ItemTypes.HORN_CORAL_FAN),
+    BAMBOO_SAPLING(BlockTypes.BAMBOO_SAPLING, ItemTypes.BAMBOO),
+    POTTED_BAMBOO(BlockTypes.POTTED_BAMBOO, ItemTypes.FLOWER_POT),
+    VOID_AIR(BlockTypes.VOID_AIR, ItemTypes.AIR),
+    CAVE_AIR(BlockTypes.CAVE_AIR, ItemTypes.AIR),
+    BUBBLE_COLUMN(BlockTypes.BUBBLE_COLUMN, ItemTypes.BUBBLE_CORAL_BLOCK),
+    SWEET_BERRY_BUSH(BlockTypes.SWEET_BERRY_BUSH, ItemTypes.SWEET_BERRIES),
+    WEEPING_VINES_PLANT(BlockTypes.WEEPING_VINES_PLANT, ItemTypes.WEEPING_VINES),
+    TWISTING_VINES_PLANT(BlockTypes.TWISTING_VINES_PLANT, ItemTypes.TWISTING_VINES),
+    CRIMSON_WALL_SIGN(BlockTypes.CRIMSON_WALL_SIGN, ItemTypes.CRIMSON_SIGN),
+    WARPED_WALL_SIGN(BlockTypes.WARPED_WALL_SIGN, ItemTypes.WARPED_SIGN),
+    POTTED_CRIMSON_FUNGUS(BlockTypes.POTTED_CRIMSON_FUNGUS, ItemTypes.FLOWER_POT),
+    POTTED_WARPED_FUNGUS(BlockTypes.POTTED_WARPED_FUNGUS, ItemTypes.FLOWER_POT),
+    POTTED_CRIMSON_ROOTS(BlockTypes.POTTED_CRIMSON_ROOTS, ItemTypes.FLOWER_POT),
+    POTTED_WARPED_ROOTS(BlockTypes.POTTED_WARPED_ROOTS, ItemTypes.FLOWER_POT);
 
     private final @Nullable Supplier<ItemType> itemType;
     private final @Nullable Supplier<BlockType> blockType;
@@ -1116,12 +1128,31 @@ public enum Material {
         this.itemType = type;
     }
 
+    //uses minecraft namespace
     public static @Nullable Material matchMaterial(@NotNull String name) {
-        return Stream.of(values()).filter(mat -> mat.name().equalsIgnoreCase(name)).findFirst().orElse(null);
+        ResourceKey key = ResourceKey.resolve(name);
+        return getMaterial(key);
+    }
+
+    public static @Nullable Material getMaterial(ResourceKey key) {
+        var opBlockType = BlockTypes.registry().findValue(key);
+        if (opBlockType.isPresent()) {
+            return getBlockMaterial(opBlockType.get());
+        }
+
+        var opItemType = ItemTypes.registry().findValue(key);
+        if (opItemType.isPresent()) {
+            return getItemMaterial(opItemType.get());
+        }
+        return null;
     }
 
     public static @Nullable Material getMaterial(@NotNull String name) {
-        return matchMaterial(name);
+        try {
+            return valueOf(name);
+        } catch (NoSuchElementException e) {
+            return null;
+        }
     }
 
     public static @NotNull Material getBlockMaterial(BlockType type) {
@@ -1158,6 +1189,17 @@ public enum Material {
 
     private BlockType asBlockType() {
         if (this.blockType == null) {
+            if (this.itemType != null) {
+                var opBlock = this.itemType.get().block();
+                if (opBlock.isPresent()) {
+                    SoakPlugin.plugin()
+                            .logger()
+                            .error("Material." + this.name() + " is missing BlockType of " + opBlock.get()
+                                    .key(RegistryTypes.BLOCK_TYPE)
+                                    .formatted());
+                    return opBlock.get();
+                }
+            }
             throw new IllegalStateException("Material of " + this.name() + " is not a block");
         }
         return this.blockType.get();
@@ -1165,6 +1207,17 @@ public enum Material {
 
     private ItemType asItemType() {
         if (this.itemType == null) {
+            if (this.blockType != null) {
+                var opItem = this.blockType.get().item();
+                if (opItem.isPresent()) {
+                    SoakPlugin.plugin()
+                            .logger()
+                            .error("Material." + this.name() + " is missing ItemType of " + opItem.get()
+                                    .key(RegistryTypes.ITEM_TYPE)
+                                    .formatted());
+                    return opItem.get();
+                }
+            }
             throw new IllegalStateException("Material of " + this.name() + " is not a item");
         }
         return this.itemType.get();
@@ -1185,11 +1238,14 @@ public enum Material {
     }
 
     public BlockData createBlockData() {
-        throw NotImplementedException.createByLazy(Material.class, "createBlockData");
+        return AbstractBlockData.createBlockData(this.asBlock()
+                .map(StateContainer::defaultState)
+                .orElseThrow(() -> new IllegalStateException("Cannot create BlockData from a item")));
     }
 
     public BlockData createBlockData(@Nullable String data) {
-        throw NotImplementedException.createByLazy(Material.class, "createBlockData", String.class);
+        BlockState state = BlockState.fromString(this.getKey().asString() + (data == null ? "" : "[" + data + "]"));
+        return AbstractBlockData.createBlockData(state);
     }
 
     public BlockData createBlockData(@Nullable Consumer<BlockData> consumer) {
@@ -1267,7 +1323,10 @@ public enum Material {
     }
 
     public boolean isAir() {
-        return this.asBlockType().get(Keys.MATTER_TYPE).map(matter -> matter.equals(MatterTypes.GAS.get())).orElse(false);
+        return this.asBlockType()
+                .get(Keys.MATTER_TYPE)
+                .map(matter -> matter.equals(MatterTypes.GAS.get()))
+                .orElse(false);
     }
 
     public boolean isBlock() {
@@ -1312,7 +1371,10 @@ public enum Material {
     }
 
     public boolean isSolid() {
-        return this.asItemType().get(Keys.MATTER_TYPE).map(matter -> matter.equals(MatterTypes.SOLID.get())).orElse(false);
+        return this.asItemType()
+                .get(Keys.MATTER_TYPE)
+                .map(matter -> matter.equals(MatterTypes.SOLID.get()))
+                .orElse(false);
     }
 
 }

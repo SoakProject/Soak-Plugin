@@ -1,15 +1,26 @@
 package org.soak.wrapper.inventory.meta;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
+import com.mojang.authlib.GameProfile;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.SoakOfflinePlayer;
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.ValueContainer;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.profile.property.ProfileProperty;
+
+import java.util.Optional;
 
 public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
+
+    private @Nullable GameProfile profile; //nms bounce
 
     public SoakSkullMeta(ItemStack stack) {
         super(stack);
@@ -49,11 +60,20 @@ public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
 
     @Override
     public OfflinePlayer getOwningPlayer() {
-        throw NotImplementedException.createByLazy(SkullMeta.class, "getOwningPlayer");
+        Optional<ProfileProperty> opProfile = this.container.get(Keys.SKIN_PROFILE_PROPERTY);
+        return opProfile.map(profileProperty -> Bukkit.getOfflinePlayer(profileProperty.name())).orElse(null);
     }
 
     @Override
     public boolean setOwningPlayer(OfflinePlayer arg0) {
+        if(arg0 == null){
+            this.remove(Keys.SKIN_PROFILE_PROPERTY);
+            return true;
+        }
+        SoakOfflinePlayer soakOfflinePlayer = (SoakOfflinePlayer) arg0;
+        var properties = soakOfflinePlayer.spongeUser().profile().properties();
+
+
         throw NotImplementedException.createByLazy(SkullMeta.class, "setOwningPlayer", OfflinePlayer.class);
     }
 
