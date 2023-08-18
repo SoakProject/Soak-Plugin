@@ -45,12 +45,12 @@ public class SoakPermissible implements Permissible {
 
     @Override
     public boolean hasPermission(@NotNull Permission arg0) {
-        throw NotImplementedException.createByLazy(Permissible.class, "hasPermission", Permission.class);
+        return this.hasPermission(arg0.getName());
     }
 
     @Override
     public boolean hasPermission(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Permissible.class, "hasPermission", String.class);
+        return this.subject.hasPermission(arg0);
     }
 
     @Override
@@ -60,7 +60,11 @@ public class SoakPermissible implements Permissible {
 
     @Override
     public @NotNull PermissionAttachment addAttachment(@NotNull Plugin arg0, @NotNull String arg1, boolean arg2) {
-        throw NotImplementedException.createByLazy(Permissible.class, "addAttachment", Plugin.class, String.class, boolean.class);
+        throw NotImplementedException.createByLazy(Permissible.class,
+                "addAttachment",
+                Plugin.class,
+                String.class,
+                boolean.class);
     }
 
     @Override
@@ -70,7 +74,12 @@ public class SoakPermissible implements Permissible {
 
     @Override
     public PermissionAttachment addAttachment(@NotNull Plugin arg0, @NotNull String arg1, boolean arg2, int arg3) {
-        throw NotImplementedException.createByLazy(Permissible.class, "addAttachment", Plugin.class, String.class, boolean.class, int.class);
+        throw NotImplementedException.createByLazy(Permissible.class,
+                "addAttachment",
+                Plugin.class,
+                String.class,
+                boolean.class,
+                int.class);
     }
 
     @Override

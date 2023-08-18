@@ -10,7 +10,8 @@ public class ImplementedPercent {
 
     public static void main(String[] args) throws IOException {
         if (args.length != 2) {
-            throw new RuntimeException("Requires 2 arguments\n- The paper-api.jar path\n- The soak source code inside src/main");
+            throw new RuntimeException(
+                    "Requires 2 arguments\n- The paper-api.jar path\n- The soak source code inside src/main");
         }
         File paperPath = new File(args[0]);
         File soakPath = new File(args[1], "org/soak/wrapper");
@@ -31,10 +32,12 @@ public class ImplementedPercent {
                     try {
                         bukkitClass = Class.forName(fullName.substring(0, fullName.length() - 6).replaceAll("/", "."));
                     } catch (ExceptionInInitializerError e) {
-                        System.err.println("Could not load: '" + fullName.substring(0, fullName.length() - 6).replaceAll("/", ".") + "' due to " + e.getException().getMessage());
+                        System.err.println("Could not load: '" + fullName.substring(0, fullName.length() - 6)
+                                .replaceAll("/", ".") + "' due to " + e.getException().getMessage());
                         return null;
                     } catch (Throwable e) {
-                        System.err.println("Could not load: '" + fullName.substring(0, fullName.length() - 6).replaceAll("/", ".") + "' due to " + e.getMessage());
+                        System.err.println("Could not load: '" + fullName.substring(0, fullName.length() - 6)
+                                .replaceAll("/", ".") + "' due to " + e.getMessage());
                         return null;
                     }
                     if (!bukkitClass.isInterface()) {
@@ -51,8 +54,13 @@ public class ImplementedPercent {
 
                     File classFile = new File(soakPath, soakClassPath);
                     if (!classFile.exists()) {
-                        entriesWithoutFile.add(fullName);
-                        return null;
+                        //attempt abstract
+                        String abstractClassPath = path + "Abstract" + classPath.substring(index + 1);
+                        classFile = new File(soakPath, abstractClassPath);
+                        if (!classFile.exists()) {
+                            entriesWithoutFile.add(fullName);
+                            return null;
+                        }
                     }
                     entriesWithFile.put(bukkitClass, classFile);
                     return new AbstractMap.SimpleEntry<>(bukkitClass, classFile);
@@ -66,15 +74,23 @@ public class ImplementedPercent {
                     try {
                         BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(classFile)));
                         List<String> fileLines = br.lines().toList();
-                        Collection<Method> methods = getAllMethodsFor(bukkitClass, new LinkedList<>(), entriesWithFile.keySet(), entriesImplementedElseware);
+                        Collection<Method> methods = getAllMethodsFor(bukkitClass,
+                                new LinkedList<>(),
+                                entriesWithFile.keySet(),
+                                entriesImplementedElseware);
 
                         List<Boolean> hasImplemented = new LinkedList<>();
                         for (Method method : methods) {
-                            Optional<String> opLine = fileLines.stream().filter(line -> line.contains("public ")).filter(line -> line.contains(method.getName())).findFirst();
+                            Optional<String> opLine = fileLines.stream()
+                                    .filter(line -> line.contains("public "))
+                                    .filter(line -> line.contains(method.getName()))
+                                    .findFirst();
                             if (opLine.isEmpty()) {
                                 continue;
                             }
-                            boolean hasParameters = Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).allMatch(type -> opLine.get().contains(type));
+                            boolean hasParameters = Arrays.stream(method.getParameterTypes())
+                                    .map(Class::getSimpleName)
+                                    .allMatch(type -> opLine.get().contains(type));
                             if (!hasParameters) {
                                 continue;
                             }
@@ -97,21 +113,34 @@ public class ImplementedPercent {
 
         Map<String, Double> missingFilesPercent = entriesWithoutFile
                 .stream()
-                .filter(entry -> !entriesImplementedElseware.contains(entry.replaceAll("/", ".").replaceAll(".class", "")))
+                .filter(entry -> !entriesImplementedElseware.contains(entry.replaceAll("/", ".")
+                        .replaceAll(".class", "")))
                 .collect(Collectors.toMap(entry -> entry, entry -> 0.0));
 
         files.putAll(missingFilesPercent);
         DecimalFormat format = new DecimalFormat("#.##");
 
-        var successfulFiles = files.entrySet().stream().filter(entry -> entry.getValue() >= 0).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        successfulFiles.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach((entry) -> System.out.println("File: " + entry.getKey() + ": " + format.format(entry.getValue()) + "%"));
-        double successfulAverage = successfulFiles.values().stream().mapToDouble(i -> i).average().orElseThrow(() -> new RuntimeException("Could not generate average"));
+        var successfulFiles = files.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue() >= 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        successfulFiles.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue())
+                .forEach((entry) -> System.out.println("File: " + entry.getKey() + ": " + format.format(entry.getValue()) + "%"));
+        double successfulAverage = successfulFiles.values()
+                .stream()
+                .mapToDouble(i -> i)
+                .average()
+                .orElseThrow(() -> new RuntimeException("Could not generate average"));
         System.out.println("org.bukkit interfaces implemented: " + format.format(successfulAverage) + "%");
     }
 
     private static Collection<Method> getAllMethodsFor(Class<?> clazz, Collection<Method> current, Collection<Class<?>> entriesWithFiles, Collection<String> entriesFound) {
         entriesFound.add(clazz.getName());
-        current.addAll(Arrays.stream(clazz.getDeclaredMethods()).filter(method -> Modifier.isAbstract(method.getModifiers())).collect(Collectors.toSet()));
+        current.addAll(Arrays.stream(clazz.getDeclaredMethods())
+                .filter(method -> Modifier.isAbstract(method.getModifiers()))
+                .collect(Collectors.toSet()));
         for (Class<?> clazz1 : clazz.getClasses()) {
             if (entriesWithFiles.contains(clazz1)) {
                 continue;

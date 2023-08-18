@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakPersistentDataMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.data.BukkitPersistentData;
+import org.soak.impl.data.BukkitPersistentData;
 import org.spongepowered.api.data.SerializableDataHolder;
 
 public class SoakMutablePersistentDataContainer<Holder extends SerializableDataHolder.Mutable> extends AbstractPersistentData<Holder> implements PersistentDataContainer {

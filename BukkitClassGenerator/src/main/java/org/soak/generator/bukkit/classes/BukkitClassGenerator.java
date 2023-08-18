@@ -32,7 +32,7 @@ public class BukkitClassGenerator {
 
         String soakClassName = "Soak" + simpleClassName;
 
-        System.out.println("package " + packageName + "." + soakClassName + ";");
+        System.out.println("package " + packageName + ";");
         System.out.println();
         System.out.println("public class " + soakClassName + " implements " + simpleClassName + " {");
 
@@ -40,11 +40,17 @@ public class BukkitClassGenerator {
             if (!Modifier.isAbstract(method.getModifiers())) {
                 continue;
             }
-            List<String> annotations = Arrays.stream(method.getDeclaredAnnotations()).map(anno -> "@" + anno.annotationType().getSimpleName()).toList();
+            List<String> annotations = Arrays.stream(method.getDeclaredAnnotations())
+                    .map(anno -> "@" + anno.annotationType().getSimpleName())
+                    .toList();
             String returnType = method.getReturnType().getSimpleName();
             String methodName = method.getName();
-            String parameters = Arrays.stream(method.getParameters()).map(parameter -> parameter.getType().getSimpleName() + " " + parameter.getName()).collect(Collectors.joining(", "));
-            String parameterTypes = Arrays.stream(method.getParameterTypes()).map(parameter -> parameter.getSimpleName() + ".class").collect(Collectors.joining(", "));
+            String parameters = Arrays.stream(method.getParameters())
+                    .map(parameter -> parameter.getType().getSimpleName() + " " + parameter.getName())
+                    .collect(Collectors.joining(", "));
+            String parameterTypes = Arrays.stream(method.getParameterTypes())
+                    .map(parameter -> parameter.getSimpleName() + ".class")
+                    .collect(Collectors.joining(", "));
 
 
             for (String anno : annotations) {

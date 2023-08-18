@@ -18,17 +18,19 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakMessageMap;
-import org.soak.map.item.EnchantmentTypeMap;
+import org.soak.map.item.SoakEnchantmentTypeMap;
 import org.soak.map.item.SoakItemFlagMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.utils.DataHelper;
 import org.soak.wrapper.persistence.SoakImmutablePersistentDataContainer;
 import org.soak.wrapper.persistence.SoakMutablePersistentDataContainer;
+import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.ListValue;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.data.value.ValueContainer;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -43,7 +45,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     protected ValueContainer container;
 
     protected AbstractItemMeta(ValueContainer container) {
-        if (!(container instanceof ItemStack || container instanceof ItemStackSnapshot)) {
+        if (!(container instanceof ItemStack || container instanceof ItemStackSnapshot || container instanceof Entity)) {
             throw new RuntimeException("Must be either a ItemStack or ItemStackSnapshot");
         }
         this.container = container;
@@ -62,45 +64,63 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             throw new RuntimeException("ItemMeta must implement AbstractItemMeta");
         }
         if (into.container instanceof ItemStack stack) {
-            this.container = DataHelper.copyInto(stack, this.asSnapshot());
+            this.container = DataHelper.copyInto(stack,
+                    this.asSnapshot().orElseThrow(() -> new RuntimeException("Failed check")));
             return;
         }
-        this.container = DataHelper.copyInto((ItemStackSnapshot) into.container, this.asSnapshot());
-    }
-
-    public ItemStack asStack() {
-        if (this.container instanceof ItemStack stack) {
-            return stack;
+        if (into.container instanceof Entity entity) {
+            this.container = DataHelper.copyInto(entity, (DataHolder) this.container);
         }
-        return ((ItemStackSnapshot) this.container).createStack();
+        this.container = DataHelper.copyInto((ItemStackSnapshot) into.container,
+                this.asSnapshot().orElseThrow(() -> new RuntimeException("Failed checks")));
     }
 
-    public ItemStackSnapshot asSnapshot() {
+    public Optional<ItemStack> asStack() {
+        if (this.container instanceof ItemStack stack) {
+            return Optional.of(stack);
+        }
+        if (this.container instanceof ItemStackSnapshot stack) {
+            return Optional.of(stack.createStack());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<ItemStackSnapshot> asSnapshot() {
+        if (this.container instanceof ItemStack stack) {
+            return Optional.of(stack.createSnapshot());
+        }
+        if (this.container instanceof ItemStackSnapshot stack) {
+            return Optional.of(stack);
+        }
+        return Optional.empty();
+    }
+
+    protected DataHolder.Immutable<?> copyToImmutable() {
         if (this.container instanceof ItemStack stack) {
             return stack.createSnapshot();
         }
-        return ((ItemStackSnapshot) this.container);
-    }
-
-    protected ItemStackSnapshot copyToSnapshot() {
-        if (this.container instanceof ItemStack stack) {
-            return stack.createSnapshot();
+        if (this.container instanceof ItemStackSnapshot stack) {
+            return stack.copy();
         }
-        return ((ItemStackSnapshot) this.container).copy();
+        return ((Entity) this.container).createSnapshot();
     }
 
-    protected <T> void set(@NotNull Key<Value<T>> key, @Nullable T value) {
+    protected <T> void set(@NotNull Key<Value<T>> key, @Nullable T value) throws RuntimeException {
         if (value == null) {
             remove(key);
             return;
         }
-        if (this.container instanceof ItemStack stack) {
+        if (this.container instanceof DataHolder.Mutable stack) {
             stack.offer(key, value);
             return;
         }
-        this.container = ((ItemStackSnapshot) this.container).with(key, value)
-                .orElseThrow(() -> new RuntimeException("Key of " + key.key()
-                        .formatted() + " is not supported with ItemStackSnapshot"));
+        var opStack = ((DataHolder.Immutable) this.container).with(key, value);
+        if (opStack.isEmpty()) {
+            throw new RuntimeException("Key of " + key.key()
+                    .formatted() + " is not supported with ItemStackSnapshot");
+        }
+
+        this.container = (ValueContainer) opStack.get();
     }
 
     protected <T> void setList(@NotNull Key<ListValue<T>> key, @Nullable List<T> value) {
@@ -108,11 +128,11 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             remove(key);
             return;
         }
-        if (this.container instanceof ItemStack stack) {
+        if (this.container instanceof DataHolder.Mutable stack) {
             stack.offer(key, value);
             return;
         }
-        this.container = ((ItemStackSnapshot) this.container).with(key, value)
+        this.container = ((DataHolder.Immutable<?>) this.container).with(key, value)
                 .orElseThrow(() -> new RuntimeException("Key of " + key.key()
                         .formatted() + " is not supported with ItemStackSnapshot"));
     }
@@ -164,7 +184,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             remove(Keys.CUSTOM_NAME);
             return;
         }
-        Component displayName = SoakMessageMap.mapToComponent(name);
+        Component displayName = SoakMessageMap.toComponent(name);
         displayName(displayName);
     }
 
@@ -225,7 +245,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             remove(Keys.LORE);
             return;
         }
-        List<Component> list = lore.stream().map(SoakMessageMap::mapToComponent).collect(Collectors.toList());
+        List<Component> list = lore.stream().map(SoakMessageMap::toComponent).collect(Collectors.toList());
         lore(list);
     }
 
@@ -269,7 +289,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public boolean hasEnchant(@NotNull Enchantment ench) {
-        var enchantmentType = EnchantmentTypeMap.toSponge(ench);
+        var enchantmentType = SoakEnchantmentTypeMap.toSponge(ench);
         return this.container.get(Keys.APPLIED_ENCHANTMENTS)
                 .orElse(Collections.emptyList())
                 .stream()
@@ -278,7 +298,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public int getEnchantLevel(@NotNull Enchantment ench) {
-        var enchantmentType = EnchantmentTypeMap.toSponge(ench);
+        var enchantmentType = SoakEnchantmentTypeMap.toSponge(ench);
         var spongeEnchantments = this.container.get(Keys.APPLIED_ENCHANTMENTS).orElse(new LinkedList<>());
         return spongeEnchantments.stream()
                 .filter(encha -> encha.type().equals(enchantmentType))
@@ -293,13 +313,13 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
                 .orElse(new LinkedList<>());
         return spongeEnchantments
                 .stream()
-                .collect(Collectors.toMap(ench -> EnchantmentTypeMap.toBukkit(ench.type()),
+                .collect(Collectors.toMap(ench -> SoakEnchantmentTypeMap.toBukkit(ench.type()),
                         org.spongepowered.api.item.enchantment.Enchantment::level));
     }
 
     @Override
     public boolean addEnchant(@NotNull Enchantment ench, int level, boolean ignoreLevelRestriction) {
-        var enchantment = org.spongepowered.api.item.enchantment.Enchantment.of(EnchantmentTypeMap.toSponge(ench),
+        var enchantment = org.spongepowered.api.item.enchantment.Enchantment.of(SoakEnchantmentTypeMap.toSponge(ench),
                 level);
         return modifyEnchantments(enchantments -> {
             enchantments.add(enchantment);
@@ -328,7 +348,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public boolean removeEnchant(@NotNull Enchantment ench) {
-        EnchantmentType type = EnchantmentTypeMap.toSponge(ench);
+        EnchantmentType type = SoakEnchantmentTypeMap.toSponge(ench);
         return modifyEnchantments(enchantments -> {
             Collection<org.spongepowered.api.item.enchantment.Enchantment> toRemove = enchantments.stream()
                     .filter(enchantment -> enchantment.type().equals(type))

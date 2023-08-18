@@ -162,8 +162,11 @@ public enum EntityType implements Keyed, Translatable {
 
     @Nullable
     public Class<? extends Entity> getEntityClass() {
-
         throw NotImplementedException.createByLazy(EntityType.class, "getEntityClass");
+    }
+
+    public Class<? extends Entity> getSoakEntityClass(){
+        throw NotImplementedException.createByLazy(EntityType.class, "getSoakEntityClass");
     }
 
     @Deprecated

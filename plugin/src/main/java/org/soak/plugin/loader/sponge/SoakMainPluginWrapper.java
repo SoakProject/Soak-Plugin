@@ -8,6 +8,7 @@ import org.spongepowered.api.Server;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
+import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
 
 import java.util.Collection;
@@ -37,7 +38,10 @@ public class SoakMainPluginWrapper {
         Plugin plugin = this.pluginContainer.plugin();
         this.commands.addAll(PluginCommandYamlParser.parse(plugin));
         this.commands.forEach(cmd -> {
-            event.register(this.pluginContainer, new BukkitRawCommand(cmd), cmd.getName(), cmd.getAliases().toArray(String[]::new));
+            event.register(this.pluginContainer,
+                    new BukkitRawCommand(this.pluginContainer, cmd),
+                    cmd.getName(),
+                    cmd.getAliases().toArray(String[]::new));
         });
     }
 
@@ -46,6 +50,19 @@ public class SoakMainPluginWrapper {
         Plugin plugin = this.pluginContainer.plugin();
         try {
             plugin.onLoad();
+        } catch (Throwable e) {
+            SoakPlugin.plugin().displayError(e, plugin);
+        }
+    }
+
+
+    //issue
+    //Bukkit plugins assume everything is loaded when onEnable is run, this is because Craftbukkit loads everything before onEnable is used ....
+    //using StartedEngineEvent despite the timing known to be incorrect
+    @Listener
+    public void onPluginEnable(StartedEngineEvent<Server> event) {
+        Plugin plugin = this.pluginContainer.plugin();
+        try {
             plugin.getPluginLoader().enablePlugin(plugin);
         } catch (Throwable e) {
             SoakPlugin.plugin().displayError(e, plugin);

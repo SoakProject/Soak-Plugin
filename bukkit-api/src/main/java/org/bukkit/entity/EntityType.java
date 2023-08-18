@@ -137,6 +137,10 @@ public enum EntityType implements Keyed, Translatable {
         throw new RuntimeException("Incorrect implementation");
     }
 
+    public static EntityType fromSponge(org.spongepowered.api.entity.EntityType<?> type) {
+        throw new RuntimeException("Incorrect implementation");
+    }
+
     @Deprecated
     @Nullable
     public String getName() {
@@ -151,6 +155,10 @@ public enum EntityType implements Keyed, Translatable {
 
     @Nullable
     public Class<? extends Entity> getEntityClass() {
+        throw new RuntimeException("Incorrect implementation");
+    }
+
+    public Class<? extends Entity> getSoakEntityClass() {
         throw new RuntimeException("Incorrect implementation");
     }
 
@@ -172,11 +180,7 @@ public enum EntityType implements Keyed, Translatable {
         throw new RuntimeException("Incorrect implementation");
     }
 
-    public @NotNull org.spongepowered.api.entity.EntityType<?> asSponge(){
-        throw new RuntimeException("Incorrect implementation");
-    }
-
-    public static EntityType fromSponge(org.spongepowered.api.entity.EntityType<?> type){
+    public @NotNull org.spongepowered.api.entity.EntityType<?> asSponge() {
         throw new RuntimeException("Incorrect implementation");
     }
 }

@@ -56,6 +56,6 @@ public class SoakFireworkEffectMeta extends AbstractItemMeta implements Firework
 
     @Override
     public @NotNull SoakFireworkEffectMeta clone() {
-        return new SoakFireworkEffectMeta(this.asSnapshot());
+        return new SoakFireworkEffectMeta(this.copyToImmutable());
     }
 }

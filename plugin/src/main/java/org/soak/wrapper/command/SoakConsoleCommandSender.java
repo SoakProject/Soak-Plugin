@@ -1,7 +1,6 @@
 package org.soak.wrapper.command;
 
 import net.kyori.adventure.audience.Audience;
-import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.Conversation;
@@ -44,7 +43,10 @@ public class SoakConsoleCommandSender extends SoakCommandSender implements Conso
 
     @Override
     public void abandonConversation(@NotNull Conversation arg0, @NotNull ConversationAbandonedEvent arg1) {
-        throw NotImplementedException.createByLazy(Conversable.class, "abandonConversation", Conversation.class, ConversationAbandonedEvent.class);
+        throw NotImplementedException.createByLazy(Conversable.class,
+                "abandonConversation",
+                Conversation.class,
+                ConversationAbandonedEvent.class);
     }
 
     @Override
@@ -60,10 +62,5 @@ public class SoakConsoleCommandSender extends SoakCommandSender implements Conso
     @Override
     public void sendRawMessage(UUID arg0, @NotNull String arg1) {
         throw NotImplementedException.createByLazy(Conversable.class, "sendRawMessage", UUID.class, String.class);
-    }
-
-    @Override
-    public @NotNull Spigot spigot() {
-        throw NotImplementedException.createByLazy(CommandSender.class, "spigot");
     }
 }

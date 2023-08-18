@@ -77,8 +77,11 @@ public final class JavaPluginLoader implements PluginLoader {
             throw new InvalidPluginException(ex);
         }
 
-        final File parentFile = SoakPlugin.plugin().config().pluginFolder();
+        //final File parentFile = SoakPlugin.plugin().config().pluginFolder();
+        //too many plugins assume the plugin directory is '/plugins'
+        final File parentFile = new File("plugins");
         final File dataFolder = new File(parentFile, description.getName());
+
         @SuppressWarnings("deprecation") final File oldDataFolder = new File(parentFile, description.getRawName());
 
         // Found old data folder
@@ -114,7 +117,8 @@ public final class JavaPluginLoader implements PluginLoader {
             ));
         }
 
-        Set<String> missingHardDependencies = new HashSet<>(description.getDepend().size()); // Paper - list all missing hard depends
+        Set<String> missingHardDependencies = new HashSet<>(description.getDepend()
+                .size()); // Paper - list all missing hard depends
         for (final String pluginName : description.getDepend()) {
             Plugin current = server.getPluginManager().getPlugin(pluginName);
 
@@ -132,7 +136,12 @@ public final class JavaPluginLoader implements PluginLoader {
 
         final PluginClassLoader loader;
         try {
-            loader = new PluginClassLoader(this, getClass().getClassLoader(), description, dataFolder, file, (libraryLoader != null) ? libraryLoader.createLoader(description) : null);
+            loader = new PluginClassLoader(this,
+                    getClass().getClassLoader(),
+                    description,
+                    dataFolder,
+                    file,
+                    (libraryLoader != null) ? libraryLoader.createLoader(description) : null);
         } catch (InvalidPluginException ex) {
             throw ex;
         } catch (Throwable ex) {
@@ -188,6 +197,10 @@ public final class JavaPluginLoader implements PluginLoader {
     @NotNull
     public Pattern[] getPluginFileFilters() {
         return fileFilters.clone();
+    }
+
+    public Optional<PluginClassLoader> getLoader(JavaPlugin plugin) {
+        return this.loaders.stream().filter(loader -> loader.plugin.equals(plugin)).findAny();
     }
 
     @Nullable
@@ -271,7 +284,9 @@ public final class JavaPluginLoader implements PluginLoader {
                 methods.add(method);
             }
         } catch (NoClassDefFoundError e) {
-            plugin.getLogger().severe("Plugin " + plugin.getDescription().getFullName() + " has failed to register events for " + listener.getClass() + " because " + e.getMessage() + " does not exist.");
+            plugin.getLogger()
+                    .severe("Plugin " + plugin.getDescription()
+                            .getFullName() + " has failed to register events for " + listener.getClass() + " because " + e.getMessage() + " does not exist.");
             return ret;
         }
 
@@ -285,7 +300,9 @@ public final class JavaPluginLoader implements PluginLoader {
             }
             final Class<?> checkClass;
             if (method.getParameterTypes().length != 1 || !Event.class.isAssignableFrom(checkClass = method.getParameterTypes()[0])) {
-                plugin.getLogger().severe(plugin.getDescription().getFullName() + " attempted to register an invalid EventHandler method signature \"" + method.toGenericString() + "\" in " + listener.getClass());
+                plugin.getLogger()
+                        .severe(plugin.getDescription()
+                                .getFullName() + " attempted to register an invalid EventHandler method signature \"" + method.toGenericString() + "\" in " + listener.getClass());
                 continue;
             }
             final Class<? extends Event> eventClass = checkClass.asSubclass(Event.class);
@@ -311,16 +328,24 @@ public final class JavaPluginLoader implements PluginLoader {
                                     plugin.getDescription().getFullName(),
                                     clazz.getName(),
                                     method.toGenericString(),
-                                    (warning != null && warning.reason().length() != 0) ? warning.reason() : "Server performance will be affected",
+                                    (warning != null && warning.reason()
+                                            .length() != 0) ? warning.reason() : "Server performance will be affected",
                                     Arrays.toString(plugin.getDescription().getAuthors().toArray())),
                             warningState == WarningState.ON ? new AuthorNagException(null) : null);
                     break;
                 }
             }
 
-            EventExecutor executor = new co.aikar.timings.TimedEventExecutor(EventExecutor.create(method, eventClass), plugin, method, eventClass); // Paper // Paper (Yes.) - Use factory method `EventExecutor.create()`
+            EventExecutor executor = new co.aikar.timings.TimedEventExecutor(EventExecutor.create(method, eventClass),
+                    plugin,
+                    method,
+                    eventClass); // Paper // Paper (Yes.) - Use factory method `EventExecutor.create()`
             if (false) { // Spigot - RL handles useTimings check now
-                eventSet.add(new TimedRegisteredListener(listener, executor, eh.priority(), plugin, eh.ignoreCancelled()));
+                eventSet.add(new TimedRegisteredListener(listener,
+                        executor,
+                        eh.priority(),
+                        plugin,
+                        eh.ignoreCancelled()));
             } else {
                 eventSet.add(new RegisteredListener(listener, executor, eh.priority(), plugin, eh.ignoreCancelled()));
             }
@@ -348,7 +373,10 @@ public final class JavaPluginLoader implements PluginLoader {
 
             if (!loaders.contains(pluginLoader)) {
                 loaders.add(pluginLoader);
-                server.getLogger().log(Level.WARNING, "Enabled plugin with unregistered PluginClassLoader " + plugin.getDescription().getFullName());
+                server.getLogger()
+                        .log(Level.WARNING,
+                                "Enabled plugin with unregistered PluginClassLoader " + plugin.getDescription()
+                                        .getFullName());
             }
 
             try {
@@ -390,7 +418,11 @@ public final class JavaPluginLoader implements PluginLoader {
             try {
                 jPlugin.setEnabled(false);
             } catch (Throwable ex) {
-                server.getLogger().log(Level.SEVERE, "Error occurred while disabling " + plugin.getDescription().getFullName() + " (Is it up to date?)", ex);
+                server.getLogger()
+                        .log(Level.SEVERE,
+                                "Error occurred while disabling " + plugin.getDescription()
+                                        .getFullName() + " (Is it up to date?)",
+                                ex);
             }
 
             if (cloader instanceof PluginClassLoader) {
@@ -414,7 +446,10 @@ public final class JavaPluginLoader implements PluginLoader {
                         loader.close();
                     }
                 } catch (IOException e) {
-                    server.getLogger().log(Level.WARNING, "Error closing the Plugin Class Loader for " + plugin.getDescription().getFullName());
+                    server.getLogger()
+                            .log(Level.WARNING,
+                                    "Error closing the Plugin Class Loader for " + plugin.getDescription()
+                                            .getFullName());
                     e.printStackTrace();
                 }
                 // Paper end

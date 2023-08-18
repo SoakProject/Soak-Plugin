@@ -1,8 +1,8 @@
 package org.soak.map;
 
 import org.bukkit.persistence.PersistentDataType;
-import org.soak.plugin.data.type.BukkitDataType;
-import org.soak.plugin.data.type.BukkitDataTypes;
+import org.soak.impl.data.type.BukkitDataType;
+import org.soak.impl.data.type.BukkitDataTypes;
 
 public class SoakPersistentDataMap {
 
@@ -10,9 +10,10 @@ public class SoakPersistentDataMap {
         return BukkitDataTypes.TYPES
                 .get()
                 .parallelStream()
-                .filter(type -> type.typeClass().equals(dataType.getPrimitiveType()))
+                .filter(type -> type.toBukkit().equals(dataType))
                 .findAny()
                 .map(type -> (BukkitDataType<T>) type)
-                .orElseThrow(() -> new RuntimeException("No direct mapping for " + dataType.getPrimitiveType().getSimpleName()));
+                .orElseThrow(() -> new RuntimeException("No direct mapping for " + dataType.getPrimitiveType()
+                        .getSimpleName()));
     }
 }

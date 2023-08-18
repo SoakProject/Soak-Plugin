@@ -5,9 +5,14 @@ import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.soak.impl.data.BukkitPersistentData;
+import org.soak.map.SoakPersistentDataMap;
+import org.soak.map.SoakResourceKeyMap;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.spongepowered.api.data.DataHolder;
 
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class AbstractPersistentData<DH extends DataHolder> implements PersistentDataContainer {
@@ -29,7 +34,7 @@ public abstract class AbstractPersistentData<DH extends DataHolder> implements P
 
     @Override
     public <T, Z> boolean has(@NotNull NamespacedKey arg0, @NotNull PersistentDataType<T, Z> arg1) {
-        throw NotImplementedException.createByLazy(PersistentDataContainer.class, "has", NamespacedKey.class, PersistentDataType.class);
+        return this.getOptional(arg0, arg1).isPresent();
     }
 
     @Override
@@ -39,7 +44,14 @@ public abstract class AbstractPersistentData<DH extends DataHolder> implements P
 
     @Override
     public <T, Z> Z get(@NotNull NamespacedKey arg0, @NotNull PersistentDataType<T, Z> arg1) {
-        throw NotImplementedException.createByLazy(PersistentDataContainer.class, "get", NamespacedKey.class, PersistentDataType.class);
+        return getOptional(arg0, arg1).orElse(null);
+    }
+
+    private <T, Z> Optional<Z> getOptional(NamespacedKey bukkitKey, PersistentDataType<T, Z> bukkitType) {
+        var key = SoakResourceKeyMap.mapToSponge(bukkitKey);
+        var type = SoakPersistentDataMap.toSoak(bukkitType);
+        BukkitPersistentData data = this.holder.get(SoakPlugin.BUKKIT_DATA).orElseGet(BukkitPersistentData::new);
+        return data.getValue(key, type);
     }
 
     @Override
@@ -49,6 +61,6 @@ public abstract class AbstractPersistentData<DH extends DataHolder> implements P
 
     @Override
     public <T, Z> @NotNull Z getOrDefault(@NotNull NamespacedKey arg0, @NotNull PersistentDataType<T, Z> arg1, @NotNull Z arg2) {
-        throw NotImplementedException.createByLazy(PersistentDataContainer.class, "getOrDefault", NamespacedKey.class, PersistentDataType.class, Object.class);
+        return getOptional(arg0, arg1).orElse(arg2);
     }
 }

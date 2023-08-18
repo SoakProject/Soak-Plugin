@@ -3,6 +3,7 @@ package org.soak.map.item;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.soak.utils.SnapshotHelper;
 import org.soak.wrapper.inventory.meta.*;
 import org.spongepowered.api.data.Keys;
@@ -25,25 +26,36 @@ public class SoakItemStackMap {
     }
 
     public static ItemStack toSponge(@NotNull ItemMeta meta) {
-        return toSponge(meta, AbstractItemMeta::asStack);
+        return toSponge(meta,
+                meta1 -> meta1.asStack()
+                        .orElseThrow(() -> new RuntimeException("Could not convert ItemMeta is into ItemStack")));
     }
 
     public static ItemStackSnapshot toSpongeSnapshot(@NotNull ItemMeta meta) {
-        return toSponge(meta, AbstractItemMeta::asSnapshot);
+        return toSponge(meta,
+                meta1 -> meta1.asSnapshot()
+                        .orElseThrow(() -> new RuntimeException("Could not convert ItemMeta is into ItemStackSnapshot")));
     }
 
-    public static ItemStack toSponge(@NotNull org.bukkit.inventory.ItemStack meta) {
-        if (!meta.hasItemMeta()) {
-            return ItemStack.of(meta.getType()
-                    .asItem()
-                    .orElseThrow(() -> new RuntimeException("Material of " + meta.getType()
-                            .name() + " is not an item")), meta.getAmount());
+    public static ItemStack toSponge(@Nullable org.bukkit.inventory.ItemStack stack) {
+        if (stack == null) {
+            return ItemStack.empty();
         }
-        return toSponge(meta, AbstractItemMeta::asStack);
+        if (!stack.hasItemMeta()) {
+            return ItemStack.of(stack.getType()
+                    .asItem()
+                    .orElseThrow(() -> new RuntimeException("Material of " + stack.getType()
+                            .name() + " is not an item")), stack.getAmount());
+        }
+        return toSponge(stack,
+                meta1 -> meta1.asStack()
+                        .orElseThrow(() -> new RuntimeException("Could not convert ItemMeta is into ItemStack")));
     }
 
     public static ItemStackSnapshot toSpongeSnapshot(@NotNull org.bukkit.inventory.ItemStack meta) {
-        return toSponge(meta, AbstractItemMeta::asSnapshot);
+        return toSponge(meta,
+                meta1 -> meta1.asSnapshot()
+                        .orElseThrow(() -> new RuntimeException("Could not convert ItemMeta is into ItemStack")));
     }
 
     private static <VC extends ValueContainer> VC toSponge(@NotNull ItemMeta meta, @NotNull Function<AbstractItemMeta, VC> spongeType) {

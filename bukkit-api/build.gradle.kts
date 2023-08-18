@@ -32,7 +32,13 @@ tasks.jar {
                 return@map zipTree(it)
             }
     from(fat).exclude {
-        return@exclude it.name.equals("JavaPluginLoader.class") || it.name.equals("Material.class") || it.name.equals("EntityType.class")
+        System.out.println("Class: " + it.name);
+        return@exclude it.name.equals("JavaPluginLoader.class") ||
+                it.name.equals("Material.class") ||
+                it.name.equals("EntityType.class") ||
+                it.name.equals("InventoryType.class") ||
+                it.name.equals("InventoryType\$SlotType.class") ||
+                it.name.equals("GameMode.class")
     }
 }
 

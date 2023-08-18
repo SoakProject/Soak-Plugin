@@ -10,8 +10,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.jetbrains.annotations.NotNull;
 import org.soak.commands.soak.SoakCommand;
+import org.soak.config.SoakServerProperties;
+import org.soak.impl.data.BukkitPersistentData;
 import org.soak.plugin.config.SoakConfiguration;
-import org.soak.plugin.data.BukkitPersistentData;
 import org.soak.plugin.loader.Locator;
 import org.soak.plugin.loader.sponge.SoakPluginContainer;
 import org.soak.plugin.loader.sponge.injector.SoakPluginInjector;
@@ -44,6 +45,7 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -62,6 +64,8 @@ public class SoakPlugin {
     private final PluginContainer container;
     private final Logger logger;
 
+    private final SoakServerProperties serverProperties = new SoakServerProperties();
+
     @Inject
     public SoakPlugin(PluginContainer pluginContainer, Logger logger) {
         plugin = this;
@@ -79,6 +83,15 @@ public class SoakPlugin {
         return plugin;
     }
 
+    public static SoakServer server() {
+        return (SoakServer) Bukkit.getServer();
+    }
+
+    //try not using
+    public SoakServerProperties getServerProperties() {
+        return this.serverProperties;
+    }
+
     @Listener
     public void registerCommands(RegisterCommandEvent<Command.Parameterized> event) {
         event.register(this.container, SoakCommand.createSoakCommand(), "soak");
@@ -90,7 +103,10 @@ public class SoakPlugin {
 
         BUKKIT_DATA = Key.builder().elementType(BukkitPersistentData.class).key(bukkitDataKey).build();
 
-        DataStore dataStore = DataStore.of(BUKKIT_DATA, DataQuery.of("soak"), ItemStack.class, ItemStackSnapshot.class); //TODO -> find more
+        DataStore dataStore = DataStore.of(BUKKIT_DATA,
+                DataQuery.of("soak"),
+                ItemStack.class,
+                ItemStackSnapshot.class); //TODO -> find more
         DataRegistration registration = DataRegistration.builder()
                 .dataKey(BUKKIT_DATA)
                 .store(dataStore)
@@ -175,7 +191,11 @@ public class SoakPlugin {
                             break;
                         } catch (IllegalArgumentException e) {
                             //noinspection deprecation
-                            effect = new SoakPotionEffectType(effect.getDurationModifier(), effect.isInstant(), effect.getColor(), effect.getName(), effect.getId() + 1);
+                            effect = new SoakPotionEffectType(effect.getDurationModifier(),
+                                    effect.isInstant(),
+                                    effect.getColor(),
+                                    effect.getName(),
+                                    effect.getId() + 1);
                         }
                     }
                 });
@@ -185,6 +205,7 @@ public class SoakPlugin {
 
     @Listener
     public void construct(ConstructPluginEvent event) {
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
         SoakServer server = new SoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
         //noinspection deprecation
@@ -214,36 +235,50 @@ public class SoakPlugin {
     }
 
     public Stream<SoakPluginContainer> getPlugins() {
-        return Sponge.pluginManager().plugins().stream().filter(container -> container instanceof SoakPluginContainer).map(container -> (SoakPluginContainer) container);
+        return Sponge.pluginManager()
+                .plugins()
+                .stream()
+                .filter(container -> container instanceof SoakPluginContainer)
+                .map(container -> (SoakPluginContainer) container);
     }
 
     public SoakPluginContainer getPlugin(@NotNull Plugin plugin) {
-        return getPlugins().filter(pl -> pl.plugin().equals(plugin)).findAny().orElseThrow(() -> new IllegalStateException("Could not find plugin, is it registered?"));
+        return getPlugins().filter(pl -> pl.plugin().equals(plugin))
+                .findAny()
+                .orElseThrow(() -> new IllegalStateException("Could not find plugin, is it registered?"));
     }
 
     public void displayError(Throwable e, File pluginFile) {
         displayError(e, Map.of("Plugin file", pluginFile.getPath()));
     }
 
-    public void displayError(Throwable e, Plugin plugin) {
+    public void displayError(Throwable e, Plugin plugin, Map.Entry<String, String>... additions) {
         Map<String, String> pluginData = new HashMap<>();
         pluginData.put("Plugin name", plugin.getName());
         if (plugin instanceof SoakPlugin soakPlugin) {
             pluginData.put("Plugin file", soakPlugin.configuration.file().getPath());
         }
+        for (Map.Entry<String, String> entry : additions) {
+            pluginData.put(entry.getKey(), entry.getValue());
+        }
+
         displayError(e, pluginData);
     }
 
     private void displayError(Throwable e, Map<String, String> pluginData) {
+        if (e instanceof InvocationTargetException targetException) {
+            e = targetException.getTargetException();
+        }
         this.logger.error("|------------------------|");
         pluginData.forEach((key, value) -> {
             this.logger.error("|- " + key + ": " + value);
         });
-        this.logger.error("|-Soak version: " + this.container.metadata().version().toString());
+        this.logger.error("|- Soak version: " + this.container.metadata().version().toString());
 
         if (e instanceof ClassCastException castException) {
             if (castException.getMessage().contains("org.bukkit.plugin.SimplePluginManager")) {
-                this.logger.error("|- Common Error Note: Starting on Paper hardfork 1.19.4, SimplePluginManager is being disconnected. This will not be added to soak");
+                this.logger.error(
+                        "|- Common Error Note: Starting on Paper hardfork 1.19.4, SimplePluginManager is being disconnected. This will not be added to soak");
             }
         }
 

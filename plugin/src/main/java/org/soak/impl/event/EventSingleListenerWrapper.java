@@ -2,6 +2,8 @@ package org.soak.impl.event;
 
 import org.bukkit.event.*;
 import org.bukkit.plugin.Plugin;
+import org.soak.plugin.SoakPlugin;
+import org.soak.utils.BasicEntry;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -37,7 +39,11 @@ public class EventSingleListenerWrapper<T extends Event> {
                     EventHandler handler = method.getAnnotation(EventHandler.class);
                     boolean ignoringCancelled = handler.ignoreCancelled();
                     EventPriority priority = handler.priority();
-                    return new EventSingleListenerWrapper<>(listener, plugin, (Class<? extends Event>) method.getParameterTypes()[0], priority, ignoringCancelled);
+                    return new EventSingleListenerWrapper<>(listener,
+                            plugin,
+                            (Class<? extends Event>) method.getParameterTypes()[0],
+                            priority,
+                            ignoringCancelled);
                 })
                 .collect(Collectors.toSet());
     }
@@ -55,6 +61,16 @@ public class EventSingleListenerWrapper<T extends Event> {
                 .filter(method -> method.getParameterTypes().length == 1)
                 .filter(method -> method.getParameterTypes()[0].getName().equals(event.getClass().getName()))
                 .toList();
+        for (Method method : methods) {
+            if (event instanceof Cancellable cancellable && cancellable.isCancelled() && !this.ignoreCancelled) {
+                break;
+            }
+            try {
+                method.invoke(this.listener, event);
+            } catch (Throwable e) {
+                SoakPlugin.plugin().displayError(e, this.plugin, new BasicEntry<>("event", event.getEventName()));
+            }
+        }
     }
 
     public Class<T> event() {

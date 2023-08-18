@@ -4,6 +4,9 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.command.PluginCommand;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakSubjectMap;
+import org.soak.plugin.SoakPlugin;
+import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.utils.BasicEntry;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandCompletion;
@@ -20,18 +23,44 @@ import java.util.stream.Collectors;
 public class BukkitRawCommand implements Command.Raw {
 
     private final org.bukkit.command.Command command;
+    private final SoakPluginContainer owningPlugin;
 
 
-    public BukkitRawCommand(org.bukkit.command.Command command) {
+    public BukkitRawCommand(SoakPluginContainer owningPlugin, org.bukkit.command.Command command) {
         this.command = command;
+        this.owningPlugin = owningPlugin;
     }
 
     @Override
     public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) throws CommandException {
-        String command = cause.context().get(EventContextKeys.COMMAND).orElse("");
+        String command = cause.context().get(EventContextKeys.COMMAND).map(rawCommand -> {
+            int index = rawCommand.indexOf(" ");
+            if (index == -1) {
+                return rawCommand;
+            }
+            return rawCommand.substring(0, index);
+        }).orElse("");
         String[] args = arguments.input().split(" ");
-        boolean result = this.command.execute(SoakSubjectMap.mapToBukkit(cause.subject()), command, args);
-        return result ? CommandResult.success() : CommandResult.error(this.usage(cause));
+        try {
+            boolean result = this.command.execute(SoakSubjectMap.mapToBukkit(cause.subject()), command, args);
+            return result ? CommandResult.success() : CommandResult.error(this.usage(cause));
+        } catch (org.bukkit.command.CommandException e) {
+            SoakPlugin.plugin()
+                    .displayError(e.getCause(),
+                            this.owningPlugin.plugin(),
+                            new BasicEntry<>("type", "Execute"),
+                            new BasicEntry<>("command", command),
+                            new BasicEntry<>("arguments", String.join(" ", args)));
+            return CommandResult.error(Component.text(e.getMessage()));
+        } catch (Throwable e) {
+            SoakPlugin.plugin()
+                    .displayError(e,
+                            this.owningPlugin.plugin(),
+                            new BasicEntry<>("type", "Execute"),
+                            new BasicEntry<>("command", command),
+                            new BasicEntry<>("arguments", String.join(" ", args)));
+            return CommandResult.error(Component.text(e.getMessage()));
+        }
     }
 
     @Override
@@ -42,14 +71,31 @@ public class BukkitRawCommand implements Command.Raw {
         if (plCmd.getTabCompleter() == null) {
             return Collections.emptyList();
         }
-        String command = cause.context().get(EventContextKeys.COMMAND).orElse("");
+        String command = cause.context().get(EventContextKeys.COMMAND).map(rawCommand -> {
+            int index = rawCommand.indexOf(" ");
+            if (index == -1) {
+                return rawCommand;
+            }
+            return rawCommand.substring(0, index);
+        }).orElse("");
         String[] args = arguments.input().split(" ");
 
-        List<String> commands = plCmd.getTabCompleter().onTabComplete(SoakSubjectMap.mapToBukkit(cause.subject()), this.command, command, args);
-        if (commands == null) {
+        try {
+            List<String> commands = plCmd.getTabCompleter()
+                    .onTabComplete(SoakSubjectMap.mapToBukkit(cause.subject()), this.command, command, args);
+            if (commands == null) {
+                return Collections.emptyList();
+            }
+            return commands.stream().map(CommandCompletion::of).collect(Collectors.toList());
+        } catch (Throwable e) {
+            SoakPlugin.plugin()
+                    .displayError(e,
+                            this.owningPlugin.plugin(),
+                            new BasicEntry<>("type", "Suggest"),
+                            new BasicEntry<>("command", command),
+                            new BasicEntry<>("arguments", String.join(" ", args)));
             return Collections.emptyList();
         }
-        return commands.stream().map(CommandCompletion::of).collect(Collectors.toList());
     }
 
     @Override
@@ -64,11 +110,11 @@ public class BukkitRawCommand implements Command.Raw {
 
     @Override
     public Optional<Component> extendedDescription(CommandCause cause) {
-        return Optional.of(SoakMessageMap.mapToComponent(this.command.getDescription()));
+        return Optional.of(SoakMessageMap.toComponent(this.command.getDescription()));
     }
 
     @Override
     public Component usage(CommandCause cause) {
-        return SoakMessageMap.mapToComponent(this.command.getUsage());
+        return SoakMessageMap.toComponent(this.command.getUsage());
     }
 }

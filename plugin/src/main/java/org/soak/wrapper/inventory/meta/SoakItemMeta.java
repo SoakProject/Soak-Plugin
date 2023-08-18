@@ -23,6 +23,6 @@ public class SoakItemMeta extends AbstractItemMeta {
 
     @Override
     public @NotNull SoakItemMeta clone() {
-        return new SoakItemMeta(this.copyToSnapshot());
+        return new SoakItemMeta(this.copyToImmutable());
     }
 }

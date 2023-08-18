@@ -216,12 +216,12 @@ public abstract class SoakCommandSender extends SoakPermissible implements Comma
 
     @Override
     public void sendMessage(@NotNull String arg0) {
-        sendMessage(SoakMessageMap.mapToComponent(arg0));
+        sendMessage(SoakMessageMap.toComponent(arg0));
     }
 
     @Override
     public void sendMessage(UUID arg0, @NotNull String arg1) {
-        this.sendMessage(Identity.identity(arg0), SoakMessageMap.mapToComponent(arg1));
+        this.sendMessage(Identity.identity(arg0), SoakMessageMap.toComponent(arg1));
     }
 
     @Override
@@ -237,6 +237,11 @@ public abstract class SoakCommandSender extends SoakPermissible implements Comma
     @Override
     public @NotNull Server getServer() {
         return Bukkit.getServer();
+    }
+
+    @Override
+    public @NotNull CommandSender.Spigot spigot() {
+        return new SoakSpigotCommandSender(this);
     }
 
 }

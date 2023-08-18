@@ -31,29 +31,26 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakResourceKeyMap;
-import org.soak.map.item.SoakItemStackMap;
+import org.soak.map.item.SoakRecipeMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.sponge.SoakPluginContainer;
 import org.soak.plugin.utils.Singleton;
 import org.soak.plugin.utils.Unfinal;
+import org.soak.utils.GenericHelper;
+import org.soak.utils.InventoryHelper;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
-import org.soak.wrapper.inventory.SoakComplexRecipe;
+import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
+import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.item.ItemTypes;
-import org.spongepowered.api.item.recipe.RecipeTypes;
-import org.spongepowered.api.item.recipe.cooking.CookingRecipe;
-import org.spongepowered.api.item.recipe.crafting.Ingredient;
-import org.spongepowered.api.item.recipe.crafting.ShapedCraftingRecipe;
-import org.spongepowered.api.item.recipe.crafting.ShapelessCraftingRecipe;
-import org.spongepowered.api.item.recipe.crafting.SpecialCraftingRecipe;
-import org.spongepowered.api.item.recipe.single.StoneCutterRecipe;
+import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.tag.BlockTypeTags;
 import org.spongepowered.api.tag.FluidTypeTags;
@@ -137,8 +134,7 @@ public class SoakServer implements SimpServer {
                     .values()
                     .stream()
                     .map(itemType -> Material.getItemMaterial(itemType))
-                    .collect(
-                            Collectors.toSet());
+                    .collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, itemTypes);
 
         }
@@ -154,7 +150,9 @@ public class SoakServer implements SimpServer {
         if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:crops")) {
             var items = ItemTypes.registry()
                     .stream()
-                    .filter(item -> org.spongepowered.api.item.inventory.ItemStack.of(item).get(Keys.REPLENISHED_FOOD).isPresent())
+                    .filter(item -> org.spongepowered.api.item.inventory.ItemStack.of(item)
+                            .get(Keys.REPLENISHED_FOOD)
+                            .isPresent())
                     .map(Material::getItemMaterial)
                     .collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, items);
@@ -162,7 +160,9 @@ public class SoakServer implements SimpServer {
         if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:furnace_materials")) {
             var items = ItemTypes.registry()
                     .stream()
-                    .filter(item -> org.spongepowered.api.item.inventory.ItemStack.of(item).get(Keys.MAX_COOK_TIME).isPresent())
+                    .filter(item -> org.spongepowered.api.item.inventory.ItemStack.of(item)
+                            .get(Keys.MAX_COOK_TIME)
+                            .isPresent())
                     .map(Material::getItemMaterial)
                     .collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, items);
@@ -190,7 +190,11 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull String getVersion() {
-        return SoakPlugin.plugin().container().metadata().version().toString();
+        return "(MC: " + getMinecraftVersion() + ") - " + SoakPlugin.plugin()
+                .container()
+                .metadata()
+                .version()
+                .toString();
     }
 
     @Override
@@ -276,7 +280,7 @@ public class SoakServer implements SimpServer {
     @Override
     @Deprecated
     public int broadcastMessage(@NotNull String message) {
-        return this.broadcast(SoakMessageMap.mapToComponent(message));
+        return this.broadcast(SoakMessageMap.toComponent(message));
     }
 
     @Override
@@ -454,93 +458,12 @@ public class SoakServer implements SimpServer {
                 .all()
                 .stream()
                 .<Recipe>map(recipe -> {
-                    NamespacedKey key;
                     try {
-                        key = SoakResourceKeyMap.mapToBukkit(recipe.key());
-                    } catch (AbstractMethodError e) {
+                        return SoakRecipeMap.toBukkit(recipe);
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
                         return null;
                     }
-                    var result = SoakItemStackMap.toBukkit(recipe.exemplaryResult());
-                    var inputs = recipe.ingredients();
-
-                    if (recipe instanceof CookingRecipe cooking) {
-                        var input = Material.getItemMaterial(inputs.get(0).displayedItems().get(0).type());
-                        if (cooking.type().equals(RecipeTypes.SMELTING.get())) {
-                            return new FurnaceRecipe(key,
-                                    result,
-                                    input,
-                                    cooking.experience(),
-                                    (int) cooking.cookingTime().ticks());
-                        }
-                        if (cooking.type().equals(RecipeTypes.BLASTING.get())) {
-                            return new BlastingRecipe(key,
-                                    result,
-                                    input,
-                                    cooking.experience(),
-                                    (int) cooking.cookingTime().ticks());
-                        }
-                        if (cooking.type().equals(RecipeTypes.CAMPFIRE_COOKING.get())) {
-                            return new CampfireRecipe(key,
-                                    result,
-                                    input,
-                                    cooking.experience(),
-                                    (int) cooking.cookingTime().ticks());
-                        }
-                        if (cooking.type().equals(RecipeTypes.SMOKING.get())) {
-                            return new SmokingRecipe(key,
-                                    result,
-                                    input,
-                                    cooking.experience(),
-                                    (int) cooking.cookingTime().ticks());
-                        }
-                    }
-                    if (recipe instanceof StoneCutterRecipe) {
-                        var input = Material.getItemMaterial(inputs.get(0).displayedItems().get(0).type());
-                        return new StonecuttingRecipe(key, result, input);
-                    }
-
-                    if (recipe instanceof SpecialCraftingRecipe specialCrafting) {
-                        return new SoakComplexRecipe(specialCrafting);
-                    }
-
-
-                    if (recipe instanceof ShapedCraftingRecipe shapedCrafting) {
-                        var shaped = new ShapedRecipe(key, result);
-                        int i = 0;
-                        Map<Integer, String> characterMap = new LinkedHashMap<>();
-                        Map<Character, ItemStack> ingredients = new LinkedHashMap<>();
-                        for (int x = 0; x < shapedCrafting.width(); x++) {
-                            for (int z = 0; z < shapedCrafting.height(); z++) {
-                                i++;
-                                char c = (char) (65 + i);
-                                Ingredient ingr = shapedCrafting.ingredient(x, z);
-                                var items = ingr.displayedItems();
-                                String line = characterMap.getOrDefault(x, "");
-                                characterMap.put(x, line + c);
-                                if (items.isEmpty()) {
-                                    continue;
-                                }
-                                ingredients.put(c, SoakItemStackMap.toBukkit(items.get(0)));
-                            }
-                        }
-                        shaped.shape(characterMap.values().toArray(new String[0]));
-                        ingredients.forEach(shaped::setIngredient);
-                        return shaped;
-                    }
-
-                    if (recipe instanceof ShapelessCraftingRecipe shapelessRecipe) {
-                        var shapeless = new ShapelessRecipe(key, result);
-                        inputs.stream()
-                                .map(Ingredient::displayedItems)
-                                .filter(in -> !in.isEmpty())
-                                .map(in -> in.get(0))
-                                .map(SoakItemStackMap::toBukkit)
-                                .forEach(shapeless::addIngredient);
-                        return shapeless;
-                    }
-                    throw new RuntimeException("Unknown mapping for recipetype " + recipe.type()
-                            .key(RegistryTypes.RECIPE_TYPE)
-                            .formatted() + ": " + recipe.getClass().getName());
                 })
                 .filter(Objects::nonNull)
                 .iterator();
@@ -578,7 +501,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public boolean getOnlineMode() {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getOnlineMode");
+        return SoakPlugin.plugin().getServerProperties().onlineMode().orElse();
     }
 
     @Override
@@ -593,17 +516,33 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull OfflinePlayer getOfflinePlayer(@NotNull String name) {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getOfflinePlayer", String.class);
+        var cached = getOfflinePlayerIfCached(name);
+        if (cached != null) {
+            return cached;
+        }
+        var future = Sponge.server()
+                .gameProfileManager()
+                .profile(name)
+                .thenCompose(profile -> Sponge.server().userManager().loadOrCreate(profile.uuid()));
+        return new SoakOfflinePlayer(future);
     }
 
     @Override
     public @Nullable OfflinePlayer getOfflinePlayerIfCached(@NotNull String name) {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getOfflinePlayerIfCached", String.class);
+        if (Sponge.server().userManager().streamOfMatches(name).findAny().isEmpty()) {
+            return null;
+        }
+        var future = Sponge.server()
+                .userManager()
+                .load(name)
+                .thenApply(op -> op.orElseThrow(() -> new RuntimeException("Failed to load cached player")));
+        return new SoakOfflinePlayer(future);
     }
 
     @Override
     public @NotNull OfflinePlayer getOfflinePlayer(@NotNull UUID id) {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getOfflinePlayer", UUID.class);
+        var future = Sponge.server().userManager().loadOrCreate(id);
+        return new SoakOfflinePlayer(future);
     }
 
     @Override
@@ -686,35 +625,34 @@ public class SoakServer implements SimpServer {
     @Deprecated
     @Override
     public @NotNull Inventory createInventory(InventoryHolder arg0, @NotNull InventoryType arg1, @NotNull String arg2) {
-        throw NotImplementedException.createByLazy(Server.class,
-                "createInventory",
-                InventoryHolder.class,
-                InventoryType.class,
-                String.class);
+        return createInventory(arg0, arg1, SoakMessageMap.toComponent(arg2));
     }
 
     @Override
     public @NotNull Inventory createInventory(InventoryHolder arg0, int arg1) {
-        throw NotImplementedException.createByLazy(Server.class, "createInventory", InventoryHolder.class, int.class);
+        return createChestInventory(arg0, arg1, null);
     }
 
     @Override
     public @NotNull Inventory createInventory(InventoryHolder arg0, int arg1, @NotNull Component arg2) {
-        throw NotImplementedException.createByLazy(Server.class,
-                "createInventory",
-                InventoryHolder.class,
-                int.class,
-                Component.class);
+        return createChestInventory(arg0, arg1, arg2);
+    }
+
+    private Inventory createChestInventory(InventoryHolder holder, int size, @Nullable Component title) {
+        int rows = (size / 9);
+        var containerType = InventoryHelper.toChestContainerType(rows);
+        var plugin = GenericHelper.fromStackTrace();
+        var inventory = ViewableInventory.builder().type(containerType).completeStructure().plugin(plugin).build();
+        //TODO holder
+        var bukkitInv = new SoakInventory<>(inventory);
+        bukkitInv.setRequestedTitle(title);
+        return bukkitInv;
     }
 
     @Deprecated
     @Override
     public @NotNull Inventory createInventory(InventoryHolder arg0, int arg1, @NotNull String arg2) {
-        throw NotImplementedException.createByLazy(Server.class,
-                "createInventory",
-                InventoryHolder.class,
-                int.class,
-                String.class);
+        return createInventory(arg0, arg1, SoakMessageMap.toComponent(arg2));
     }
 
     @Deprecated
@@ -1019,7 +957,7 @@ public class SoakServer implements SimpServer {
     @Deprecated
     @Override
     public int broadcast(@NotNull String arg0, @NotNull String arg1) {
-        return broadcast(SoakMessageMap.mapToComponent(arg0), arg1);
+        return broadcast(SoakMessageMap.toComponent(arg0), arg1);
     }
 
     @Override

@@ -10,7 +10,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakResourceKeyMap;
-import org.soak.map.item.EnchantmentTypeMap;
+import org.soak.map.item.SoakEnchantmentTypeMap;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.spongepowered.api.item.enchantment.EnchantmentType;
@@ -65,7 +65,7 @@ public class SoakEnchantment extends Enchantment {
 
     @Override
     public boolean conflictsWith(@NotNull Enchantment arg0) {
-        return !this.type.isCompatibleWith(EnchantmentTypeMap.toSponge(arg0));
+        return !this.type.isCompatibleWith(SoakEnchantmentTypeMap.toSponge(arg0));
     }
 
     @Override
