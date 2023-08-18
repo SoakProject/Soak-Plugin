@@ -1,0 +1,22 @@
+name: Add labels
+on:
+  issues:
+    types:
+      - edited
+jobs:
+  applyLabels:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/github-script@v6
+        name: open source
+        if: ${{github.event.issue.body.open-source != null}}
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["Open-Source"]
+            })
