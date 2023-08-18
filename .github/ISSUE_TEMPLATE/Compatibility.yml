@@ -1,0 +1,46 @@
+name: Compatibility issue
+description: A issue that doesn't have a error
+title: "[Compatibility]: "
+labels: [ "bug" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is for issues that don't cause a error
+  - type: input
+    id: soak-version
+    attributes:
+      label: Soak version
+      description: The version of soak being used
+  - type: dropdown
+    id: sponge-type
+    attributes:
+      label: Sponge version
+      description: The type of sponge the issue occurs on
+      options:
+        - Sponge Vanilla
+        - Sponge Forge
+    validations:
+      required: true
+  - type: dropdown
+    id: compatibility
+    attributes:
+      label: Compatibility
+      description: Soak's compatibility mode
+      options:
+        - Vanilla
+        - Extra
+  - type: textarea
+    id: desired-result
+    attributes:
+      label: Expected result
+      description: "The result that is expected"
+    validations:
+      required: true
+  - type: textarea
+    id: current-result
+    attributes:
+      label: Current result
+      description: "The result that is currently happening"
+    validations:
+      required: true

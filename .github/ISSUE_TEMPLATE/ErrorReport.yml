@@ -1,0 +1,41 @@
+name: Error Report
+description: Error when running a plugin
+title: "[Error]: "
+labels: [ "bug" ]
+body:
+  - type: input
+    id: "soak-version"
+    attributes:
+      label: Soak version
+      description: Version of soak used (should say at the top of the crash)
+      placeholder: "0.0.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: "sponge-type"
+    attributes:
+      label: "Sponge type"
+      description: "Type of sponge you are running"
+      options:
+        - "Sponge Vanilla"
+        - "Sponge Forge"
+    validations:
+      required: true
+  - type: dropdown
+    id: "compatibility-type"
+    attributes:
+      label: "Compatibility type"
+      description: "Soak's compatibility type (should say at the top of the crash)"
+      options:
+        - "Vanilla"
+        - "Extra"
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: log
+      description: Error report
+      render: Shell
+    validations:
+      required: true

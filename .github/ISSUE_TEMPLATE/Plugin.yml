@@ -1,0 +1,38 @@
+name: Plugin
+description: Compatibility with plugin
+title: "[Title]: "
+labels: [ "Plugin" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is for reporting compatibility on plugins, not for reporting bugs, use ``Error report`` for bugs
+  - type: input
+    id: plugin-id
+    attributes:
+      label: Plugin name
+      description: The plugins name
+    validations:
+      required: true
+  - type: input
+    id: download
+    attributes:
+      label: download page
+      description: "The plugins download page (hanger, spigot resource, dev bukkit, etc)"
+    validations:
+      required: true
+  - type: input
+    id: open-source
+    attributes:
+      label: Source code URL
+      description: The source code url (leave blank if not known)
+      placeholder: "https://www.github.com/"
+    validations:
+      required: false
+  - type: checkboxes
+    id: paid-plugin
+    attributes:
+      label: Paid?
+      description: "Do you need to pay for the plugin?"
+      options:
+        - label: "is paid for?"
