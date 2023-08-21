@@ -38,12 +38,12 @@ public class SoakUnsafeValues implements UnsafeValues {
 
     @Override
     public GsonComponentSerializer gsonComponentSerializer() {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "gsonComponentSerializer");
+        return GsonComponentSerializer.gson();
     }
 
     @Override
     public LegacyComponentSerializer legacyComponentSerializer() {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "legacyComponentSerializer");
+        return LegacyComponentSerializer.legacySection();
     }
 
     @Override
@@ -190,7 +190,7 @@ public class SoakUnsafeValues implements UnsafeValues {
 
     @Override
     public PlainComponentSerializer plainComponentSerializer() {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "plainComponentSerializer");
+        return PlainComponentSerializer.plain();
     }
 
 }

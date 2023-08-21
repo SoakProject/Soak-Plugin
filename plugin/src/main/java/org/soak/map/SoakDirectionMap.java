@@ -1,9 +1,18 @@
 package org.soak.map;
 
 import org.bukkit.block.BlockFace;
+import org.spongepowered.api.util.Axis;
 import org.spongepowered.api.util.Direction;
 
 public class SoakDirectionMap {
+
+    public static Axis toSponge(org.bukkit.Axis axis) {
+        return Axis.valueOf(axis.name());
+    }
+
+    public static org.bukkit.Axis toBukkit(Axis axis) {
+        return org.bukkit.Axis.valueOf(axis.name());
+    }
 
     public static Direction toSponge(BlockFace face) {
         switch (face) {

@@ -10,6 +10,6 @@ public class SoakBlockData extends AbstractBlockData {
 
     @Override
     public @NotNull AbstractBlockData clone() {
-        return new SoakBlockData(this.getSponge());
+        return new SoakBlockData(this.sponge());
     }
 }

@@ -6,7 +6,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.world.SoakWorld;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.living.player.RespawnPlayerEvent;
@@ -47,8 +46,8 @@ public class SoakPlayerRespawnEvent {
 
 
     private void fireEvent(RespawnPlayerEvent.Recreate event, EventPriority priority) {
-        var player = new SoakPlayer(event.entity());
-        var newWorld = new SoakWorld(event.destinationWorld());
+        var player = SoakPlugin.plugin().getMemoryStore().get(event.entity());
+        var newWorld = SoakPlugin.plugin().getMemoryStore().get(event.destinationWorld());
         var newLocation = new Location(newWorld,
                 event.destinationPosition().x(),
                 event.destinationPosition().y(),

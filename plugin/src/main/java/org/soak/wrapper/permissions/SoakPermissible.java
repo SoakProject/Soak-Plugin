@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.exception.NotImplementedException;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.Tristate;
 
 import java.util.Set;
 
@@ -35,12 +36,12 @@ public class SoakPermissible implements Permissible {
 
     @Override
     public boolean isPermissionSet(@NotNull Permission arg0) {
-        throw NotImplementedException.createByLazy(Permissible.class, "isPermissionSet", Permission.class);
+        return this.isPermissionSet(arg0.getName());
     }
 
     @Override
     public boolean isPermissionSet(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Permissible.class, "isPermissionSet", String.class);
+        return this.subject.permissionValue(arg0) != Tristate.UNDEFINED;
     }
 
     @Override

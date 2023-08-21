@@ -10,7 +10,6 @@ import org.soak.map.SoakDirectionMap;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.block.SoakBlockSnapshot;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.EventContextKeys;
@@ -53,7 +52,7 @@ public class SoakPlayerInteractBlockEvent {
     }
 
     private void fireEvent(InteractBlockEvent spongeEvent, ServerPlayer spongePlayer, EventPriority priority) {
-        var player = new SoakPlayer(spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var spongePosition = spongeEvent.block().position();
         var interactionPoint = new Location(player.getWorld(),
                 spongePosition.x(),

@@ -40,12 +40,10 @@ import org.soak.plugin.utils.Unfinal;
 import org.soak.utils.GenericHelper;
 import org.soak.utils.InventoryHelper;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
-import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Keys;
@@ -55,6 +53,8 @@ import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.tag.BlockTypeTags;
 import org.spongepowered.api.tag.FluidTypeTags;
 import org.spongepowered.api.tag.ItemTypeTags;
+import org.spongepowered.api.world.DefaultWorldKeys;
+import org.spongepowered.api.world.server.ServerWorld;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -209,7 +209,11 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull Collection<? extends Player> getOnlinePlayers() {
-        return this.spongeServer().onlinePlayers().stream().map(SoakPlayer::new).collect(Collectors.toList());
+        return this.spongeServer()
+                .onlinePlayers()
+                .stream()
+                .map(spongePlayer -> SoakPlugin.plugin().getMemoryStore().get(spongePlayer))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -360,7 +364,12 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull List<World> getWorlds() {
-        return this.spongeServer().worldManager().worlds().stream().map(SoakWorld::new).collect(Collectors.toList());
+        return this.spongeServer()
+                .worldManager()
+                .worlds()
+                .stream()
+                .map(world -> SoakPlugin.plugin().getMemoryStore().get(world))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -489,14 +498,21 @@ public class SoakServer implements SimpServer {
         throw NotImplementedException.createByLazy(SoakServer.class, "getCommandAliases", Map.class);
     }
 
+    public ServerWorld defaultWorld() {
+        return this.spongeServer()
+                .worldManager()
+                .world(DefaultWorldKeys.DEFAULT)
+                .orElseThrow(() -> new RuntimeException("default world is not loaded"));
+    }
+
     @Override
     public int getSpawnRadius() {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getSpawnRadius");
+        return SoakPlugin.plugin().getServerProperties().spawnProtection().orElse();
     }
 
     @Override
     public void setSpawnRadius(int value) {
-        throw NotImplementedException.createByLazy(SoakServer.class, "setSpawnRadius", int.class);
+        SoakPlugin.plugin().getServerProperties().spawnProtection().setMemoryValue(value);
     }
 
     @Override
@@ -850,7 +866,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull BlockData createBlockData(@NotNull Material arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class);
+        return arg0.createBlockData();
     }
 
     @Override

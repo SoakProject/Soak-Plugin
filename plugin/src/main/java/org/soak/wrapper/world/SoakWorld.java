@@ -858,7 +858,8 @@ public class SoakWorld implements World, CraftWorld {
 
     @Override
     public @NotNull Location getSpawnLocation() {
-        throw NotImplementedException.createByLazy(World.class, "getSpawnLocation");
+        var spawnLocation = this.sponge().properties().spawnPosition();
+        return new Location(this, spawnLocation.x(), spawnLocation.y(), spawnLocation.z());
     }
 
     @Override
@@ -1552,5 +1553,18 @@ public class SoakWorld implements World, CraftWorld {
     @Override
     public WorldServer getHandle() {
         return (WorldServer) this.sponge();
+    }
+
+    @Override
+    public int hashCode() {
+        return this.sponge().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SoakWorld world)) {
+            return false;
+        }
+        return this.sponge().equals(world.sponge());
     }
 }

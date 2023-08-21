@@ -53,7 +53,7 @@ public class SoakPreCommandEvent {
         }
 
         var command = event.command() + " " + event.arguments();
-        var player = new SoakPlayer(serverPlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(serverPlayer);
 
         var bukkitEvent = new PlayerCommandPreprocessEvent(player, command);
         SoakPlugin.server().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);

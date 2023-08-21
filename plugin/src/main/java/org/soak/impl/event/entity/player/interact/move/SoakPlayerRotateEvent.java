@@ -4,7 +4,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -46,7 +45,7 @@ public class SoakPlayerRotateEvent {
     }
 
     private void fireEvent(RotateEntityEvent event, ServerPlayer spongePlayer, EventPriority priority) {
-        var bukkitPlayer = new SoakPlayer(spongePlayer);
+        var bukkitPlayer = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var originalPosition = bukkitPlayer.getLocation();
         var originalRotation = event.fromRotation();
         originalPosition.setPitch((float) originalRotation.y());

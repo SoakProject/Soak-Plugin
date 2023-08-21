@@ -1,9 +1,9 @@
 package org.soak.map;
 
 import org.bukkit.command.CommandSender;
+import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.command.SoakCommandSender;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.SystemSubject;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.service.permission.Subject;
@@ -22,7 +22,7 @@ public class SoakSubjectMap {
             return mapToBukkit(system);
         }
         if (sender instanceof ServerPlayer player) {
-            return new SoakPlayer(player);
+            return SoakPlugin.plugin().getMemoryStore().get(player);
         }
         throw new IllegalStateException("Unknown mapping for " + sender.getClass().getName());
     }

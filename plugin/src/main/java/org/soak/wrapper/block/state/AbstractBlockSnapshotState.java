@@ -17,7 +17,6 @@ import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.block.SoakBlockSnapshot;
 import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;
-import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.Keys;
@@ -67,7 +66,7 @@ public class AbstractBlockSnapshotState implements BlockState {
                 .worldManager()
                 .world(worldKey)
                 .orElseThrow(() -> new RuntimeException("BlockState BlockSnapshot attempted to access a unloaded world"));
-        return new SoakWorld(spongeWorld);
+        return SoakPlugin.plugin().getMemoryStore().get(spongeWorld);
     }
 
     private int position(Function<Vector3i, Integer> fun) {

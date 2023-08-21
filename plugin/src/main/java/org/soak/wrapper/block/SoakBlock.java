@@ -15,11 +15,13 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockState;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;
 import org.soak.wrapper.world.SoakWorld;
-import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.server.ServerLocation;
 import org.spongepowered.math.vector.Vector3i;
 
@@ -55,12 +57,15 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
 
     @Override
     public void setBlockData(BlockData arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "setBlockData", BlockData.class);
+        if (!(arg0 instanceof CommonBlockData common)) {
+            throw new RuntimeException(arg0.getClass().getName() + " does not implement CommonBlockData");
+        }
+        this.block.setBlock(common.sponge());
     }
 
     @Override
     public @NotNull SoakWorld getWorld() {
-        return new SoakWorld(this.block.world());
+        return SoakPlugin.plugin().getMemoryStore().get(this.block.world());
     }
 
     @Override
@@ -80,7 +85,9 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
 
     @Override
     public void setType(Material arg0, boolean arg1) {
-        throw NotImplementedException.createByLazy(Block.class, "setType", Material.class, boolean.class);
+        var blockType = arg0.asBlock().orElseThrow(() -> new RuntimeException(arg0.name() + " is not a block"));
+        var blockChangeFlag = arg1 ? BlockChangeFlags.ALL : BlockChangeFlags.NOTIFY_CLIENTS;
+        this.block.setBlockType(blockType, blockChangeFlag);
     }
 
     @Override
@@ -258,11 +265,6 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
         return this.block.blockEntity()
                 .map(entity -> (BlockState) AbstractBlockState.wrap(entity))
                 .orElseGet(() -> new GenericBlockSnapshotState(this.block.createSnapshot()));
-    }
-
-    @Override
-    public void setType(Material arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "setType", Material.class);
     }
 
     @Override

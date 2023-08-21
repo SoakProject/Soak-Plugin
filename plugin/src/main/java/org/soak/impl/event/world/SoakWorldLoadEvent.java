@@ -4,7 +4,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.world.LoadWorldEvent;
@@ -44,7 +43,7 @@ public class SoakWorldLoadEvent {
     }
 
     private void fireEvent(LoadWorldEvent spongeEvent, EventPriority priority) {
-        var bukkitWorld = new SoakWorld(spongeEvent.world());
+        var bukkitWorld = SoakPlugin.plugin().getMemoryStore().get(spongeEvent.world());
         var bukkitEvent = new WorldLoadEvent(bukkitWorld);
         SoakPlugin.server().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 

@@ -15,7 +15,9 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockSnapshotState;
 import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.Sponge;
@@ -54,14 +56,17 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
 
     @Override
     public void setBlockData(BlockData arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "setBlockData", BlockData.class);
+        if (!(arg0 instanceof CommonBlockData common)) {
+            throw new RuntimeException(arg0.getClass().getName() + " does not implement CommonBlockData");
+        }
+        this.block = this.block.withState(common.sponge());
     }
 
     @Override
     public @NotNull SoakWorld getWorld() {
         var worldKey = this.block.world();
         var opWorld = Sponge.server().worldManager().world(worldKey);
-        return opWorld.map(SoakWorld::new)
+        return opWorld.map(world -> SoakPlugin.plugin().getMemoryStore().get(world))
                 .orElseThrow(() -> new IllegalStateException("Plugin attempted to access a block in a world (" + worldKey.formatted() + ") that isn't loaded"));
     }
 
@@ -259,11 +264,6 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     @Override
     public @NotNull BlockState getState() {
         return AbstractBlockSnapshotState.wrap(this.sponge());
-    }
-
-    @Override
-    public void setType(@NotNull Material arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "setType", Material.class);
     }
 
     @Override

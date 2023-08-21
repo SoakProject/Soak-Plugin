@@ -6,7 +6,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
@@ -68,7 +67,7 @@ public class SoakPlayerMoveEvent {
             return;
         }
 
-        var bukkitPlayer = new SoakPlayer(spongePlayer);
+        var bukkitPlayer = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var spongeOriginalPosition = event.originalPosition();
         var newPositionWorld = bukkitPlayer.getWorld();
         var originalPosition = new Location(newPositionWorld,

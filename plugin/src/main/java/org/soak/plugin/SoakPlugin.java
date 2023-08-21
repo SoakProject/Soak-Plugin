@@ -9,6 +9,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.jetbrains.annotations.NotNull;
+import org.soak.Compatibility;
 import org.soak.commands.soak.SoakCommand;
 import org.soak.config.SoakServerProperties;
 import org.soak.impl.data.BukkitPersistentData;
@@ -16,10 +17,12 @@ import org.soak.plugin.config.SoakConfiguration;
 import org.soak.plugin.loader.Locator;
 import org.soak.plugin.loader.sponge.SoakPluginContainer;
 import org.soak.plugin.loader.sponge.injector.SoakPluginInjector;
+import org.soak.utils.SoakMemoryStore;
 import org.soak.wrapper.SoakServer;
 import org.soak.wrapper.enchantment.SoakEnchantment;
 import org.soak.wrapper.plugin.SoakPluginManager;
 import org.soak.wrapper.potion.SoakPotionEffectType;
+import org.spongepowered.api.Platform;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -63,6 +66,8 @@ public class SoakPlugin {
     private final SoakConfiguration configuration;
     private final PluginContainer container;
     private final Logger logger;
+    private final Compatibility compatibility;
+    private final SoakMemoryStore memoryStore = new SoakMemoryStore();
 
     private final SoakServerProperties serverProperties = new SoakServerProperties();
 
@@ -71,6 +76,7 @@ public class SoakPlugin {
         plugin = this;
         this.container = pluginContainer;
         this.logger = logger;
+        this.compatibility = new Compatibility();
         try {
             Path path = Sponge.configManager().pluginConfig(this.container).directory();
             this.configuration = new SoakConfiguration(path.toFile());
@@ -85,6 +91,10 @@ public class SoakPlugin {
 
     public static SoakServer server() {
         return (SoakServer) Bukkit.getServer();
+    }
+
+    public SoakMemoryStore getMemoryStore() {
+        return this.memoryStore;
     }
 
     //try not using
@@ -119,6 +129,10 @@ public class SoakPlugin {
     public void startingPlugin(StartingEngineEvent<Server> event) {
         startEnchantmentTypes();
         startPotionEffects();
+    }
+
+    public Compatibility getCompatibility() {
+        return this.compatibility;
     }
 
     private void startEnchantmentTypes() {
@@ -274,6 +288,14 @@ public class SoakPlugin {
             this.logger.error("|- " + key + ": " + value);
         });
         this.logger.error("|- Soak version: " + this.container.metadata().version().toString());
+        this.logger.error("|- Compatibility: " + this.compatibility.getName());
+        this.logger.error("|- Compatibility version: " + this.compatibility.getVersion());
+        this.logger.error("|- Compatibility Minecraft version: " + this.compatibility.getTargetMinecraftVersion());
+        this.logger.error("|- Minecraft version: " + Sponge.platform().minecraftVersion().name());
+        this.logger.error("|- Sponge API version: " + Sponge.platform()
+                .container(Platform.Component.API)
+                .metadata()
+                .version());
 
         if (e instanceof ClassCastException castException) {
             if (castException.getMessage().contains("org.bukkit.plugin.SimplePluginManager")) {

@@ -2,6 +2,7 @@ package org.soak.config;
 
 import org.soak.config.node.properties.OnlineModeProperty;
 import org.soak.config.node.properties.PropertiesNode;
+import org.soak.config.node.properties.SpawnProtectionProperty;
 import org.soak.plugin.SoakPlugin;
 
 import java.io.*;
@@ -15,6 +16,7 @@ public class SoakServerProperties {
     private static final File PROPERTIES_FILE = new File("server.properties");
 
     private final OnlineModeProperty onlineMode = new OnlineModeProperty();
+    private final SpawnProtectionProperty spawnProtection = new SpawnProtectionProperty();
 
     public SoakServerProperties() {
 
@@ -58,7 +60,7 @@ public class SoakServerProperties {
             if (index == -1) {
                 return false;
             }
-            var value = line.substring(index);
+            var value = line.substring(index + 1);
             property.setMemoryValue(value);
             return true;
         } catch (FileNotFoundException e) {
@@ -68,6 +70,16 @@ public class SoakServerProperties {
 
     public OnlineModeProperty onlineMode() {
         var property = property(OnlineModeProperty.class);
+        if (property.value().isEmpty()) {
+            if (!loadValue(property)) {
+                SoakPlugin.plugin().logger().warn("Cannot read server.properties");
+            }
+        }
+        return property;
+    }
+
+    public SpawnProtectionProperty spawnProtection() {
+        var property = property(SpawnProtectionProperty.class);
         if (property.value().isEmpty()) {
             if (!loadValue(property)) {
                 SoakPlugin.plugin().logger().warn("Cannot read server.properties");

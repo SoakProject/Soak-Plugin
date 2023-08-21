@@ -5,7 +5,6 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -47,7 +46,7 @@ public class SoakItemUseEvent {
     }
 
     private void fireEvent(UseItemStackEvent.Finish event, ServerPlayer spongePlayer, EventPriority priority) {
-        var player = new SoakPlayer(spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var item = SoakItemStackMap.toBukkit(event.itemStackInUse());
 
         var bukkitEvent = new PlayerItemConsumeEvent(player, item);

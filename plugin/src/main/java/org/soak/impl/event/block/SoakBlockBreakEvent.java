@@ -47,7 +47,7 @@ public class SoakBlockBreakEvent {
     }
 
     private void fireEvent(ChangeBlockEvent.All spongeEvent, ServerPlayer spongePlayer, EventPriority priority) {
-        var player = new SoakPlayer(spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         spongeEvent.transactions(Operations.BREAK.get()).forEach(transaction -> {
             var block = new SoakBlockSnapshot(transaction.original());
             var bukkitEvent = new BlockBreakEvent(block, player);

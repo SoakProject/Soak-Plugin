@@ -5,9 +5,12 @@ import org.bukkit.SoundGroup;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.block.data.type.BlockDataTypes;
 import org.spongepowered.api.block.BlockState;
 
-public abstract class AbstractBlockData implements BlockData {
+import java.lang.reflect.InvocationTargetException;
+
+public abstract class AbstractBlockData implements BlockData, CommonBlockData {
 
     protected BlockState spongeState;
 
@@ -15,12 +18,26 @@ public abstract class AbstractBlockData implements BlockData {
         this.spongeState = state;
     }
 
-    public static AbstractBlockData createBlockData(BlockState state) {
-        return new SoakBlockData(state);
+    public static CommonBlockData createBlockData(BlockState state) {
+        return BlockDataTypes.valueFor(state).map(type -> {
+            try {
+                return type.instance(state);
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }).orElseGet(() -> new SoakBlockData(state));
     }
 
-    public BlockState getSponge() {
+    @Override
+    public BlockState sponge() {
         return this.spongeState;
+    }
+
+    @Override
+    public CommonBlockData setSponge(BlockState state) {
+        this.spongeState = state;
+        return this;
     }
 
     @Override

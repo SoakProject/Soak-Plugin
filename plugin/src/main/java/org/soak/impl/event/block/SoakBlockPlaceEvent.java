@@ -52,7 +52,7 @@ public class SoakBlockPlaceEvent {
     }
 
     private void fireEvent(ChangeBlockEvent.All spongeEvent, ServerPlayer spongePlayer, EventPriority priority) {
-        var player = new SoakPlayer(spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var opRaytrace = RayTrace.block()
                 .direction(spongePlayer)
                 .sourceEyePosition(spongePlayer)

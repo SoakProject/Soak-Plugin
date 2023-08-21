@@ -4,7 +4,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.network.ServerSideConnectionEvent;
@@ -44,7 +43,7 @@ public class SoakPlayerQuitEvent {
 
 
     private void fireEvent(ServerSideConnectionEvent.Disconnect event, EventPriority priority) {
-        var player = new SoakPlayer(event.player());
+        var player = SoakPlugin.plugin().getMemoryStore().get(event.player());
         var message = event.message();
 
         var bukkitEvent = new PlayerQuitEvent(player, message); //TODO PlayerQuitEvent.QuitReason

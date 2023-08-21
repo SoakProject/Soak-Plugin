@@ -24,13 +24,12 @@ import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakDirectionMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakVectorMap;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.command.SoakCommandSender;
 import org.soak.wrapper.entity.living.AbstractLivingEntity;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.entity.projectile.SoakFirework;
 import org.soak.wrapper.persistence.SoakMutablePersistentDataContainer;
-import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
@@ -63,7 +62,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     public static <E extends org.spongepowered.api.entity.Entity> AbstractEntity<E> wrap(E entity) {
         if (entity instanceof ServerPlayer player) {
-            return (AbstractEntity<E>) (Object) new SoakPlayer(player);
+            return (AbstractEntity<E>) (Object) SoakPlugin.plugin().getMemoryStore().get(player);
         }
         if (entity instanceof FireworkRocket firework) {
             return (AbstractEntity<E>) new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), firework);
@@ -151,7 +150,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull World getWorld() {
-        return new SoakWorld((ServerWorld) this.entity.world());
+        return SoakPlugin.plugin().getMemoryStore().get((ServerWorld) this.entity.world());
     }
 
     @Override

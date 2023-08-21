@@ -5,7 +5,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
@@ -34,7 +33,7 @@ public class SoakExpChangeEvent extends AbstractDataEvent<Integer> {
 
     @Override
     protected void fireEvent(ChangeDataHolderEvent.ValueChange spongeEvent, EventPriority priority, DataHolder.Mutable player, Integer changedTo, Integer changedFrom) {
-        var human = new SoakPlayer((ServerPlayer) player);
+        var human = SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) player);
         //TODO get entity that caused exp
         var event = new PlayerExpChangeEvent(human, changedTo);
 

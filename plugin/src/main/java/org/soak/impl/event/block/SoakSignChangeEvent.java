@@ -47,7 +47,7 @@ public class SoakSignChangeEvent {
 
     private void fireEvent(ChangeSignEvent event, ServerPlayer player, EventPriority priority) {
         var bukkitBlock = new SoakBlock(event.sign().serverLocation());
-        var bukkitPlayer = new SoakPlayer(player);
+        var bukkitPlayer = SoakPlugin.plugin().getMemoryStore().get(player);
 
         var bukkitEvent = new SignChangeEvent(bukkitBlock, bukkitPlayer, event.text().all());
         SoakPlugin.server().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);

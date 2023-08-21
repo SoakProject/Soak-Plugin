@@ -43,6 +43,11 @@ public abstract class AbstractBlock<Holder extends DataHolder> implements Block 
     }
 
     @Override
+    public void setType(Material arg0) {
+        this.setType(arg0, true);
+    }
+
+    @Override
     public @NotNull Block getRelative(int arg0, int arg1, int arg2) {
         return new SoakBlock(spongeLocation().add(arg0, arg1, arg2));
     }

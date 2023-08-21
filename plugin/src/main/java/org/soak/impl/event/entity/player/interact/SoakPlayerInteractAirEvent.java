@@ -8,7 +8,6 @@ import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.SoakActionMap;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.EventContextKeys;
@@ -58,7 +57,7 @@ public class SoakPlayerInteractAirEvent {
     }
 
     private void fireEvent(InteractEvent spongeEvent, ServerPlayer spongePlayer, EventPriority priority) {
-        var player = new SoakPlayer(spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var clickedFace = BlockFace.SELF;
         var spongeHand = spongeEvent.context()
                 .get(EventContextKeys.USED_HAND)

@@ -6,7 +6,6 @@ import org.soak.map.item.SoakEnchantmentTypeMap;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.block.SoakBlock;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.inventory.SoakInventoryView;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.EventContextKeys;
@@ -53,7 +52,7 @@ public class SoakEnchantEvent {
 
 
     private void fireEvent(EnchantItemEvent.CalculateEnchantment event, ServerPlayer serverPlayer, EventPriority priority) {
-        var player = new SoakPlayer(serverPlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get(serverPlayer);
         var view = new SoakInventoryView(event.container());
         SoakBlock enchantmentTable = event.context()
                 .get(EventContextKeys.BLOCK_EVENT_PROCESS)

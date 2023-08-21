@@ -8,6 +8,7 @@ import org.bukkit.Statistic;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.Keys;
@@ -53,22 +54,25 @@ public class SoakOfflinePlayer implements OfflinePlayer {
 
     @Override
     public String getName() {
-        return this.user.name();
+        return this.spongeUser().name();
     }
 
     @Override
     public boolean isOnline() {
-        return this.user.isOnline();
+        return this.spongeUser().isOnline();
     }
 
     @Override
     public SoakPlayer getPlayer() {
-        return this.user.player().map(SoakPlayer::new).orElse(null);
+        return this.spongeUser()
+                .player()
+                .map(spongePlayer -> SoakPlugin.plugin().getMemoryStore().get(spongePlayer))
+                .orElse(null);
     }
 
     @Override
     public @NotNull UUID getUniqueId() {
-        return this.user.uniqueId();
+        return this.spongeUser().uniqueId();
     }
 
     @Override

@@ -6,7 +6,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Listener;
@@ -58,7 +57,7 @@ public class SoakPlayerDeathEvent {
         if (!(root instanceof ServerPlayer spongeEntity)) {
             return;
         }
-        var entity = new SoakPlayer(spongeEntity);
+        var entity = SoakPlugin.plugin().getMemoryStore().get(spongeEntity);
         var items = event.entities()
                 .parallelStream()
                 .map(itemEntity -> itemEntity.get(Keys.ITEM_STACK_SNAPSHOT)

@@ -226,9 +226,16 @@ public class SoakBukkitScheduler implements BukkitScheduler {
         throw NotImplementedException.createByLazy(BukkitScheduler.class, "getMainThreadExecutor", Plugin.class);
     }
 
+    public SoakBukkitTask scheduleDelayTask(Scheduler scheduler, Plugin plugin, Runnable runnable, long delay){
+        var pluginContainer = SoakPlugin.plugin().getPlugin(plugin);
+        var ticks = Ticks.duration(delay);
+        var spongeTask = scheduler.executor(pluginContainer).schedule(runnable, ticks.toMillis(), TimeUnit.MILLISECONDS);
+        return new SoakBukkitTask(spongeTask.task());
+    }
+
     @Override
     public int scheduleSyncDelayedTask(@NotNull Plugin arg0, @NotNull Runnable arg1, long arg2) {
-        throw NotImplementedException.createByLazy(BukkitScheduler.class, "scheduleSyncDelayedTask", Plugin.class, Runnable.class, long.class);
+        return scheduleDelayTask(Sponge.server().scheduler(), arg0, arg1, arg2).getTaskId();
     }
 
     @Deprecated
@@ -239,7 +246,7 @@ public class SoakBukkitScheduler implements BukkitScheduler {
 
     @Override
     public int scheduleSyncDelayedTask(@NotNull Plugin arg0, @NotNull Runnable arg1) {
-        throw NotImplementedException.createByLazy(BukkitScheduler.class, "scheduleSyncDelayedTask", Plugin.class, Runnable.class);
+        return scheduleDelayTask(Sponge.server().scheduler(), arg0, arg1, 0).getTaskId();
     }
 
     @Deprecated

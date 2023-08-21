@@ -28,7 +28,9 @@ tasks.jar {
     val materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar");
     fat.add(zipTree(materialFile));
 
-    from(fat)
+    from(fat).exclude {
+        return@exclude it.name == "Compatibility.class" && !it.file.absolutePath.contains("zip_");
+    }
 }
 
 tasks.test {

@@ -5,7 +5,6 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
@@ -33,7 +32,7 @@ public class SoakToggleSprintEvent extends AbstractDataEvent<Boolean> {
 
     @Override
     protected void fireEvent(ChangeDataHolderEvent.ValueChange spongeEvent, EventPriority priority, DataHolder.Mutable spongePlayer, Boolean changedTo, Boolean changedFrom) {
-        var player = new SoakPlayer((ServerPlayer) spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) spongePlayer);
         var event = new PlayerToggleSprintEvent(player, changedTo);
 
         SoakPlugin.server().getPluginManager().callEvent(this.singleListenerWrapper, event, priority);

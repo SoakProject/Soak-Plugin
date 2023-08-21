@@ -11,11 +11,13 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.block.data.AbstractBlockData;
-import org.soak.wrapper.world.SoakWorld;
+import org.soak.wrapper.block.state.sign.SoakSignBlockEntity;
 import org.spongepowered.api.block.entity.BlockEntity;
+import org.spongepowered.api.block.entity.Sign;
 import org.spongepowered.api.world.server.ServerWorld;
 
 import java.util.List;
@@ -29,6 +31,9 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
     }
 
     public static <T extends BlockEntity> AbstractBlockState<T> wrap(T blockEntity) {
+        if (blockEntity instanceof Sign sign) {
+            return (AbstractBlockState<T>) new SoakSignBlockEntity(sign);
+        }
         throw new RuntimeException("No mapping found for BlockEntity of " + blockEntity.getClass().getName());
     }
 
@@ -53,7 +58,7 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
 
     @Override
     public @NotNull World getWorld() {
-        return new SoakWorld((ServerWorld) this.blockEntity.world());
+        return SoakPlugin.plugin().getMemoryStore().get((ServerWorld) this.blockEntity.world());
     }
 
     @Override

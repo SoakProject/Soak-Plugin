@@ -33,7 +33,7 @@ public class SoakToggleSneakEvent extends AbstractDataEvent<Boolean> {
 
     @Override
     protected void fireEvent(ChangeDataHolderEvent.ValueChange spongeEvent, EventPriority priority, DataHolder.Mutable spongePlayer, Boolean changedTo, Boolean changedFrom) {
-        var player = new SoakPlayer((ServerPlayer) spongePlayer);
+        var player = SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) spongePlayer);
         var event = new PlayerToggleSneakEvent(player, changedTo);
 
         SoakPlugin.server().getPluginManager().callEvent(this.singleListenerWrapper, event, priority);

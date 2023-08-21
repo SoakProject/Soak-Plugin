@@ -4,7 +4,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
-import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.entity.living.player.KickPlayerEvent;
@@ -44,7 +43,7 @@ public class SoakPlayerKickEvent {
 
 
     private void fireEvent(KickPlayerEvent event, EventPriority priority) {
-        var player = new SoakPlayer(event.player());
+        var player = SoakPlugin.plugin().getMemoryStore().get(event.player());
         var message = event.message();
 
         var bukkitEvent = new PlayerKickEvent(player, message, message); //TODO -> PlayerKickEvent.Cause

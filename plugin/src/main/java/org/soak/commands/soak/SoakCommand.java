@@ -75,7 +75,40 @@ public class SoakCommand {
                 .build();
     }
 
+    public static Command.Parameterized createInfoCommand() {
+        return Command.builder()
+                .executor(context -> {
+                    var id = Identity.nil();
+                    context.sendMessage(id,
+                            createInfoMessage("Version",
+                                    SoakPlugin.plugin().container().metadata().version().toString()));
+                    context.sendMessage(id,
+                            createInfoMessage("Compatibility", SoakPlugin.plugin().getCompatibility().getName()));
+                    context.sendMessage(id,
+                            createInfoMessage("Compatibility version",
+                                    SoakPlugin.plugin().getCompatibility().getVersion().toString()));
+                    context.sendMessage(id,
+                            createInfoMessage("Target Minecraft version",
+                                    SoakPlugin.plugin().getCompatibility().getTargetMinecraftVersion().toString()));
+                    return CommandResult.success();
+                })
+                .build();
+    }
+
     public static Command.Parameterized createSoakCommand() {
-        return Command.builder().addChild(createPluginsCommand(), "plugins", "pl").build();
+        return Command.builder()
+                .addChild(createPluginsCommand(), "plugins", "pl")
+                .addChild(createInfoCommand(), "info")
+                .build();
+    }
+
+    private static Component createInfoMessage(String key, String value) {
+        return createInfoMessage(key, value, NamedTextColor.AQUA);
+    }
+
+    private static Component createInfoMessage(String key, String value, TextColor colour) {
+        Component valueMessage = Component.text(value).color(colour);
+        Component keyMessage = Component.text(key).color(NamedTextColor.GOLD);
+        return keyMessage.append(Component.text(": ").color(NamedTextColor.BLUE)).append(valueMessage);
     }
 }

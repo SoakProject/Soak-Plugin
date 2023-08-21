@@ -44,7 +44,7 @@ public class SoakPlayerJoinEvent {
 
 
     private void fireEvent(ServerSideConnectionEvent.Join event, EventPriority priority) {
-        var player = new SoakPlayer(event.player());
+        var player = SoakPlugin.plugin().getMemoryStore().get(event.player());
         var message = event.message();
 
         var bukkitEvent = new PlayerJoinEvent(player, message);
