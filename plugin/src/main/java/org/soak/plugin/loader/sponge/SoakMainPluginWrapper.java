@@ -10,6 +10,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
 import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
+import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -64,6 +65,16 @@ public class SoakMainPluginWrapper {
         Plugin plugin = this.pluginContainer.plugin();
         try {
             plugin.getPluginLoader().enablePlugin(plugin);
+        } catch (Throwable e) {
+            SoakPlugin.plugin().displayError(e, plugin);
+        }
+    }
+
+    @Listener
+    public void onPluginDisable(StoppingEngineEvent<Server> event) {
+        Plugin plugin = this.pluginContainer.plugin();
+        try {
+            plugin.getPluginLoader().disablePlugin(plugin, true);
         } catch (Throwable e) {
             SoakPlugin.plugin().displayError(e, plugin);
         }

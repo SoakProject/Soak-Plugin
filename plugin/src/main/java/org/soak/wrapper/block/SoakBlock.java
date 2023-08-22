@@ -21,14 +21,20 @@ import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockState;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;
 import org.soak.wrapper.world.SoakWorld;
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.server.ServerLocation;
+import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3i;
 
 import java.util.Collection;
 import java.util.List;
 
 public class SoakBlock extends AbstractBlock<ServerLocation> {
+
+    public SoakBlock(ServerWorld world, Vector3i position) {
+        this(world.location(position));
+    }
 
     public SoakBlock(ServerLocation spongeLocation) {
         super(spongeLocation);

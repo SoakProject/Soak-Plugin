@@ -48,13 +48,13 @@ public class SoakPlayerRotateEvent {
         var bukkitPlayer = SoakPlugin.plugin().getMemoryStore().get(spongePlayer);
         var originalPosition = bukkitPlayer.getLocation();
         var originalRotation = event.fromRotation();
-        originalPosition.setPitch((float) originalRotation.y());
-        originalPosition.setYaw((float) originalRotation.x());
+        originalPosition.setPitch((float) originalRotation.x());
+        originalPosition.setYaw((float) originalRotation.y());
 
         var newPosition = originalPosition.clone();
         var newRotation = event.fromRotation();
-        newPosition.setPitch((float) newRotation.y());
-        newPosition.setYaw((float) newRotation.x());
+        newPosition.setPitch((float) newRotation.x());
+        newPosition.setYaw((float) newRotation.y());
 
 
         var bukkitEvent = new PlayerMoveEvent(bukkitPlayer, originalPosition, newPosition);
@@ -67,7 +67,7 @@ public class SoakPlayerRotateEvent {
         var to = bukkitEvent.getTo();
         var pitch = to.getPitch();
         var yaw = to.getYaw();
-        var eventRotation = new Vector3d(yaw, pitch, newRotation.z());
+        var eventRotation = new Vector3d(pitch, yaw, newRotation.z());
         if (!eventRotation.equals(newRotation)) {
             event.setToRotation(new Vector3d(to.getPitch(), to.getYaw(), newRotation.z()));
         }

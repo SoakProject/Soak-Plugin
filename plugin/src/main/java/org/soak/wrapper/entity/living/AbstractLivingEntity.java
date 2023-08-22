@@ -18,18 +18,25 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.Constants;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
 import org.soak.wrapper.entity.SoakAttributable;
 import org.soak.wrapper.entity.SoakDamageable;
 import org.soak.wrapper.entity.SoakProjectileSource;
+import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.service.permission.Subject;
+import org.spongepowered.api.util.blockray.RayTrace;
+import org.spongepowered.api.world.server.ServerWorld;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public abstract class AbstractLivingEntity<E extends Living> extends AbstractEntity<E> implements SoakDamageable, SoakAttributable, SoakProjectileSource, LivingEntity {
 
@@ -85,7 +92,8 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     @Override
     public @NotNull Location getEyeLocation() {
-        return this.getLocation().add(0, getEyeHeight(), 0);
+        var position = this.spongeEntity().eyePosition().get();
+        return new Location(getWorld(), position.x(), position.y(), position.z());
     }
 
     @Override
@@ -95,7 +103,24 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     @Override
     public @NotNull Block getTargetBlock(@Nullable Set<Material> transparent, int maxDistance) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "getLastTwoTargetBlocks", Set.class, int.class);
+        var opBlock = RayTrace.block()
+                .direction(this.spongeEntity())
+                .sourceEyePosition(this.spongeEntity())
+                .continueWhileBlock((locatableBlock -> {
+                    if (transparent == null) {
+                        return false;
+                    }
+                    return transparent.stream()
+                            .map(mat -> mat.asBlock()
+                                    .orElseThrow(() -> new RuntimeException(mat.name() + " is not a block")))
+                            .anyMatch(type -> type.equals(locatableBlock.blockState().type()));
+                }))
+                .limit(maxDistance)
+                .execute();
+        return opBlock.flatMap(block -> block.selectedObject().location().onServer())
+                .map(SoakBlock::new)
+                .orElseGet(() -> new SoakBlock((ServerWorld) this.spongeEntity().world(),
+                        this.spongeEntity().eyePosition().get().toInt()));
     }
 
     @Override
@@ -137,22 +162,22 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     @Override
     public int getRemainingAir() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "getRemainingAir");
+        return this.spongeEntity().getInt(Keys.REMAINING_AIR).orElse(Constants.NOT_APPLICABLE_INT);
     }
 
     @Override
     public void setRemainingAir(int arg0) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "setRemainingAir", int.class);
+        this.spongeEntity().offer(Keys.REMAINING_AIR, arg0);
     }
 
     @Override
     public int getMaximumAir() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "getMaximumAir");
+        return this.spongeEntity().getInt(Keys.MAX_AIR).orElse(Constants.NOT_APPLICABLE_INT);
     }
 
     @Override
     public void setMaximumAir(int arg0) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "setMaximumAir", int.class);
+        this.spongeEntity().offer(Keys.MAX_AIR, arg0);
     }
 
     @Override
@@ -167,12 +192,12 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     @Override
     public int getArrowsInBody() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "getArrowsInBody");
+        return this.spongeEntity().get(Keys.STUCK_ARROWS).orElse(Constants.NOT_APPLICABLE_INT);
     }
 
     @Override
     public void setArrowsInBody(int arg0) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "setArrowsInBody", int.class);
+        this.spongeEntity().offer(Keys.STUCK_ARROWS, arg0);
     }
 
     @Override
@@ -265,6 +290,16 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
+    protected boolean isIn(Supplier<BlockType> blockType) {
+        var eyePos = this.spongeEntity().eyePosition().get();
+        var eyeIn = this.spongeEntity().world().location(eyePos).blockType().equals(blockType.get());
+        if (eyeIn) {
+            return true;
+        }
+        return this.spongeEntity().location().blockType().equals(blockType.get());
+    }
+
+    @Override
     public boolean getRemoveWhenFarAway() {
         throw NotImplementedException.createByLazy(LivingEntity.class, "getRemoveWhenFarAway");
     }
@@ -306,12 +341,12 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     @Override
     public boolean isGliding() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "isGliding");
+        return this.spongeEntity().get(Keys.IS_ELYTRA_FLYING).orElse(false);
     }
 
     @Override
     public void setGliding(boolean arg0) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "setGliding", boolean.class);
+        this.spongeEntity().offer(Keys.IS_ELYTRA_FLYING, arg0);
     }
 
     @Override
@@ -331,17 +366,17 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     @Override
     public boolean isSleeping() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "isSleeping");
+        return this.spongeEntity().get(Keys.IS_SLEEPING).orElse(false);
     }
 
     @Override
     public void setAI(boolean arg0) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "setAI", boolean.class);
+        this.spongeEntity().offer(Keys.IS_AI_ENABLED, arg0);
     }
 
     @Override
     public boolean hasAI() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "hasAI");
+        return this.spongeEntity().get(Keys.IS_AI_ENABLED).orElse(false);
     }
 
     @Override
@@ -394,14 +429,15 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
         throw NotImplementedException.createByLazy(LivingEntity.class, "setInvisible", boolean.class);
     }
 
+    //wait there is a difference?
     @Override
     public int getArrowsStuck() {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "getArrowsStuck");
+        return getArrowsInBody();
     }
 
     @Override
     public void setArrowsStuck(int arg0) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "setArrowsStuck", int.class);
+        this.setArrowsInBody(arg0);
     }
 
     @Override

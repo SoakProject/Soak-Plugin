@@ -3,7 +3,6 @@ package org.soak.impl.event.entity.player.interact.move;
 import org.bukkit.Location;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.plugin.SoakPlugin;
 import org.spongepowered.api.data.Keys;
@@ -75,14 +74,16 @@ public class SoakPlayerMoveEvent {
                 spongeOriginalPosition.y(),
                 spongeOriginalPosition.z());
         var originalRotation = spongePlayer.rotation();
-        originalPosition.setDirection(new Vector(originalRotation.x(), originalRotation.y(), originalRotation.z()));
-
+        originalPosition.setPitch((float) originalRotation.x());
+        originalPosition.setYaw((float) originalRotation.y());
 
         var spongeNewPosition = event.destinationPosition();
         var newPosition = new Location(newPositionWorld,
                 spongeNewPosition.x(),
                 spongeNewPosition.y(),
                 spongeNewPosition.z());
+        newPosition.setPitch(originalPosition.getPitch());
+        newPosition.setYaw(originalPosition.getYaw());
 
         var bukkitEvent = new PlayerMoveEvent(bukkitPlayer, originalPosition, newPosition);
         SoakPlugin.server().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
@@ -93,6 +94,16 @@ public class SoakPlayerMoveEvent {
         }
         var to = bukkitEvent.getTo();
         event.setDestinationPosition(new Vector3d(to.getX(), to.getY(), to.getZ()));
+        Vector3d newRotation = originalRotation;
+        if (originalRotation.x() != to.getPitch()) {
+            newRotation = new Vector3d(to.getPitch(), newRotation.y(), newRotation.z());
+        }
+        if (originalRotation.y() != to.getYaw()) {
+            newRotation = new Vector3d(newRotation.x(), to.getYaw(), newRotation.z());
+        }
+        if (!newRotation.equals(originalRotation)) {
+            spongePlayer.setRotation(newRotation);
+        }
 
         //change .... getFrom????
         //guess of implementation ->

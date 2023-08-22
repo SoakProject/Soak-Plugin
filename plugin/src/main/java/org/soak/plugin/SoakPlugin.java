@@ -35,10 +35,7 @@ import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.effect.potion.PotionEffectType;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
-import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
-import org.spongepowered.api.event.lifecycle.RegisterDataEvent;
-import org.spongepowered.api.event.lifecycle.StartingEngineEvent;
+import org.spongepowered.api.event.lifecycle.*;
 import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
@@ -129,6 +126,17 @@ public class SoakPlugin {
     public void startingPlugin(StartingEngineEvent<Server> event) {
         startEnchantmentTypes();
         startPotionEffects();
+    }
+
+    @Listener(order = Order.LAST)
+    public void endingPlugin(StoppingEngineEvent<Server> event) {
+        this.getPlugins().forEach(plugin -> {
+            Sponge.server().scheduler().executor(plugin).shutdown();
+            Sponge.asyncScheduler().executor(plugin).shutdown();
+        });
+
+        Sponge.server().scheduler().executor(container).shutdown();
+        Sponge.asyncScheduler().executor(container).shutdown();
     }
 
     public Compatibility getCompatibility() {

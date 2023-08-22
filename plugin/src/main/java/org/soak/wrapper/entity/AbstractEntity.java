@@ -30,7 +30,10 @@ import org.soak.wrapper.command.SoakCommandSender;
 import org.soak.wrapper.entity.living.AbstractLivingEntity;
 import org.soak.wrapper.entity.projectile.SoakFirework;
 import org.soak.wrapper.persistence.SoakMutablePersistentDataContainer;
+import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockType;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.entity.living.Living;
@@ -41,11 +44,14 @@ import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.util.Direction;
 import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.server.ServerWorld;
+import org.spongepowered.api.world.weather.WeatherTypes;
+import org.spongepowered.math.vector.Vector3d;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Entity> extends SoakCommandSender implements Entity {
 
@@ -127,10 +133,14 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull Location getLocation() {
-        return new Location(this.getWorld(),
+        var loc = new Location(this.getWorld(),
                 this.entity.position().x(),
                 this.entity.position().y(),
                 this.entity.position().z());
+        var spongeRotation = this.entity.rotation();
+        loc.setPitch((float) spongeRotation.x());
+        loc.setYaw((float) spongeRotation.y());
+        return loc;
     }
 
     @Override
@@ -140,7 +150,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull EntityType getType() {
-        throw NotImplementedException.createByLazy(Entity.class, "getType");
+        return EntityType.fromSponge(this.entity.type());
     }
 
     @Override
@@ -165,28 +175,26 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean teleport(@NotNull Entity arg0, PlayerTeleportEvent.@NotNull TeleportCause arg1) {
-        throw NotImplementedException.createByLazy(Entity.class,
-                "teleport",
-                Entity.class,
-                PlayerTeleportEvent.TeleportCause.class);
+        return teleport(arg0.getLocation(), arg1);
     }
 
     @Override
     public boolean teleport(@NotNull Entity arg0) {
-        throw NotImplementedException.createByLazy(Entity.class, "teleport", Entity.class);
+        return teleport(arg0.getLocation());
     }
 
     @Override
     public boolean teleport(@NotNull Location arg0, PlayerTeleportEvent.@NotNull TeleportCause arg1) {
-        throw NotImplementedException.createByLazy(Entity.class,
-                "teleport",
-                Location.class,
-                PlayerTeleportEvent.TeleportCause.class);
+        var bukkitWorld = (SoakWorld) arg0.getWorld();
+        var spongeLocation = bukkitWorld.sponge().location(arg0.getX(), arg0.getY(), arg0.getZ());
+        var rotation = new Vector3d(arg0.getPitch(), arg0.getYaw(), this.entity.rotation().z());
+
+        return this.entity.setLocationAndRotation(spongeLocation, rotation);
     }
 
     @Override
     public boolean teleport(@NotNull Location arg0) {
-        throw NotImplementedException.createByLazy(Entity.class, "teleport", Location.class);
+        return teleport(arg0, PlayerTeleportEvent.TeleportCause.PLUGIN);
     }
 
     @Override
@@ -224,9 +232,13 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
         return this.entity.onGround().get();
     }
 
+    protected boolean isIn(Supplier<BlockType> blockType){
+        return this.spongeEntity().location().blockType().equals(blockType.get());
+    }
+
     @Override
     public boolean isInWater() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInWater");
+        return isIn(BlockTypes.WATER);
     }
 
     @Override
@@ -471,32 +483,41 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean isInRain() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInRain");
+        return this.spongeEntity().world().weather().type().equals(WeatherTypes.RAIN.get());
     }
 
     @Override
     public boolean isInBubbleColumn() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInBubbleColumn");
+        return isIn(BlockTypes.BUBBLE_COLUMN);
     }
 
     @Override
     public boolean isInWaterOrRain() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInWaterOrRain");
+        if(isInWater()){
+            return true;
+        }
+        return isInRain();
     }
 
     @Override
     public boolean isInWaterOrBubbleColumn() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInWaterOrBubbleColumn");
+        if(isInWater()){
+            return true;
+        }
+        return isInBubbleColumn();
     }
 
     @Override
     public boolean isInWaterOrRainOrBubbleColumn() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInWaterOrRainOrBubbleColumn");
+        if(isInWaterOrRain()){
+            return true;
+        }
+        return isInBubbleColumn();
     }
 
     @Override
     public boolean isInLava() {
-        throw NotImplementedException.createByLazy(Entity.class, "isInLava");
+        return isIn(BlockTypes.LAVA);
     }
 
     @Override
@@ -506,7 +527,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public void setRotation(float arg0, float arg1) {
-        throw NotImplementedException.createByLazy(Entity.class, "setRotation", float.class, float.class);
+        this.entity.setRotation(new Vector3d(arg0, arg1, this.entity.rotation().z()));
     }
 
     @Override
