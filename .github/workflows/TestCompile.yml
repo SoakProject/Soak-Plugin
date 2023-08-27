@@ -13,26 +13,20 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: |
-            8
-            ${{matrix.java}}
+          java-version: 8
           cache: 'gradle'
       - name: Make Forge gradle executable
         run: chmod +x ./ForgeBuild/gradlew
       - name: Make gradle executable
         run: chmod +x ./gradlew
-      - name: Set Java 8
-        run: export JAVA_HOME="/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/8.0.382-5/x64/"
-      - name: Update Path
-        run: export PATH=$PATH:$JAVA_HOME/bin
       - name: Show Java Home
         run: echo $JAVA_HOME
       - name: Build forge cache
         run: ./ForgeBuild/gradlew build
-      - name: Set Java 11
-        run: export JAVA_HOME="/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.20-8/x64/"
-      - name: Update Path
-        run: export PATH=$PATH:$JAVA_HOME/bin
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 11
       - name: Show java 11 home
         run: echo $JAVA_HOME
       - name: Build Soak
