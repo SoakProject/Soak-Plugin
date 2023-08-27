@@ -80,10 +80,10 @@ public enum InventoryType {
     }
 
     private static boolean isBlockEntity(Inventory inventory, Supplier<BlockType>... anyBlockTypes) {
-        if (!(inventory instanceof BlockEntityInventory<?> blockEntityInventory)) {
+        if (!(inventory instanceof BlockEntityInventory<?>)) {
             return false;
         }
-        return blockEntityInventory.blockEntity()
+        return ((BlockEntityInventory<?>)inventory).blockEntity()
                 .map(entity -> Arrays.stream(anyBlockTypes)
                         .map(Supplier::get)
                         .anyMatch(blockType -> entity.block().type().equals(blockType)))
@@ -91,10 +91,10 @@ public enum InventoryType {
     }
 
     private static boolean isCarrier(Inventory inventory, Class<? extends Carrier> blockEntityType) {
-        if (!(inventory instanceof BlockEntityInventory<?> blockEntityInventory)) {
+        if (!(inventory instanceof BlockEntityInventory<?>)) {
             return false;
         }
-        return blockEntityInventory.blockEntity()
+        return ((BlockEntityInventory<?>)inventory).blockEntity()
                 .map(blockEntityType::isInstance)
                 .orElse(false);
     }

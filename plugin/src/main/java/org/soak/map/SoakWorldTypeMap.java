@@ -9,16 +9,13 @@ public class SoakWorldTypeMap {
 
     public static DefaultedRegistryReference<WorldType> toSponge(World.Environment environment) {
         switch (environment) {
-            case NORMAL -> {
+            case NORMAL:
                 return WorldTypes.OVERWORLD;
-            }
-            case NETHER -> {
+            case NETHER:
                 return WorldTypes.THE_NETHER;
-            }
-            case THE_END -> {
+            case THE_END:
                 return WorldTypes.THE_END;
-            }
-            default -> throw new RuntimeException("Unknown world type of " + environment.name());
+            default: throw new RuntimeException("Unknown world type of " + environment.name());
         }
     }
 

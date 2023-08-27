@@ -34,7 +34,7 @@ import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.item.SoakRecipeMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.utils.Singleton;
 import org.soak.plugin.utils.Unfinal;
 import org.soak.utils.GenericHelper;
@@ -115,7 +115,7 @@ public class SoakServer implements SimpServer {
                             .stream()
                             .filter(item -> item.key(RegistryTypes.ITEM_TYPE).value().contains("coral_blocks"))
                             .map(item -> Material.getItemMaterial(item))
-                            .toList());
+                            .collect(Collectors.toList()));
         }
 
         if (registry.equals(Tag.REGISTRY_BLOCKS) && tag.asString()
@@ -199,7 +199,11 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull String getBukkitVersion() {
-        return getMinecraftVersion() + "-" + SoakPlugin.plugin().container().metadata().id() + "-RC" + getVersion();
+        return getMinecraftVersion() + "-R" + SoakPlugin.plugin()
+                .container()
+                .metadata()
+                .version()
+                .toString() + "-" + SoakPlugin.plugin().container().metadata().id();
     }
 
     @Override

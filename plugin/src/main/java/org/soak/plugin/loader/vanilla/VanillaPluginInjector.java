@@ -1,6 +1,7 @@
-package org.soak.plugin.loader.sponge.injector;
+package org.soak.plugin.loader.vanilla;
 
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginInjector;
 import org.soak.plugin.utils.ReflectionHelper;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;

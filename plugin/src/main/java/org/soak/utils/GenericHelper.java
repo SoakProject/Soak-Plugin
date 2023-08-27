@@ -4,8 +4,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.java.PluginClassLoader;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,10 +24,19 @@ public class GenericHelper {
                 .filter(className -> !className.startsWith("java.lang"))
                 .map(className -> SoakPlugin.plugin().getPlugins().map(soakPluginContainer -> {
                                     var loader = soakPluginContainer.plugin().getPluginLoader();
-                                    if (!(loader instanceof JavaPluginLoader jpl)) {
+                                    if (!(loader instanceof JavaPluginLoader)) {
                                         return null;
                                     }
-                                    Optional<PluginClassLoader> opClassLoader = jpl.getLoader((JavaPlugin) soakPluginContainer.plugin());
+                                    var jpl = (JavaPluginLoader) loader;
+                                    //compile issue with this now .... its added in the local project
+                                    Optional<PluginClassLoader> opClassLoader;
+                                    try {
+                                        opClassLoader = (Optional<PluginClassLoader>) jpl.getClass().getDeclaredMethod("getLoader", JavaPlugin.class).invoke((JavaPlugin) soakPluginContainer.plugin());
+                                    } catch (IllegalAccessException | InvocationTargetException |
+                                             NoSuchMethodException e) {
+                                        throw new RuntimeException(e);
+                                    }
+
                                     if (opClassLoader.isEmpty()) {
                                         return null;
                                     }

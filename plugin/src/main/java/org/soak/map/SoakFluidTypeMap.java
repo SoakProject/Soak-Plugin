@@ -29,19 +29,16 @@ public class SoakFluidTypeMap {
     public static FluidType toSponge(Fluid fluid) {
         switch (fluid) {
 
-            case WATER -> {
+            case WATER:
                 return FluidTypes.WATER.get();
-            }
-            case FLOWING_WATER -> {
+            case FLOWING_WATER:
                 return FluidTypes.FLOWING_WATER.get();
-            }
-            case LAVA -> {
+            case LAVA:
                 return FluidTypes.LAVA.get();
-            }
-            case FLOWING_LAVA -> {
+            case FLOWING_LAVA:
                 return FluidTypes.FLOWING_LAVA.get();
-            }
-            default -> throw new RuntimeException("No mapping found for " + fluid.name());
+            default:
+                throw new RuntimeException("No mapping found for " + fluid.name());
         }
     }
 }

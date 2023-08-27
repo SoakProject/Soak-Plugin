@@ -15,6 +15,8 @@ import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.item.inventory.DropItemEvent;
 import org.spongepowered.api.registry.RegistryTypes;
 
+import java.util.stream.Collectors;
+
 public class SoakEntityDeathEvent {
     private final EventSingleListenerWrapper<EntityDeathEvent> singleListenerWrapper;
 
@@ -49,21 +51,21 @@ public class SoakEntityDeathEvent {
 
     private void fireEvent(DropItemEvent.Destruct event, EventPriority priority) {
         var root = event.cause().root();
-        if (!(root instanceof Living spongeEntity)) {
+        if (!(root instanceof Living)) {
             return;
         }
-        if (spongeEntity instanceof ServerPlayer) {
+        if (root instanceof ServerPlayer) {
             //bukkit has a different event for this
             return;
         }
-        var entity = (AbstractLivingEntity<?>) AbstractEntity.wrap(spongeEntity);
+        var entity = (AbstractLivingEntity<?>) AbstractEntity.wrap((Living) root);
         var items = event.entities()
                 .parallelStream()
                 .map(itemEntity -> itemEntity.get(Keys.ITEM_STACK_SNAPSHOT)
                         .orElseThrow(() -> new RuntimeException("Item (" + itemEntity.type()
                                 .key(RegistryTypes.ENTITY_TYPE) + ") does not contain an ItemStack")))
                 .map(SoakItemStackMap::toBukkit)
-                .toList();
+                .collect(Collectors.toList());
         //TODO -> find exp
         var bukkitEvent = new EntityDeathEvent(entity, items);
         SoakPlugin.server().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);

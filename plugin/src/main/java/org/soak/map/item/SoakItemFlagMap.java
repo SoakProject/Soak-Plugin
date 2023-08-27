@@ -31,26 +31,22 @@ public class SoakItemFlagMap {
 
     public static Key<Value<Boolean>> toSponge(ItemFlag flag) {
         switch (flag) {
-            case HIDE_ENCHANTS -> {
+            case HIDE_ENCHANTS:
                 return Keys.HIDE_ENCHANTMENTS;
-            }
-            case HIDE_ATTRIBUTES -> {
+            case HIDE_ATTRIBUTES:
                 return Keys.HIDE_ATTRIBUTES;
-            }
-            case HIDE_UNBREAKABLE -> {
+            case HIDE_UNBREAKABLE:
                 return Keys.HIDE_UNBREAKABLE;
-            }
-            case HIDE_DESTROYS -> {
+            case HIDE_DESTROYS:
                 return Keys.HIDE_CAN_DESTROY;
-            }
-            case HIDE_PLACED_ON -> {
+            case HIDE_PLACED_ON:
                 return Keys.HIDE_CAN_PLACE;
-            }
-            case HIDE_POTION_EFFECTS -> {
+            case HIDE_POTION_EFFECTS:
                 return Keys.HIDE_MISCELLANEOUS;
-            }
-            case HIDE_DYE -> throw new IllegalStateException("Unknown key map for HIDE_DYE on ItemFlag");
-            default -> throw new RuntimeException("Unknown ItemFlag of " + flag.name());
+            case HIDE_DYE:
+                throw new IllegalStateException("Unknown key map for HIDE_DYE on ItemFlag");
+            default:
+                throw new RuntimeException("Unknown ItemFlag of " + flag.name());
         }
     }
 }

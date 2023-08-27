@@ -48,9 +48,10 @@ public class SoakPreCommandEvent {
 
     private void fireEvent(ExecuteCommandEvent.Pre event, EventPriority priority) {
         var root = event.commandCause().root();
-        if (!(root instanceof ServerPlayer serverPlayer)) {
+        if (!(root instanceof ServerPlayer)) {
             return;
         }
+        var serverPlayer = (ServerPlayer) root;
 
         var command = event.command() + " " + event.arguments();
         var player = SoakPlugin.plugin().getMemoryStore().get(serverPlayer);

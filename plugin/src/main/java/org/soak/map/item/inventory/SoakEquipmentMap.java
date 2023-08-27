@@ -9,25 +9,20 @@ public class SoakEquipmentMap {
 
     public static DefaultedRegistryReference<EquipmentType> toSponge(EquipmentSlot slot) {
         switch (slot) {
-            case HAND -> {
+            case HAND:
                 return EquipmentTypes.MAIN_HAND;
-            }
-            case OFF_HAND -> {
+            case OFF_HAND:
                 return EquipmentTypes.OFF_HAND;
-            }
-            case FEET -> {
+            case FEET:
                 return EquipmentTypes.FEET;
-            }
-            case LEGS -> {
+            case LEGS:
                 return EquipmentTypes.LEGS;
-            }
-            case CHEST -> {
+            case CHEST:
                 return EquipmentTypes.CHEST;
-            }
-            case HEAD -> {
+            case HEAD:
                 return EquipmentTypes.HEAD;
-            }
-            default -> throw new RuntimeException("No mapping for " + slot.name());
+            default:
+                throw new RuntimeException("No mapping for " + slot.name());
         }
     }
 }

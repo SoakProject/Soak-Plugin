@@ -24,7 +24,8 @@ public class SoakRecipeMap {
         var result = SoakItemStackMap.toBukkit(recipe.exemplaryResult());
         var inputs = recipe.ingredients();
 
-        if (recipe instanceof CookingRecipe cooking) {
+        if (recipe instanceof CookingRecipe) {
+            var cooking = (CookingRecipe) recipe;
             var input = Material.getItemMaterial(inputs.get(0).displayedItems().get(0).type());
             if (cooking.type().equals(RecipeTypes.SMELTING.get())) {
                 return new FurnaceRecipe(key,
@@ -60,12 +61,13 @@ public class SoakRecipeMap {
             return new StonecuttingRecipe(key, result, input);
         }
 
-        if (recipe instanceof SpecialCraftingRecipe specialCrafting) {
-            return new SoakComplexRecipe(specialCrafting);
+        if (recipe instanceof SpecialCraftingRecipe) {
+            return new SoakComplexRecipe((SpecialCraftingRecipe) recipe);
         }
 
 
-        if (recipe instanceof ShapedCraftingRecipe shapedCrafting) {
+        if (recipe instanceof ShapedCraftingRecipe) {
+            var shapedCrafting = (ShapedCraftingRecipe) recipe;
             var shaped = new ShapedRecipe(key, result);
             int i = 0;
             Map<Integer, String> characterMap = new LinkedHashMap<>();
@@ -89,7 +91,7 @@ public class SoakRecipeMap {
             return shaped;
         }
 
-        if (recipe instanceof ShapelessCraftingRecipe shapelessRecipe) {
+        if (recipe instanceof ShapelessCraftingRecipe) {
             var shapeless = new ShapelessRecipe(key, result);
             inputs.stream()
                     .map(Ingredient::displayedItems)

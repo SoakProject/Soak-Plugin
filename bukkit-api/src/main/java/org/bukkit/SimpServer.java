@@ -78,9 +78,10 @@ public interface SimpServer extends Server {
         while (iterator.hasNext()) {
             Recipe recipe = iterator.next();
 
-            if (!(recipe instanceof Keyed keyed)) {
+            if (!(recipe instanceof Keyed)) {
                 continue;
             }
+            var keyed = (Keyed) recipe;
             if (keyed.getKey().equals(recipeKey)) {
                 return recipe;
             }

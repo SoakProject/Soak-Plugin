@@ -13,7 +13,7 @@ import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.event.EventClassMapping;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.service.permission.PermissionService;
@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class SoakPluginManager implements SimpPluginManager {
 
@@ -55,11 +56,11 @@ public class SoakPluginManager implements SimpPluginManager {
         if (e == null) {
             throw new RuntimeException("Unknown error loading " + file.getPath());
         }
-        if (e instanceof InvalidPluginException ipe) {
-            throw ipe;
+        if (e instanceof InvalidPluginException) {
+            throw (InvalidPluginException) e;
         }
-        if (e instanceof UnknownDependencyException ude) {
-            throw ude;
+        if (e instanceof UnknownDependencyException) {
+            throw (UnknownDependencyException) e;
         }
         throw (RuntimeException) e;
     }
@@ -247,7 +248,7 @@ public class SoakPluginManager implements SimpPluginManager {
                     .getOnlinePlayers()
                     .stream()
                     .filter(player -> player.hasPermission(permission))
-                    .toList();
+                    .collect(Collectors.toList());
             ret.addAll(players);
 
         }

@@ -124,7 +124,8 @@ public enum EntityType implements Keyed, Translatable {
     ZOMBIE(EntityTypes.ZOMBIE),
     ZOMBIE_HORSE(EntityTypes.ZOMBIE_HORSE),
     ZOMBIE_VILLAGER(EntityTypes.ZOMBIE_VILLAGER),
-    ZOMBIFIED_PIGLIN(EntityTypes.ZOMBIFIED_PIGLIN);
+    ZOMBIFIED_PIGLIN(EntityTypes.ZOMBIFIED_PIGLIN),
+    UNKNOWN(null);
 
     private final DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType;
 
@@ -132,11 +133,15 @@ public enum EntityType implements Keyed, Translatable {
         this.spongeType = spongeType;
     }
 
+    public static Stream<EntityType> stream(){
+        return Stream.of(values()).filter(type -> type != UNKNOWN);
+    }
+
     @Deprecated
     @Contract("null -> null")
     @Nullable
     public static EntityType fromName(@Nullable String name) {
-        return Stream.of(values()).filter(type -> type.name().equals(name)).findAny().orElse(null);
+        return stream().filter(type -> type.name().equals(name)).findAny().orElse(null);
     }
 
     @Deprecated
@@ -146,7 +151,7 @@ public enum EntityType implements Keyed, Translatable {
     }
 
     public static EntityType fromSponge(org.spongepowered.api.entity.EntityType<?> type) {
-        return Stream.of(values()).filter(bType -> bType.asSponge().equals(type)).findAny().orElseThrow(() -> new RuntimeException("No mapping for EntityType of " + type.key(RegistryTypes.ENTITY_TYPE).formatted()));
+        return stream().filter(bType -> bType.asSponge().equals(type)).findAny().orElseThrow(() -> new RuntimeException("No mapping for EntityType of " + type.key(RegistryTypes.ENTITY_TYPE).formatted()));
     }
 
     @Deprecated

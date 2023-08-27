@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SoakInventory<Inv extends org.spongepowered.api.item.inventory.Inventory> implements Inventory {
@@ -121,12 +122,12 @@ public class SoakInventory<Inv extends org.spongepowered.api.item.inventory.Inve
 
     @Override
     public @NotNull ListIterator<ItemStack> iterator() {
-        return items().toList().listIterator();
+        return items().collect(Collectors.toList()).listIterator();
     }
 
     @Override
     public @NotNull ListIterator<ItemStack> iterator(int index) {
-        return items().toList().listIterator(index);
+        return items().collect(Collectors.toList()).listIterator(index);
     }
 
     @Override
@@ -179,10 +180,10 @@ public class SoakInventory<Inv extends org.spongepowered.api.item.inventory.Inve
 
     @Override
     public @NotNull InventoryType getType() {
-        if (!(spongeInventory instanceof Container container)) {
+        if (!(spongeInventory instanceof Container)) {
             throw new RuntimeException("Sponge inventory is not a Container, unknown inventory type");
         }
-        return InventoryType.container(container);
+        return InventoryType.container((Container) this.spongeInventory);
     }
 
     @Override

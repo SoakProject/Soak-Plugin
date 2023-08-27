@@ -52,7 +52,7 @@ public class EventSingleListenerWrapper<T extends Event> {
         if (!this.priority.equals(priority)) {
             return;
         }
-        if (event instanceof Cancellable cancellable && cancellable.isCancelled() && !this.ignoreCancelled) {
+        if (event instanceof Cancellable && ((Cancellable) event).isCancelled() && !this.ignoreCancelled) {
             return;
         }
         List<Method> methods = Arrays.
@@ -60,9 +60,9 @@ public class EventSingleListenerWrapper<T extends Event> {
                 .filter(method -> method.isAnnotationPresent(EventHandler.class))
                 .filter(method -> method.getParameterTypes().length == 1)
                 .filter(method -> method.getParameterTypes()[0].getName().equals(event.getClass().getName()))
-                .toList();
+                .collect(Collectors.toList());
         for (Method method : methods) {
-            if (event instanceof Cancellable cancellable && cancellable.isCancelled() && !this.ignoreCancelled) {
+            if (event instanceof Cancellable && ((Cancellable) event).isCancelled() && !this.ignoreCancelled) {
                 break;
             }
             try {

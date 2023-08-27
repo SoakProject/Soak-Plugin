@@ -1,4 +1,4 @@
-package org.soak.plugin.loader.sponge;
+package org.soak.plugin.loader.common;
 
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.jetbrains.annotations.NotNull;

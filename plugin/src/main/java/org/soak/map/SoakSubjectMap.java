@@ -11,18 +11,18 @@ import org.spongepowered.api.service.permission.Subject;
 public class SoakSubjectMap {
 
     public static Subject mapToSubject(CommandSender sender) {
-        if (!(sender instanceof SoakCommandSender soakSender)) {
+        if (!(sender instanceof SoakCommandSender)) {
             throw new RuntimeException("Command sender is not SoakCommandSender");
         }
-        return soakSender.getSubject();
+        return ((SoakCommandSender) sender).getSubject();
     }
 
     public static CommandSender mapToBukkit(Subject sender) {
-        if (sender instanceof SystemSubject system) {
-            return mapToBukkit(system);
+        if (sender instanceof SystemSubject) {
+            return mapToBukkit((SystemSubject) sender);
         }
-        if (sender instanceof ServerPlayer player) {
-            return SoakPlugin.plugin().getMemoryStore().get(player);
+        if (sender instanceof ServerPlayer) {
+            return SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) sender);
         }
         throw new IllegalStateException("Unknown mapping for " + sender.getClass().getName());
     }

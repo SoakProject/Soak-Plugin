@@ -32,6 +32,7 @@ import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakSoundMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakInventoryView;
 import org.soak.wrapper.inventory.SoakOpeningInventoryView;
@@ -49,10 +50,13 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Player {
+public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Player, SoakSingleInstance<ServerPlayer> {
+
+    private final UUID id;
 
     public SoakPlayer(ServerPlayer entity) {
         super(entity, entity, entity);
+        id = entity.uniqueId();
     }
 
     @Override
@@ -1365,5 +1369,17 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     @Override
     public @NotNull Set<String> getListeningPluginChannels() {
         throw NotImplementedException.createByLazy(Player.class, "getListeningPluginChannels");
+    }
+
+    @Override
+    public void setSponge(ServerPlayer sponge) {
+        this.entity = sponge;
+        this.audience = sponge;
+        this.subject = sponge;
+    }
+
+    @Override
+    public boolean isSame(ServerPlayer sponge) {
+        return this.id.equals(sponge.uniqueId());
     }
 }

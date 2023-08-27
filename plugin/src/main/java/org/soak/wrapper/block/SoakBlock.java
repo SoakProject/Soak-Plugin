@@ -21,7 +21,6 @@ import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockState;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;
 import org.soak.wrapper.world.SoakWorld;
-import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.server.ServerLocation;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -63,10 +62,10 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
 
     @Override
     public void setBlockData(BlockData arg0) {
-        if (!(arg0 instanceof CommonBlockData common)) {
+        if (!(arg0 instanceof CommonBlockData)) {
             throw new RuntimeException(arg0.getClass().getName() + " does not implement CommonBlockData");
         }
-        this.block.setBlock(common.sponge());
+        this.block.setBlock(((CommonBlockData) arg0).sponge());
     }
 
     @Override

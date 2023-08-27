@@ -4,6 +4,12 @@ plugins {
 
 group = "org.soak.wrapper.api"
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
 dependencies {
     api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
     api("net.md-5:bungeecord-chat:1.16-R0.4")

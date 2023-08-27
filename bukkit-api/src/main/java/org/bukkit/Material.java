@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 
 //dummy class -> Not meant for production use
 //look at vanillaMaterials or extended materials for actual implementation
-public abstract class Material {
+public abstract class Material implements Keyed {
 
     public static final Material AIR = null;
 

@@ -70,9 +70,9 @@ public class SoakPlayerInteractAirEvent {
         var bukkitEvent = new PlayerInteractEvent(player, action, item, null, clickedFace, hand);
         SoakPlugin.server().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
-        if (spongeEvent instanceof Cancellable cancellable) {
+        if (spongeEvent instanceof Cancellable) {
             if (bukkitEvent.useInteractedBlock() == Event.Result.DENY) {
-                cancellable.setCancelled(true);
+                ((Cancellable)spongeEvent).setCancelled(true);
             }
         }
 

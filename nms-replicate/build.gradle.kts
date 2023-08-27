@@ -5,6 +5,13 @@ plugins {
 group = "org"
 version = "1.0.0"
 
+java {
+    toolchain {
+        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+    }
+}
+
 repositories {
     mavenCentral()
 }

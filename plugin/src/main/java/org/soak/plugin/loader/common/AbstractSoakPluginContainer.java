@@ -1,35 +1,34 @@
-package org.soak.plugin.loader.sponge;
+package org.soak.plugin.loader.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.plugin.Plugin;
-import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.metadata.PluginMetadata;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Optional;
 
-public class SoakPluginContainer implements PluginContainer {
+public class AbstractSoakPluginContainer implements SoakPluginContainer {
 
     private final File bukkitPluginFile;
     private final SoakPluginMetadata pluginMetadata;
     //private final URLClassLoader loader;
     private final Logger logger;
     private final Plugin plugin;
-    private final SoakMainPluginWrapper mainInstance;
+    private final SoakPluginWrapper mainInstance;
 
-    public SoakPluginContainer(File bukkitPluginFile, Plugin plugin) {
+    public AbstractSoakPluginContainer(File bukkitPluginFile, Plugin plugin) {
         this.bukkitPluginFile = bukkitPluginFile;
         this.plugin = plugin;
         this.logger = LogManager.getLogger(plugin.getName());
         this.pluginMetadata = SoakPluginMetadata.fromPlugin(plugin);
 
         //temp
-        this.mainInstance = new SoakMainPluginWrapper(this);
+        this.mainInstance = new SoakPluginWrapper(this);
     }
 
-    public File getPluginFile(){
+    public File getPluginFile() {
         return this.bukkitPluginFile;
     }
 
@@ -48,7 +47,7 @@ public class SoakPluginContainer implements PluginContainer {
     }
 
     @Override
-    public SoakMainPluginWrapper instance() {
+    public SoakPluginWrapper instance() {
         return this.mainInstance;
     }
 

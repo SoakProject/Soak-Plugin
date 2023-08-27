@@ -1,4 +1,4 @@
-package org.soak.plugin.loader.sponge;
+package org.soak.plugin.loader.common;
 
 import org.bukkit.command.PluginCommandYamlParser;
 import org.bukkit.plugin.Plugin;
@@ -15,18 +15,18 @@ import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-public class SoakMainPluginWrapper {
+public class SoakPluginWrapper {
 
     public static final String CMD_DESCRIPTION = "description";
     public static final String CMD_USAGE = "usage";
     private final SoakPluginContainer pluginContainer;
     private final Collection<org.bukkit.command.Command> commands = new LinkedHashSet<>();
 
-    public SoakMainPluginWrapper(SoakPluginContainer pluginContainer) {
+    public SoakPluginWrapper(SoakPluginContainer pluginContainer) {
         this.pluginContainer = pluginContainer;
     }
 
-    public SoakPluginContainer container() {
+    public org.soak.plugin.loader.common.SoakPluginContainer container() {
         return this.pluginContainer;
     }
 

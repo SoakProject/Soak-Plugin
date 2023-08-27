@@ -60,47 +60,48 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     }
 
     public void copyInto(ItemMeta meta) {
-        if (!(meta instanceof AbstractItemMeta into)) {
+        if (!(meta instanceof AbstractItemMeta)) {
             throw new RuntimeException("ItemMeta must implement AbstractItemMeta");
         }
-        if (into.container instanceof ItemStack stack) {
-            this.container = DataHelper.copyInto(stack,
+        var into = (AbstractItemMeta) meta;
+        if (into.container instanceof ItemStack) {
+            this.container = DataHelper.copyInto((ItemStack) this.container,
                     this.asSnapshot().orElseThrow(() -> new RuntimeException("Failed check")));
             return;
         }
-        if (into.container instanceof Entity entity) {
-            this.container = DataHelper.copyInto(entity, (DataHolder) this.container);
+        if (into.container instanceof Entity) {
+            this.container = DataHelper.copyInto((Entity) into.container, (DataHolder) this.container);
         }
         this.container = DataHelper.copyInto((ItemStackSnapshot) into.container,
                 this.asSnapshot().orElseThrow(() -> new RuntimeException("Failed checks")));
     }
 
     public Optional<ItemStack> asStack() {
-        if (this.container instanceof ItemStack stack) {
-            return Optional.of(stack);
+        if (this.container instanceof ItemStack) {
+            return Optional.of((ItemStack) this.container);
         }
-        if (this.container instanceof ItemStackSnapshot stack) {
-            return Optional.of(stack.createStack());
+        if (this.container instanceof ItemStackSnapshot) {
+            return Optional.of(((ItemStackSnapshot) this.container).createStack());
         }
         return Optional.empty();
     }
 
     public Optional<ItemStackSnapshot> asSnapshot() {
-        if (this.container instanceof ItemStack stack) {
-            return Optional.of(stack.createSnapshot());
+        if (this.container instanceof ItemStack) {
+            return Optional.of(((ItemStack) this.container).createSnapshot());
         }
-        if (this.container instanceof ItemStackSnapshot stack) {
-            return Optional.of(stack);
+        if (this.container instanceof ItemStackSnapshot) {
+            return Optional.of((ItemStackSnapshot) this.container);
         }
         return Optional.empty();
     }
 
     protected DataHolder.Immutable<?> copyToImmutable() {
-        if (this.container instanceof ItemStack stack) {
-            return stack.createSnapshot();
+        if (this.container instanceof ItemStack) {
+            return ((ItemStack) this.container).createSnapshot();
         }
-        if (this.container instanceof ItemStackSnapshot stack) {
-            return stack.copy();
+        if (this.container instanceof ItemStackSnapshot) {
+            return ((ItemStackSnapshot) this.container).copy();
         }
         return ((Entity) this.container).createSnapshot();
     }
@@ -110,8 +111,8 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             remove(key);
             return;
         }
-        if (this.container instanceof DataHolder.Mutable stack) {
-            stack.offer(key, value);
+        if (this.container instanceof DataHolder.Mutable) {
+            ((DataHolder.Mutable) this.container).offer(key, value);
             return;
         }
         var opStack = ((DataHolder.Immutable) this.container).with(key, value);
@@ -128,8 +129,8 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             remove(key);
             return;
         }
-        if (this.container instanceof DataHolder.Mutable stack) {
-            stack.offer(key, value);
+        if (this.container instanceof DataHolder.Mutable) {
+            ((DataHolder.Mutable) this.container).offer(key, value);
             return;
         }
         this.container = ((DataHolder.Immutable<?>) this.container).with(key, value)
@@ -138,15 +139,15 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     }
 
     private ItemType type() {
-        if (this.container instanceof ItemStack stack) {
-            return stack.type();
+        if (this.container instanceof ItemStack) {
+            return ((ItemStack) this.container).type();
         }
         return ((ItemStackSnapshot) this.container).type();
     }
 
     protected void remove(@NotNull Key<?> key) {
-        if (this.container instanceof ItemStack stack) {
-            stack.remove(key);
+        if (this.container instanceof ItemStack) {
+            ((ItemStack) this.container).remove(key);
             return;
         }
         this.container = ((ItemStackSnapshot) this.container).without(key)
@@ -527,8 +528,8 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public @NotNull PersistentDataContainer getPersistentDataContainer() {
-        if (this.container instanceof ItemStack stack) {
-            return new SoakMutablePersistentDataContainer<>(stack);
+        if (this.container instanceof ItemStack) {
+            return new SoakMutablePersistentDataContainer<>((ItemStack) this.container);
         }
         return new SoakImmutablePersistentDataContainer<>((ItemStackSnapshot) this.container);
     }

@@ -48,7 +48,8 @@ public class SoakItemFactory implements ItemFactory {
             return false;
         }
 
-        return ItemStackComparators.IGNORE_SIZE.get().compare(SoakItemStackMap.toSponge(arg0), SoakItemStackMap.toSponge(arg1)) == 0;
+        return ItemStackComparators.IGNORE_SIZE.get()
+                .compare(SoakItemStackMap.toSponge(arg0), SoakItemStackMap.toSponge(arg1)) == 0;
     }
 
     @Override
@@ -58,7 +59,8 @@ public class SoakItemFactory implements ItemFactory {
 
     @Override
     public ItemMeta getItemMeta(@NotNull Material arg0) {
-        ItemType type = arg0.asItem().orElseThrow(() -> new IllegalStateException("Material of " + arg0.name() + " is not a item"));
+        ItemType type = arg0.asItem()
+                .orElseThrow(() -> new IllegalStateException("Material of " + arg0.name() + " is not a item"));
         return SoakItemStackMap.toBukkitMeta(org.spongepowered.api.item.inventory.ItemStack.of(type));
     }
 
@@ -79,10 +81,14 @@ public class SoakItemFactory implements ItemFactory {
 
     @Override
     public ItemMeta asMetaFor(@NotNull ItemMeta arg0, @NotNull ItemStack arg1) {
-        ItemMeta stacksMeta = arg1.hasItemMeta() ? arg1.getItemMeta() : SoakItemStackMap.toBukkitMeta(org.spongepowered.api.item.inventory.ItemStack.of(arg1.getType().asItem().orElseThrow(() -> new RuntimeException("Material is not item in itemstack")), arg1.getAmount()));
-        if (!(stacksMeta instanceof AbstractItemMeta stacksSoakMeta)) {
-            throw new RuntimeException("An item meta was not of abstract type: From: " + stacksMeta.getClass().getSimpleName());
+        ItemMeta stacksMeta = arg1.hasItemMeta() ? arg1.getItemMeta() : SoakItemStackMap.toBukkitMeta(org.spongepowered.api.item.inventory.ItemStack.of(
+                arg1.getType().asItem().orElseThrow(() -> new RuntimeException("Material is not item in itemstack")),
+                arg1.getAmount()));
+        if (!(stacksMeta instanceof AbstractItemMeta)) {
+            throw new RuntimeException("An item meta was not of abstract type: From: " + stacksMeta.getClass()
+                    .getSimpleName());
         }
+        var stacksSoakMeta = (AbstractItemMeta) stacksMeta;
         stacksSoakMeta.copyInto(arg0);
         return stacksSoakMeta;
     }
@@ -94,22 +100,35 @@ public class SoakItemFactory implements ItemFactory {
 
     @Override
     public @NotNull Material updateMaterial(@NotNull ItemMeta arg0, @NotNull Material arg1) {
-        if (!(arg0 instanceof AbstractItemMeta abstractMeta)) {
-            throw new RuntimeException("ItemMeta is not extending AbstractItemMeta (" + arg0.getClass().getName() + ")");
+        if (!(arg0 instanceof AbstractItemMeta)) {
+            throw new RuntimeException("ItemMeta is not extending AbstractItemMeta (" + arg0.getClass()
+                    .getName() + ")");
         }
+        var abstractMeta = (AbstractItemMeta)arg0;
         abstractMeta.manipulate(container -> {
             ItemType type = arg1.asItem().orElseThrow(() -> new RuntimeException("Material is not a item"));
-            if (container instanceof org.spongepowered.api.item.inventory.ItemStack stack) {
-                return org.spongepowered.api.item.inventory.ItemStack.builder().fromItemStack(stack).itemType(type).build();
+            if (container instanceof org.spongepowered.api.item.inventory.ItemStack) {
+                var stack = (org.spongepowered.api.item.inventory.ItemStack) container;
+                return org.spongepowered.api.item.inventory.ItemStack.builder()
+                        .fromItemStack(stack)
+                        .itemType(type)
+                        .build();
             }
-            return org.spongepowered.api.item.inventory.ItemStack.builder().fromSnapshot((ItemStackSnapshot) container).itemType(type).build().createSnapshot();
+            return org.spongepowered.api.item.inventory.ItemStack.builder()
+                    .fromSnapshot((ItemStackSnapshot) container)
+                    .itemType(type)
+                    .build()
+                    .createSnapshot();
         });
         return arg1;
     }
 
     @Override
     public @NotNull HoverEvent<HoverEvent.ShowItem> asHoverEvent(@NotNull ItemStack item, @NotNull UnaryOperator<HoverEvent.ShowItem> op) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "asHoverEvent", ItemStack.class, UnaryOperator.class);
+        throw NotImplementedException.createByLazy(ItemFactory.class,
+                "asHoverEvent",
+                ItemStack.class,
+                UnaryOperator.class);
     }
 
     @Override
@@ -126,13 +145,19 @@ public class SoakItemFactory implements ItemFactory {
     @Deprecated
     @Override
     public @NotNull Content hoverContentOf(@NotNull Entity arg0, BaseComponent arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "hoverContentOf", Entity.class, BaseComponent.class);
+        throw NotImplementedException.createByLazy(ItemFactory.class,
+                "hoverContentOf",
+                Entity.class,
+                BaseComponent.class);
     }
 
     @Deprecated
     @Override
     public @NotNull Content hoverContentOf(@NotNull Entity arg0, BaseComponent[] arg1) {
-        throw NotImplementedException.createByLazy(ItemFactory.class, "hoverContentOf", Entity.class, BaseComponent[].class);
+        throw NotImplementedException.createByLazy(ItemFactory.class,
+                "hoverContentOf",
+                Entity.class,
+                BaseComponent[].class);
     }
 
     @Deprecated

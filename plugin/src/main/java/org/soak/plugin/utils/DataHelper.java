@@ -13,8 +13,8 @@ public class DataHelper {
     public static <T extends DataHolder> T copyInto(T copyTo, DataHolder copyFrom) {
         Set<Key<?>> keys = copyFrom.getKeys().stream().filter(copyTo::supports).collect(Collectors.toSet());
         for (Key<?> key : keys) {
-            if (copyTo instanceof DataHolder.Mutable mutable) {
-                copyTo = (T) copyToMutable(mutable, copyFrom, key);
+            if (copyTo instanceof DataHolder.Mutable) {
+                copyTo = (T) copyToMutable((DataHolder.Mutable) copyTo, copyFrom, key);
             } else {
                 copyTo = (T) copyToImmutable((DataHolder.Immutable<?>) copyTo, copyFrom, key);
             }

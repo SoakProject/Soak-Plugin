@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 
 public abstract class SoakCommandSender extends SoakPermissible implements CommandSender {
 
-    private final Audience audience;
+    protected Audience audience;
 
     public SoakCommandSender(Subject subject, Audience audience) {
         super(subject);

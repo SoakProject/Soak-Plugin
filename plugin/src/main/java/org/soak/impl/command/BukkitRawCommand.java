@@ -5,7 +5,7 @@ import org.bukkit.command.PluginCommand;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakSubjectMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.utils.BasicEntry;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
@@ -65,9 +65,10 @@ public class BukkitRawCommand implements Command.Raw {
 
     @Override
     public List<CommandCompletion> complete(CommandCause cause, ArgumentReader.Mutable arguments) throws CommandException {
-        if (!(this.command instanceof PluginCommand plCmd)) {
+        if (!(this.command instanceof PluginCommand)) {
             return Collections.emptyList();
         }
+        var plCmd = (PluginCommand)this.command;
         if (plCmd.getTabCompleter() == null) {
             return Collections.emptyList();
         }

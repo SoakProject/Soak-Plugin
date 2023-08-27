@@ -25,16 +25,14 @@ public class SoakMessageMap {
 
     public static MessageType toComponent(ChatMessageType type) {
         switch (type) {
-            case CHAT -> {
+            case CHAT:
                 return MessageType.CHAT;
-            }
-            case SYSTEM -> {
+            case SYSTEM:
                 return MessageType.SYSTEM;
-            }
-            case ACTION_BAR -> {
+            case ACTION_BAR:
                 return MessageType.SYSTEM; //TODO
-            }
-            default -> throw new RuntimeException("No mapping for " + type.name());
+            default:
+                throw new RuntimeException("No mapping for " + type.name());
         }
     }
 }

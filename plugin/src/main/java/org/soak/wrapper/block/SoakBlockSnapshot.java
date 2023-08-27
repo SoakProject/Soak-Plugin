@@ -50,16 +50,16 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     }
 
     @Override
-    public float getDestroySpeed(ItemStack arg0, boolean arg1) {
+    public float getDestroySpeed(@NotNull ItemStack arg0, boolean arg1) {
         throw NotImplementedException.createByLazy(Block.class, "getDestroySpeed", ItemStack.class, boolean.class);
     }
 
     @Override
-    public void setBlockData(BlockData arg0) {
-        if (!(arg0 instanceof CommonBlockData common)) {
+    public void setBlockData(@NotNull BlockData arg0) {
+        if (!(arg0 instanceof CommonBlockData)) {
             throw new RuntimeException(arg0.getClass().getName() + " does not implement CommonBlockData");
         }
-        this.block = this.block.withState(common.sponge());
+        this.block = this.block.withState(((CommonBlockData) arg0).sponge());
     }
 
     @Override

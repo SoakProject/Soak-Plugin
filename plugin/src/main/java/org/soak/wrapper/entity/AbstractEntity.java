@@ -55,7 +55,7 @@ import java.util.function.Supplier;
 
 public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Entity> extends SoakCommandSender implements Entity {
 
-    private final E entity;
+    protected E entity;
 
     public AbstractEntity(Subject subject, Audience audience, E entity) {
         super(subject, audience);
@@ -67,11 +67,11 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
     }
 
     public static <E extends org.spongepowered.api.entity.Entity> AbstractEntity<E> wrap(E entity) {
-        if (entity instanceof ServerPlayer player) {
-            return (AbstractEntity<E>) (Object) SoakPlugin.plugin().getMemoryStore().get(player);
+        if (entity instanceof ServerPlayer) {
+            return (AbstractEntity<E>) (Object) SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) entity);
         }
-        if (entity instanceof FireworkRocket firework) {
-            return (AbstractEntity<E>) new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), firework);
+        if (entity instanceof FireworkRocket) {
+            return (AbstractEntity<E>) new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), (FireworkRocket) entity);
         }
         return new SoakEntity<>(Sponge.systemSubject(), Sponge.systemSubject(), entity);
     }
@@ -232,7 +232,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
         return this.entity.onGround().get();
     }
 
-    protected boolean isIn(Supplier<BlockType> blockType){
+    protected boolean isIn(Supplier<BlockType> blockType) {
         return this.spongeEntity().location().blockType().equals(blockType.get());
     }
 
@@ -493,7 +493,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean isInWaterOrRain() {
-        if(isInWater()){
+        if (isInWater()) {
             return true;
         }
         return isInRain();
@@ -501,7 +501,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean isInWaterOrBubbleColumn() {
-        if(isInWater()){
+        if (isInWater()) {
             return true;
         }
         return isInBubbleColumn();
@@ -509,7 +509,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean isInWaterOrRainOrBubbleColumn() {
-        if(isInWaterOrRain()){
+        if (isInWaterOrRain()) {
             return true;
         }
         return isInBubbleColumn();

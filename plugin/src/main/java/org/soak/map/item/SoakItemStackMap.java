@@ -59,10 +59,10 @@ public class SoakItemStackMap {
     }
 
     private static <VC extends ValueContainer> VC toSponge(@NotNull ItemMeta meta, @NotNull Function<AbstractItemMeta, VC> spongeType) {
-        if (!(meta instanceof AbstractItemMeta im)) {
+        if (!(meta instanceof AbstractItemMeta)) {
             throw new RuntimeException(meta.getClass().getName() + " does not extend AbstractItemMeta");
         }
-        return spongeType.apply(im);
+        return spongeType.apply((AbstractItemMeta) meta);
     }
 
     private static <VC extends ValueContainer> VC toSponge(@NotNull org.bukkit.inventory.ItemStack stack, @NotNull Function<AbstractItemMeta, VC> spongeType) {
@@ -73,7 +73,8 @@ public class SoakItemStackMap {
         VC valueContainer = toSponge(stack.getItemMeta(), spongeType);
 
         //needs to update the quantity from Bukkit's ItemStack
-        if (valueContainer instanceof ItemStack spongeStack) {
+        if (valueContainer instanceof ItemStack) {
+            var spongeStack = (ItemStack) valueContainer;
             spongeStack.setQuantity(stack.getAmount());
             return (VC) spongeStack;
         }

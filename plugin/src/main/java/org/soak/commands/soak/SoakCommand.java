@@ -9,13 +9,14 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.soak.commands.SoakArguments;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.parameter.Parameter;
 
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 public class SoakCommand {
 
@@ -60,7 +61,7 @@ public class SoakCommand {
                                     .thenComparing(plugin -> ((JavaPlugin) plugin).getName()))
                             .map(plugin -> Component.text(plugin.getName())
                                     .color(plugin.isEnabled() ? NamedTextColor.GREEN : NamedTextColor.RED))
-                            .toList();
+                            .collect(Collectors.toList());
 
                     Component pluginsLine = Component.join(JoinConfiguration.separator(Component.text(",    ")),
                             plugins);

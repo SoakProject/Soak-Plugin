@@ -1,12 +1,13 @@
 package org.soak.commands;
 
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.parameter.CommandContext;
 import org.spongepowered.api.command.parameter.Parameter;
 
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 public class SoakArguments {
 
@@ -36,6 +37,6 @@ public class SoakArguments {
                                 .startsWith(currentInput.toLowerCase()))
                         .filter(soakPluginContainer -> predicate.test(context, soakPluginContainer))
                         .map(spc -> CommandCompletion.of(spc.plugin().getName()))
-                        .toList());
+                        .collect(Collectors.toList()));
     }
 }

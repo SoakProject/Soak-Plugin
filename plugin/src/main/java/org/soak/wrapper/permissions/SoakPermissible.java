@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class SoakPermissible implements Permissible {
 
-    protected final Subject subject;
+    protected Subject subject;
 
     public SoakPermissible(Subject subject) {
         this.subject = subject;

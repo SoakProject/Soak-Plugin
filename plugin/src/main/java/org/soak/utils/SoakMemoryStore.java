@@ -1,5 +1,6 @@
 package org.soak.utils;
 
+import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
@@ -25,11 +26,18 @@ public class SoakMemoryStore {
     private final LinkedTransferQueue<SoakWorld> worlds = new LinkedTransferQueue<>();
     private final LinkedTransferQueue<SoakPlayer> players = new LinkedTransferQueue<>();
 
-    private <Sponge, Soak> Soak getOrCreate(Collection<Soak> collection, BiPredicate<Soak, Sponge> match, Function<Sponge, Soak> create, Sponge sponge) {
+    private <Sponge, Soak extends SoakSingleInstance<Sponge>> Soak getOrCreate(Collection<Soak> collection, BiPredicate<Soak, Sponge> match, Function<Sponge, Soak> create, Sponge sponge) {
         var found = collection.stream().filter(soak -> match.test(soak, sponge)).findAny();
         if (found.isPresent()) {
             return found.get();
         }
+        var overrideInstance = collection.stream().filter(soak -> soak.isSame(sponge)).findAny();
+        if(overrideInstance.isPresent()){
+            var instance = overrideInstance.get();
+            instance.setSponge(sponge);
+            return instance;
+        }
+
         var created = create.apply(sponge);
         collection.add(created);
         return created;

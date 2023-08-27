@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public enum Material {
+public enum Material implements Keyed {
     AIR(BlockTypes.AIR, ItemTypes.AIR),
     STONE(BlockTypes.STONE, ItemTypes.STONE),
     GRANITE(BlockTypes.GRANITE, ItemTypes.GRANITE),
@@ -1296,8 +1296,8 @@ public enum Material {
 
     private @Nullable String getTranslationKey(ComponentLike item) {
         Component component = item.asComponent();
-        if (component instanceof TranslatableComponent translate) {
-            return translate.key();
+        if (component instanceof TranslatableComponent) {
+            return ((TranslatableComponent) component).key();
         }
         return null;
     }

@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitWorker;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Scheduler;
@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SoakBukkitScheduler implements BukkitScheduler {
@@ -98,7 +99,7 @@ public class SoakBukkitScheduler implements BukkitScheduler {
                 .map(SoakBukkitTask::new)
                 .filter(SoakBukkitTask::isBukkit)
                 .map(task -> (BukkitTask) task)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Deprecated

@@ -12,11 +12,13 @@ import org.jetbrains.annotations.NotNull;
 import org.soak.Compatibility;
 import org.soak.commands.soak.SoakCommand;
 import org.soak.config.SoakServerProperties;
+import org.soak.fix.forge.ForgeFixCommons;
 import org.soak.impl.data.BukkitPersistentData;
 import org.soak.plugin.config.SoakConfiguration;
 import org.soak.plugin.loader.Locator;
-import org.soak.plugin.loader.sponge.SoakPluginContainer;
-import org.soak.plugin.loader.sponge.injector.SoakPluginInjector;
+import org.soak.plugin.loader.common.AbstractSoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginContainer;
+import org.soak.plugin.loader.common.SoakPluginInjector;
 import org.soak.utils.SoakMemoryStore;
 import org.soak.wrapper.SoakServer;
 import org.soak.wrapper.enchantment.SoakEnchantment;
@@ -227,6 +229,16 @@ public class SoakPlugin {
 
     @Listener
     public void construct(ConstructPluginEvent event) {
+        if (ForgeFixCommons.isRequired()) {
+            try {
+                ForgeFixCommons.installApacheCommons();
+                this.logger.info("Forced install of Apache 2");
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
         SoakServer server = new SoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
@@ -250,7 +262,7 @@ public class SoakPlugin {
                 continue;
             }
 
-            SoakPluginContainer container = new SoakPluginContainer(file, plugin);
+            SoakPluginContainer container = new AbstractSoakPluginContainer(file, plugin);
             SoakPluginInjector.injectPlugin(container);
             Sponge.eventManager().registerListeners(container, container.instance());
         }
@@ -277,8 +289,8 @@ public class SoakPlugin {
     public void displayError(Throwable e, Plugin plugin, Map.Entry<String, String>... additions) {
         Map<String, String> pluginData = new HashMap<>();
         pluginData.put("Plugin name", plugin.getName());
-        if (plugin instanceof SoakPlugin soakPlugin) {
-            pluginData.put("Plugin file", soakPlugin.configuration.file().getPath());
+        if (plugin instanceof SoakPlugin) {
+            pluginData.put("Plugin file", ((SoakPlugin) plugin).configuration.file().getPath());
         }
         for (Map.Entry<String, String> entry : additions) {
             pluginData.put(entry.getKey(), entry.getValue());
@@ -288,8 +300,8 @@ public class SoakPlugin {
     }
 
     private void displayError(Throwable e, Map<String, String> pluginData) {
-        if (e instanceof InvocationTargetException targetException) {
-            e = targetException.getTargetException();
+        if (e instanceof InvocationTargetException) {
+            e = ((InvocationTargetException) e).getTargetException();
         }
         this.logger.error("|------------------------|");
         pluginData.forEach((key, value) -> {
@@ -305,8 +317,8 @@ public class SoakPlugin {
                 .metadata()
                 .version());
 
-        if (e instanceof ClassCastException castException) {
-            if (castException.getMessage().contains("org.bukkit.plugin.SimplePluginManager")) {
+        if (e instanceof ClassCastException) {
+            if (e.getMessage().contains("org.bukkit.plugin.SimplePluginManager")) {
                 this.logger.error(
                         "|- Common Error Note: Starting on Paper hardfork 1.19.4, SimplePluginManager is being disconnected. This will not be added to soak");
             }

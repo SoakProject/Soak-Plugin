@@ -88,8 +88,8 @@ public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
 
     //for nms
     public boolean setGameProfile(com.mojang.authlib.GameProfile profile) {
-        if (profile instanceof GameProfile gameProfile) {
-            return setGameProfile(gameProfile);
+        if (profile instanceof GameProfile) {
+            return setGameProfile((GameProfile) profile);
         }
         this.profile = profile;
         //might make some plugins happy
@@ -106,8 +106,8 @@ public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
             return false;
         }
         this.set(Keys.SKIN_PROFILE_PROPERTY, opTextureProperty.get());
-        if (profile instanceof com.mojang.authlib.GameProfile gameProfile) {
-            this.profile = gameProfile;
+        if (profile instanceof com.mojang.authlib.GameProfile) {
+            this.profile = (com.mojang.authlib.GameProfile) profile;
         }
         return true;
     }

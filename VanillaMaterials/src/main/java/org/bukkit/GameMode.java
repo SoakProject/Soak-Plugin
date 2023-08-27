@@ -39,21 +39,16 @@ public enum GameMode {
     @Deprecated
     public static GameMode getByValue(int value) {
         switch (value) {
-            case 0 -> {
+            case 0:
                 return SURVIVAL;
-            }
-            case 1 -> {
+            case 1:
                 return CREATIVE;
-            }
-            case 2 -> {
+            case 2:
                 return ADVENTURE;
-            }
-            case 3 -> {
+            case 3:
                 return SPECTATOR;
-            }
-            default -> {
+            default:
                 return null;
-            }
         }
     }
 
@@ -64,21 +59,16 @@ public enum GameMode {
     @Deprecated
     public int getValue() {
         switch (this) {
-            case ADVENTURE -> {
+            case ADVENTURE:
                 return 2;
-            }
-            case SPECTATOR -> {
+            case SPECTATOR:
                 return 3;
-            }
-            case CREATIVE -> {
+            case CREATIVE:
                 return 1;
-            }
-            case SURVIVAL -> {
+            case SURVIVAL:
                 return 0;
-            }
-            default -> {
+            default:
                 return -1;
-            }
         }
     }
 }

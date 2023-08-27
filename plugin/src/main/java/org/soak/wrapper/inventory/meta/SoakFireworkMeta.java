@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class SoakFireworkMeta extends AbstractItemMeta implements FireworkMeta {
@@ -59,7 +60,7 @@ public class SoakFireworkMeta extends AbstractItemMeta implements FireworkMeta {
                 .get(Keys.FIREWORK_EFFECTS)
                 .map(effects -> effects.stream()
                         .map(SoakFireworkEffectMap::toBukkit)
-                        .toList()
+                        .collect(Collectors.toList())
                 )
                 .orElse(Collections.emptyList());
     }
@@ -85,7 +86,7 @@ public class SoakFireworkMeta extends AbstractItemMeta implements FireworkMeta {
     public void addEffects(@NotNull Iterable<FireworkEffect> effects) throws IllegalArgumentException {
         var toAddSponge = StreamSupport.stream(effects.spliterator(), false)
                 .map(SoakFireworkEffectMap::buildSponge)
-                .toList();
+                .collect(Collectors.toList());
         var currentSponge = new ArrayList<>(this.container.get(Keys.FIREWORK_EFFECTS).orElse(Collections.emptyList()));
         currentSponge.addAll(toAddSponge);
         this.setList(Keys.FIREWORK_EFFECTS, currentSponge);

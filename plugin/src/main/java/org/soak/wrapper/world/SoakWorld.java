@@ -27,11 +27,14 @@ import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.SoakWorldTypeMap;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
+import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.MinecraftDayTime;
 import org.spongepowered.api.util.Ticks;
+import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 
@@ -41,12 +44,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
-public class SoakWorld implements World, CraftWorld {
+public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spongepowered.api.world.server.ServerWorld> {
 
-    private final org.spongepowered.api.world.server.ServerWorld world;
+    private final ResourceKey key;
+    private org.spongepowered.api.world.server.ServerWorld world;
 
     public SoakWorld(org.spongepowered.api.world.server.ServerWorld world) {
         this.world = world;
+        this.key = world.key();
     }
 
     public org.spongepowered.api.world.server.ServerWorld sponge() {
@@ -1562,9 +1567,20 @@ public class SoakWorld implements World, CraftWorld {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof SoakWorld world)) {
+        if (!(obj instanceof SoakWorld)) {
             return false;
         }
+        var world = (SoakWorld) obj;
         return this.sponge().equals(world.sponge());
+    }
+
+    @Override
+    public void setSponge(ServerWorld sponge) {
+        this.world = sponge;
+    }
+
+    @Override
+    public boolean isSame(ServerWorld sponge) {
+        return this.key.equals(sponge.key());
     }
 }

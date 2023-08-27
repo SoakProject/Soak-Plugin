@@ -31,8 +31,8 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
     }
 
     public static <T extends BlockEntity> AbstractBlockState<T> wrap(T blockEntity) {
-        if (blockEntity instanceof Sign sign) {
-            return (AbstractBlockState<T>) new SoakSignBlockEntity(sign);
+        if (blockEntity instanceof Sign) {
+            return (AbstractBlockState<T>) new SoakSignBlockEntity((Sign) blockEntity);
         }
         throw new RuntimeException("No mapping found for BlockEntity of " + blockEntity.getClass().getName());
     }

@@ -81,8 +81,10 @@ public class SoakPlayerTeleportEvent {
 
 
         var spongeNewPosition = event.destinationPosition();
-        if (event instanceof ChangeEntityWorldEvent.Reposition repoEvent) {
-            newPositionWorld = SoakPlugin.plugin().getMemoryStore().get(repoEvent.destinationWorld());
+        if (event instanceof ChangeEntityWorldEvent.Reposition) {
+            newPositionWorld = SoakPlugin.plugin()
+                    .getMemoryStore()
+                    .get(((ChangeEntityWorldEvent.Reposition) event).destinationWorld());
         }
         var newPosition = new Location(newPositionWorld,
                 spongeNewPosition.x(),

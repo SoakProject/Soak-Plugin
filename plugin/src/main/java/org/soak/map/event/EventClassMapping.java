@@ -2,14 +2,9 @@ package org.soak.map.event;
 
 
 import org.bukkit.event.Event;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.enchantment.EnchantItemEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityToggleGlideEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -17,13 +12,16 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.soak.impl.event.block.SoakBlockBreakEvent;
-import org.soak.impl.event.block.SoakBlockPlaceEvent;
-import org.soak.impl.event.block.SoakSignChangeEvent;
+import org.soak.impl.event.block.*;
+import org.soak.impl.event.block.piston.SoakPistonExtendEvent;
 import org.soak.impl.event.command.SoakPreCommandEvent;
 import org.soak.impl.event.entity.SoakEntityDeathEvent;
+import org.soak.impl.event.entity.SoakEntityExplosionEvent;
+import org.soak.impl.event.entity.move.SoakVehicleMoveEvent;
+import org.soak.impl.event.entity.move.SoakVehicleRotateEvent;
 import org.soak.impl.event.entity.player.combat.SoakPlayerDeathEvent;
 import org.soak.impl.event.entity.player.combat.SoakPlayerRespawnEvent;
 import org.soak.impl.event.entity.player.connection.SoakPlayerJoinEvent;
@@ -54,6 +52,9 @@ public class EventClassMapping {
         }
         if (name.equals(SignChangeEvent.class.getName())) {
             return array(SoakSignChangeEvent.class);
+        }
+        if (name.equals(VehicleMoveEvent.class.getName())) {
+            return array(SoakVehicleMoveEvent.class, SoakVehicleRotateEvent.class);
         }
         if (name.equals(PlayerMoveEvent.class.getName())) {
             return array(SoakPlayerMoveEvent.class, SoakPlayerRotateEvent.class);
@@ -129,6 +130,18 @@ public class EventClassMapping {
         }
         if (name.equals(BlockPlaceEvent.class.getName())) {
             return array(SoakBlockPlaceEvent.class);
+        }
+        if (name.equals(BlockPhysicsEvent.class.getName())) {
+            return array(SoakBlockPhysicsEvent.class);
+        }
+        if (name.equals(BlockFromToEvent.class.getName())) {
+            return array(SoakBlockFlowExpandEvent.class);
+        }
+        if (name.equals(EntityExplodeEvent.class.getName())) {
+            return array(SoakEntityExplosionEvent.class);
+        }
+        if (name.equals(BlockPistonExtendEvent.class.getName())) {
+            return array(SoakPistonExtendEvent.class);
         }
         throw new RuntimeException("No mapping found for Bukkit Event: " + bukkitClass.getName());
     }

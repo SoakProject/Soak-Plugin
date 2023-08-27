@@ -1,4 +1,4 @@
-package org.soak.plugin.loader.sponge;
+package org.soak.plugin.loader.common;
 
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.VersionRange;
@@ -22,7 +22,6 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     private final ArtifactVersion artifactVersion;
     private Plugin plugin;
-    private SoakPluginContainer container;
 
     private SoakPluginMetadata(Plugin plugin,
                                ArtifactVersion artifactVersion
@@ -156,8 +155,17 @@ public class SoakPluginMetadata implements PluginMetadata {
         throw NotImplementedException.createByLazy(PluginMetadata.class, "properties");
     }
 
-    private record BukkitPluginDependency(String name, boolean hardDependency,
-                                          boolean loadBefore) implements PluginDependency {
+    private class BukkitPluginDependency implements PluginDependency {
+
+        private final String name;
+        private final boolean hardDependency;
+        private final boolean loadBefore;
+
+        public BukkitPluginDependency(String name, boolean hardDependency, boolean loadBefore) {
+            this.hardDependency = hardDependency;
+            this.loadBefore = loadBefore;
+            this.name = name;
+        }
 
         @Override
         public String id() {
