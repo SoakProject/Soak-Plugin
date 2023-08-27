@@ -19,17 +19,18 @@ jobs:
         run: chmod +x ./ForgeBuild/gradlew
       - name: Make gradle executable
         run: chmod +x ./gradlew
-      - name: Show Java Home
-        run: echo $JAVA_HOME
       - name: Build forge cache
         run: ./gradlew build
         working-directory: ./ForgeBuild
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 11
-      - name: Show java 11 home
-        run: echo $JAVA_HOME
+          java-version: ${{matrix.java}}
       - name: Build Soak
         run: ./gradlew plugin:build
+      - name: Upload plugin
+        uses: actions/upload-artifact@v3
+        with:
+          name: Soak-Vanilla.zip
+          path: plugin/build/libs/*.jar
 
