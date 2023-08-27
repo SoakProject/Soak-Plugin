@@ -22,7 +22,8 @@ jobs:
       - name: Show Java Home
         run: echo $JAVA_HOME
       - name: Build forge cache
-        run: ./ForgeBuild/gradlew build
+        run: ./gradlew build
+        working-directory: ./ForgeBuild
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
