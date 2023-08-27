@@ -31,5 +31,5 @@ jobs:
       - name: Show java 11 home
         run: echo $JAVA_HOME
       - name: Build Soak
-        run: ./gradlew soak-plugin:build
+        run: ./gradlew plugin:build
 
