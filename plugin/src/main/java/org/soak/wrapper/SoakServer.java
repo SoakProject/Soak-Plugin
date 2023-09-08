@@ -37,6 +37,7 @@ import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.utils.Singleton;
 import org.soak.plugin.utils.Unfinal;
+import org.soak.plugin.utils.log.CustomLoggerFormat;
 import org.soak.utils.GenericHelper;
 import org.soak.utils.InventoryHelper;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
@@ -62,6 +63,8 @@ import java.util.*;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class SoakServer implements SimpServer {
@@ -73,8 +76,15 @@ public class SoakServer implements SimpServer {
     private final Singleton<SoakBukkitScheduler> scheduler = new Singleton<>(SoakBukkitScheduler::new);
 
     private final Collection<Recipe> recipes = new LinkedTransferQueue<>();
+    private final java.util.logging.Logger logger;
 
     public SoakServer(Supplier<org.spongepowered.api.Server> serverSupplier) {
+        this.logger = java.util.logging.Logger.getLogger("soak");
+        this.logger.setUseParentHandlers(false);
+        this.logger.setLevel(Level.INFO);
+        var consoleHandler = new ConsoleHandler();
+        consoleHandler.setFormatter(new CustomLoggerFormat());
+        this.logger.addHandler(consoleHandler);
         this.serverSupplier = serverSupplier;
     }
 
@@ -971,7 +981,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull java.util.logging.Logger getLogger() {
-        return java.util.logging.Logger.getLogger("soak");
+        return this.logger;
     }
 
     @Deprecated

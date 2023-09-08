@@ -239,7 +239,7 @@ public class SoakPlugin {
         }
 
 
-        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
+        //System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
         SoakServer server = new SoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
         //noinspection deprecation

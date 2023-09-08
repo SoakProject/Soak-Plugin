@@ -6,7 +6,8 @@ group = "org.soak.wrapper.api"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
     }
 }
 
@@ -43,7 +44,8 @@ tasks.jar {
                 it.name.equals("EntityType.class") ||
                 it.name.equals("InventoryType.class") ||
                 it.name.equals("InventoryType\$SlotType.class") ||
-                it.name.equals("GameMode.class")
+                it.name.equals("GameMode.class") ||
+                it.name.equals("PaperPluginLogger")
     }
 }
 
