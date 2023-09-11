@@ -45,7 +45,7 @@ tasks.jar {
                 it.name.equals("InventoryType.class") ||
                 it.name.equals("InventoryType\$SlotType.class") ||
                 it.name.equals("GameMode.class") ||
-                it.name.equals("PaperPluginLogger")
+                it.name.equals("PaperPluginLogger.class")
     }
 }
 

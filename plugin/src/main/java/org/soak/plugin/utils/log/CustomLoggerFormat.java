@@ -14,7 +14,8 @@ public class CustomLoggerFormat extends Formatter {
         LEVEL_COLOURS = Map.of(
                 System.Logger.Level.ERROR.getName(), AnsiEscapeCodes.RED,
                 System.Logger.Level.WARNING.getName(), AnsiEscapeCodes.YELLOW,
-                System.Logger.Level.DEBUG.getName(), AnsiEscapeCodes.GREEN
+                System.Logger.Level.DEBUG.getName(), AnsiEscapeCodes.CYAN,
+                System.Logger.Level.INFO.getName(), AnsiEscapeCodes.GREEN
         );
     }
 
@@ -45,7 +46,7 @@ public class CustomLoggerFormat extends Formatter {
                 "] [" +
                 record.getLoggerName() +
                 "]: " +
-                levelColour +
+                (record.getLevel().getName().equalsIgnoreCase("info") ? "" : levelColour) +
                 record.getMessage() +
                 AnsiEscapeCodes.RESET +
                 "\n";
