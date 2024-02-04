@@ -7,10 +7,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Entity;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
@@ -23,6 +27,7 @@ import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.math.vector.Vector3i;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
@@ -108,6 +113,26 @@ public class AbstractBlockSnapshotState implements BlockState {
     @Override
     public boolean isPlaced() {
         return this.snapshot.location().map(loc -> loc.createSnapshot().equals(this.snapshot)).orElse(false);
+    }
+
+    @Override
+    public boolean isCollidable() {
+        throw NotImplementedException.createByLazy(BlockState.class, "isCollidable");
+    }
+
+    @Override
+    public @Unmodifiable @NotNull Collection<ItemStack> getDrops() {
+        throw NotImplementedException.createByLazy(BlockState.class, "getDrops");
+    }
+
+    @Override
+    public @Unmodifiable @NotNull Collection<ItemStack> getDrops(@Nullable ItemStack itemStack) {
+        throw NotImplementedException.createByLazy(BlockState.class, "getDrops", ItemStack.class);
+    }
+
+    @Override
+    public @Unmodifiable @NotNull Collection<ItemStack> getDrops(@NotNull ItemStack itemStack, @Nullable Entity entity) {
+        throw NotImplementedException.createByLazy(BlockState.class, "getDrops", ItemStack.class, Entity.class);
     }
 
     @Override

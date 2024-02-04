@@ -1,19 +1,18 @@
 package org.soak.wrapper.block;
 
 import com.destroystokyo.paper.block.BlockSoundGroup;
-import org.bukkit.Chunk;
-import org.bukkit.FluidCollisionMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import org.bukkit.util.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
@@ -171,6 +170,16 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     }
 
     @Override
+    public void tick() {
+//cant be done on snapshot
+    }
+
+    @Override
+    public void randomTick() {
+//cant be done on snapshot
+    }
+
+    @Override
     public boolean breakNaturally() {
         throw NotImplementedException.createByLazy(Block.class, "breakNaturally");
     }
@@ -203,6 +212,46 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     @Override
     public boolean isPreferredTool(ItemStack arg0) {
         throw NotImplementedException.createByLazy(Block.class, "isPreferredTool", ItemStack.class);
+    }
+
+    @Override
+    public float getBreakSpeed(@NotNull Player player) {
+        throw NotImplementedException.createByLazy(Block.class, "getBreakSpeed", Player.class);
+    }
+
+    @Override
+    public @NotNull VoxelShape getCollisionShape() {
+        throw NotImplementedException.createByLazy(Block.class, "getCollisionShape");
+    }
+
+    @Override
+    public @NotNull SoundGroup getBlockSoundGroup() {
+        throw NotImplementedException.createByLazy(Block.class, "getBlockSoundGroup");
+    }
+
+    @Override
+    public boolean canPlace(@NotNull BlockData blockData) {
+        throw NotImplementedException.createByLazy(Block.class, "canPlace", BlockData.class);
+    }
+
+    @Override
+    public boolean isCollidable() {
+        throw NotImplementedException.createByLazy(Block.class, "isCollidable");
+    }
+
+    @Override
+    public boolean breakNaturally(boolean b, boolean b1) {
+        throw NotImplementedException.createByLazy(Block.class, "breakNaturally", boolean.class, boolean.class);
+    }
+
+    @Override
+    public @NotNull Biome getComputedBiome() {
+        throw NotImplementedException.createByLazy(Block.class, "getComputedBiome");
+    }
+
+    @Override
+    public boolean breakNaturally(@NotNull ItemStack itemStack, boolean b, boolean b1) {
+        throw NotImplementedException.createByLazy(Block.class, "breakNaturally", ItemStack.class, boolean.class, boolean.class);
     }
 
     @Override

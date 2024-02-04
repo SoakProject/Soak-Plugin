@@ -1,5 +1,6 @@
 package org.soak.wrapper;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import net.kyori.adventure.util.Ticks;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -73,6 +74,11 @@ public class SoakOfflinePlayer implements OfflinePlayer {
     @Override
     public @NotNull UUID getUniqueId() {
         return this.spongeUser().uniqueId();
+    }
+
+    @Override
+    public @NotNull PlayerProfile getPlayerProfile() {
+        throw NotImplementedException.createByLazy(OfflinePlayer.class, "getPlayerProfile");
     }
 
     @Override
@@ -222,6 +228,11 @@ public class SoakOfflinePlayer implements OfflinePlayer {
                 Statistic.class,
                 EntityType.class,
                 int.class);
+    }
+
+    @Override
+    public @Nullable Location getLastDeathLocation() {
+        throw NotImplementedException.createByLazy(OfflinePlayer.class, "getLastDeathLocation");
     }
 
     @Override

@@ -27,7 +27,9 @@ import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.state.StateContainer;
 import org.spongepowered.api.tag.ItemTypeTags;
+import org.spongepowered.api.tag.Tag;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -408,7 +410,7 @@ public enum Material implements Keyed {
     ACACIA_STAIRS(BlockTypes.ACACIA_STAIRS, ItemTypes.ACACIA_STAIRS),
     DARK_OAK_STAIRS(BlockTypes.DARK_OAK_STAIRS, ItemTypes.DARK_OAK_STAIRS),
     SLIME_BLOCK(BlockTypes.SLIME_BLOCK, ItemTypes.SLIME_BLOCK),
-    GRASS_PATH(BlockTypes.GRASS_PATH, ItemTypes.GRASS_PATH),
+    GRASS_PATH(BlockTypes.DIRT_PATH, ItemTypes.DIRT_PATH),
     SUNFLOWER(BlockTypes.SUNFLOWER, ItemTypes.SUNFLOWER),
     LILAC(BlockTypes.LILAC, ItemTypes.LILAC),
     ROSE_BUSH(BlockTypes.ROSE_BUSH, ItemTypes.ROSE_BUSH),
@@ -1367,7 +1369,14 @@ public enum Material implements Keyed {
     }
 
     public boolean isRecord() {
-        return ItemTypeTags.MUSIC_DISCS.get().contains(this.asItemType());
+        Stream<ItemType> records = null;
+        try {
+            records = (Stream<ItemType>)Class.forName("org.soak.utils.TagHelper").getMethod("getItemTypes", Tag.class).invoke(null, ItemTypeTags.MUSIC_DISCS);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+            throw new RuntimeException("Could not find TagHelper from SoakPlugin ... this is not good", e);
+        }
+        var itemType = this.asItemType();
+        return records.anyMatch(recordType -> recordType.equals(itemType));
     }
 
     public boolean isSolid() {

@@ -7,8 +7,8 @@ version = "1.0.0"
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_11
-        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     implementation(project(":bukkit-api"))
-    implementation("org.spongepowered:spongeapi:8.0.0")
+    implementation("org.spongepowered:spongeapi:10.0.0")
     implementation(project(mapOf("path" to ":plugin")))
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

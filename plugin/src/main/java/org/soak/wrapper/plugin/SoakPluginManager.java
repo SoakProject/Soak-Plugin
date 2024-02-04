@@ -1,5 +1,7 @@
 package org.soak.wrapper.plugin;
 
+import io.papermc.paper.plugin.PermissionManager;
+import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -20,13 +22,9 @@ import org.spongepowered.api.service.permission.PermissionService;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class SoakPluginManager implements SimpPluginManager {
 
@@ -248,11 +246,9 @@ public class SoakPluginManager implements SimpPluginManager {
                     .getOnlinePlayers()
                     .stream()
                     .filter(player -> player.hasPermission(permission))
-                    .collect(Collectors.toList());
+                    .toList();
             ret.addAll(players);
-
         }
-
         return ret;
     }
 
@@ -285,7 +281,27 @@ public class SoakPluginManager implements SimpPluginManager {
     }
 
     @Override
+    public void addPermissions(@NotNull List<Permission> list) {
+        throw NotImplementedException.createByLazy(PluginManager.class, "addPermissions");
+    }
+
+    @Override
+    public void clearPermissions() {
+        throw NotImplementedException.createByLazy(PluginManager.class, "clearPermissions");
+    }
+
+    @Override
     public boolean useTimings() {
         throw NotImplementedException.createByLazy(SoakPluginManager.class, "useTimings");
+    }
+
+    @Override
+    public boolean isTransitiveDependency(PluginMeta pluginMeta, PluginMeta pluginMeta1) {
+        throw NotImplementedException.createByLazy(PluginManager.class, "isTransitiveDependency", PluginMeta.class, PluginMeta.class);
+    }
+
+    @Override
+    public void overridePermissionManager(@NotNull Plugin plugin, @Nullable PermissionManager permissionManager) {
+        throw NotImplementedException.createByLazy(PluginManager.class, "isTransitiveDependency", Plugin.class, PermissionManager.class);
     }
 }

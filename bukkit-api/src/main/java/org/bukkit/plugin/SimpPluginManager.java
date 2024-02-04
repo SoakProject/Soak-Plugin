@@ -53,7 +53,6 @@ public interface SimpPluginManager extends PluginManager {
         throw new NeverImplementException("enablePlugin");
     }
 
-    @Override
     @Deprecated
     default void disablePlugin(@NotNull Plugin plugin, boolean closeClassloader) {
         if (!closeClassloader) {

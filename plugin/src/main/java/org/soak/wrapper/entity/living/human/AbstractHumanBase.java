@@ -6,11 +6,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Sign;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Villager;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.entity.living.AbstractLivingEntity;
 import org.spongepowered.api.data.Keys;
@@ -24,6 +23,42 @@ public abstract class AbstractHumanBase<E extends Humanoid> extends AbstractLivi
 
     public AbstractHumanBase(Subject subject, Audience audience, E entity) {
         super(subject, audience, entity);
+    }
+
+    @Override
+    public int getEnchantmentSeed() {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "getEnchantmentSeed");
+    }
+
+    @Override
+    public void setEnchantmentSeed(int i) {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "setEnchantmentSeed", int.class);
+    }
+
+    @Override
+    public @Nullable FishHook getFishHook() {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "getFishHook");
+    }
+
+    @Override
+    public @Nullable ItemStack getItemInUse() {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "getItemInUse");
+    }
+
+    @Override
+    public @Nullable Location getLastDeathLocation() {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "getLastDeathLocation");
+    }
+
+    @Override
+    public void setLastDeathLocation(@Nullable Location location) {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "setLastDeathLocation", Location.class);
+    }
+
+    @Override
+    public @Nullable Firework fireworkBoost(@NotNull ItemStack itemStack) {
+        throw NotImplementedException.createByLazy(HumanEntity.class, "fireworkBoost", ItemStack.class);
+
     }
 
     @Deprecated

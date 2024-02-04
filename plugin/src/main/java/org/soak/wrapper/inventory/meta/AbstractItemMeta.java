@@ -227,8 +227,12 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     }
 
     @Override
-    public void lore(@Nullable List<Component> lore) {
-        setList(Keys.LORE, lore);
+    public void lore(@Nullable List<? extends Component> lore) {
+        if (lore == null) {
+            setList(Keys.LORE, null);
+            return;
+        }
+        setList(Keys.LORE, new ArrayList<>(lore));
     }
 
     @Override
@@ -556,4 +560,9 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public abstract @NotNull AbstractItemMeta clone();
+
+    @Override
+    public @NotNull String getAsString() {
+        throw NotImplementedException.createByLazy(ItemMeta.class, "getAsString");
+    }
 }

@@ -2,6 +2,8 @@ package org.soak.wrapper.block.state.sign;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.DyeColor;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,8 +64,23 @@ public class SoakSignBlockEntity extends AbstractBlockState<Sign> implements org
     }
 
     @Override
+    public boolean isGlowingText() {
+        return this.blockEntity.get(Keys.GLOWING_TEXT).orElse(false);
+    }
+
+    @Override
+    public void setGlowingText(boolean b) {
+        this.blockEntity.offer(Keys.GLOWING_TEXT, b);
+    }
+
+    @Override
     public @NotNull PersistentDataContainer getPersistentDataContainer() {
         throw NotImplementedException.createByLazy(SoakSignBlockEntity.class, "getPersistentDataContainer");
+    }
+
+    @Override
+    public boolean isSnapshot() {
+        return false;
     }
 
     @Override
@@ -82,6 +99,11 @@ public class SoakSignBlockEntity extends AbstractBlockState<Sign> implements org
     }
 
     @Override
+    public boolean isCollidable() {
+        return false;
+    }
+
+    @Override
     public @Nullable DyeColor getColor() {
         throw NotImplementedException.createByLazy(SoakSignBlockEntity.class, "getColor");
     }
@@ -89,5 +111,10 @@ public class SoakSignBlockEntity extends AbstractBlockState<Sign> implements org
     @Override
     public void setColor(DyeColor color) {
         throw NotImplementedException.createByLazy(SoakSignBlockEntity.class, "setColor", DyeColor.class);
+    }
+
+    @Override
+    public @NotNull SignSide getSide(@NotNull Side side) {
+        return null;
     }
 }

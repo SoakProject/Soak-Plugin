@@ -74,7 +74,7 @@ public class SoakPluginWrapper {
     public void onPluginDisable(StoppingEngineEvent<Server> event) {
         Plugin plugin = this.pluginContainer.plugin();
         try {
-            plugin.getPluginLoader().disablePlugin(plugin, true);
+            plugin.getPluginLoader().disablePlugin(plugin);
         } catch (Throwable e) {
             SoakPlugin.plugin().displayError(e, plugin);
         }

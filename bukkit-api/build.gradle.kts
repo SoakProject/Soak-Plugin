@@ -6,15 +6,14 @@ group = "org.soak.wrapper.api"
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_11
-        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-    api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    api("net.md-5:bungeecord-chat:1.16-R0.4")
-    implementation("org.spongepowered:spongeapi:8.0.0")
+    api("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
+    implementation("org.spongepowered:spongeapi:10.0.0")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

@@ -38,6 +38,11 @@ public abstract class AbstractBlock<Holder extends DataHolder> implements Block 
     }
 
     @Override
+    public @NotNull String translationKey() {
+        return this.getTranslationKey();
+    }
+
+    @Override
     public @NotNull Material getType() {
         return Material.getBlockMaterial(this.spongeBlockState().type());
     }

@@ -7,10 +7,13 @@ import net.md_5.bungee.api.chat.hover.content.Content;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.inventory.meta.AbstractItemMeta;
@@ -19,6 +22,7 @@ import org.spongepowered.api.item.inventory.ItemStackComparators;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.UnaryOperator;
 
 public class SoakItemFactory implements ItemFactory {
@@ -55,6 +59,11 @@ public class SoakItemFactory implements ItemFactory {
     @Override
     public @NotNull Color getDefaultLeatherColor() {
         throw NotImplementedException.createByLazy(ItemFactory.class, "getDefaultLeatherColor");
+    }
+
+    @Override
+    public @NotNull ItemStack createItemStack(@NotNull String s) throws IllegalArgumentException {
+        throw NotImplementedException.createByLazy(ItemFactory.class, "createItemStack", String.class);
     }
 
     @Override
@@ -104,7 +113,7 @@ public class SoakItemFactory implements ItemFactory {
             throw new RuntimeException("ItemMeta is not extending AbstractItemMeta (" + arg0.getClass()
                     .getName() + ")");
         }
-        var abstractMeta = (AbstractItemMeta)arg0;
+        var abstractMeta = (AbstractItemMeta) arg0;
         abstractMeta.manipulate(container -> {
             ItemType type = arg1.asItem().orElseThrow(() -> new RuntimeException("Material is not a item"));
             if (container instanceof org.spongepowered.api.item.inventory.ItemStack) {
@@ -121,6 +130,11 @@ public class SoakItemFactory implements ItemFactory {
                     .createSnapshot();
         });
         return arg1;
+    }
+
+    @Override
+    public @NotNull ItemStack enchantWithLevels(@NotNull ItemStack itemStack, @Range(from = 1L, to = 30L) int i, boolean b, @NotNull Random random) {
+        throw NotImplementedException.createByLazy(ItemFactory.class, "enchantWithLevels", ItemStack.class, int.class, boolean.class, Random.class);
     }
 
     @Override
@@ -158,6 +172,11 @@ public class SoakItemFactory implements ItemFactory {
                 "hoverContentOf",
                 Entity.class,
                 BaseComponent[].class);
+    }
+
+    @Override
+    public @Nullable ItemStack getSpawnEgg(@Nullable EntityType entityType) {
+        throw NotImplementedException.createByLazy(ItemFactory.class, "getSpawnEgg", EntityType.class);
     }
 
     @Deprecated

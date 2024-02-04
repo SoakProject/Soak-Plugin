@@ -7,10 +7,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Entity;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
@@ -20,6 +24,7 @@ import org.spongepowered.api.block.entity.BlockEntity;
 import org.spongepowered.api.block.entity.Sign;
 import org.spongepowered.api.world.server.ServerWorld;
 
+import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractBlockState<TileEntity extends BlockEntity> implements BlockState {
@@ -40,6 +45,7 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
     public TileEntity sponge() {
         return this.blockEntity;
     }
+
 
     @Override
     public @NotNull BlockData getBlockData() {
@@ -159,5 +165,20 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
     @Override
     public void removeMetadata(@NotNull String metadataKey, @NotNull Plugin owningPlugin) {
         throw NotImplementedException.createByLazy(AbstractBlockState.class, "metadataKey", String.class, Plugin.class);
+    }
+
+    @Override
+    public @Unmodifiable @NotNull Collection<ItemStack> getDrops() {
+        throw NotImplementedException.createByLazy(BlockState.class, "getDrops");
+    }
+
+    @Override
+    public @Unmodifiable @NotNull Collection<ItemStack> getDrops(@Nullable ItemStack itemStack) {
+        throw NotImplementedException.createByLazy(BlockState.class, "getDrops", ItemStack.class);
+    }
+
+    @Override
+    public @Unmodifiable @NotNull Collection<ItemStack> getDrops(@NotNull ItemStack itemStack, @Nullable Entity entity) {
+        throw NotImplementedException.createByLazy(BlockState.class, "getDrops", ItemStack.class, Entity.class);
     }
 }

@@ -2,6 +2,7 @@ package org.soak.wrapper.inventory.meta;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +73,26 @@ public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
         SoakOfflinePlayer soakOfflinePlayer = (SoakOfflinePlayer) arg0;
         var profile = soakOfflinePlayer.spongeUser().profile();
         return setGameProfile(profile);
+    }
+
+    @Override
+    public org.bukkit.profile.@Nullable PlayerProfile getOwnerProfile() {
+        throw NotImplementedException.createByLazy(SkullMeta.class, "getOwnerProfile");
+    }
+
+    @Override
+    public void setOwnerProfile(org.bukkit.profile.@Nullable PlayerProfile playerProfile) {
+        throw NotImplementedException.createByLazy(SkullMeta.class, "setOwnerProfile", PlayerProfile.class);
+    }
+
+    @Override
+    public @Nullable NamespacedKey getNoteBlockSound() {
+        throw NotImplementedException.createByLazy(SkullMeta.class, "getNoteBlockSound");
+    }
+
+    @Override
+    public void setNoteBlockSound(@Nullable NamespacedKey namespacedKey) {
+        throw NotImplementedException.createByLazy(SkullMeta.class, "setNoteBlockSound", NamespacedKey.class);
     }
 
     @Deprecated

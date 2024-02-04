@@ -6,37 +6,37 @@ group = "org.soak.plugin"
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_11
-        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
     var forgeSpis = fileTree(gradle.gradleUserHomeDir.absolutePath + "/caches")
-            .files
-            .filter {
-                return@filter it.name.endsWith(".jar");
-            }
-            .filter {
-                return@filter it.name.startsWith("forgespi");
-            }
+        .files
+        .filter {
+            return@filter it.name.endsWith(".jar");
+        }
+        .filter {
+            return@filter it.name.startsWith("forgespi");
+        }
     var forgeFmls = fileTree(gradle.gradleUserHomeDir.absolutePath + "/caches")
-            .files
-            .filter {
-                return@filter it.name.endsWith("universal.jar");
-            }
-            .filter {
-                return@filter it.name.startsWith("forge-");
-            }
+        .files
+        .filter {
+            return@filter it.name.endsWith("universal.jar");
+        }
+        .filter {
+            return@filter it.name.startsWith("forge-");
+        }
 
     var forgeEventBuses = fileTree(gradle.gradleUserHomeDir.absolutePath + "/caches")
-            .files
-            .filter {
-                return@filter it.name.endsWith(".jar");
-            }
-            .filter {
-                return@filter it.name.startsWith("eventbus");
-            }
+        .files
+        .filter {
+            return@filter it.name.endsWith(".jar");
+        }
+        .filter {
+            return@filter it.name.startsWith("eventbus");
+        }
     if (forgeSpis.isEmpty() || forgeFmls.isEmpty() || forgeEventBuses.isEmpty()) {
         throw RuntimeException("Missing ForgeSPI/ForgeFML/EventBus from gradle cache -> Build a forge mod in another project to gain these");
     }
@@ -47,7 +47,7 @@ dependencies {
     implementation(files(forgeFmls.iterator().next()))
     implementation(files(forgeEventBuses.iterator().next()))
     implementation(project(":nms-replicate"))
-    implementation("org.spongepowered:spongeapi:8.1.0")
+    implementation("org.spongepowered:spongeapi:10.0.0")
     implementation("org.spongepowered:plugin-spi:0.3.0")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))

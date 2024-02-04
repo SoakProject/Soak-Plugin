@@ -1,16 +1,12 @@
 package org.soak.wrapper.entity;
 
+import io.papermc.paper.entity.TeleportFlag;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Chunk;
-import org.bukkit.EntityEffect;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Pose;
+import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -185,11 +181,140 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean teleport(@NotNull Location arg0, PlayerTeleportEvent.@NotNull TeleportCause arg1) {
-        var bukkitWorld = (SoakWorld) arg0.getWorld();
-        var spongeLocation = bukkitWorld.sponge().location(arg0.getX(), arg0.getY(), arg0.getZ());
-        var rotation = new Vector3d(arg0.getPitch(), arg0.getYaw(), this.entity.rotation().z());
+        return teleport(arg0, arg1, new TeleportFlag[0]);
+    }
+
+    @Override
+    public boolean teleport(@NotNull Location location, @NotNull PlayerTeleportEvent.TeleportCause teleportCause, @NotNull TeleportFlag... teleportFlags) {
+        var bukkitWorld = (SoakWorld) location.getWorld();
+        var spongeLocation = bukkitWorld.sponge().location(location.getX(), location.getY(), location.getZ());
+        var rotation = new Vector3d(location.getPitch(), location.getYaw(), this.entity.rotation().z());
 
         return this.entity.setLocationAndRotation(spongeLocation, rotation);
+        //add flag
+    }
+
+    @Override
+    public boolean isVisualFire() {
+        throw NotImplementedException.createByLazy(Entity.class, "isVisualFire");
+    }
+
+    @Override
+    public void setVisualFire(boolean b) {
+        throw NotImplementedException.createByLazy(Entity.class, "setVisualFire", boolean.class);
+    }
+
+    @Override
+    public int getFreezeTicks() {
+        throw NotImplementedException.createByLazy(Entity.class, "getFreezeTicks");
+    }
+
+    @Override
+    public void setFreezeTicks(int i) {
+        throw NotImplementedException.createByLazy(Entity.class, "setFreezeTicks", int.class);
+    }
+
+    @Override
+    public int getMaxFreezeTicks() {
+        throw NotImplementedException.createByLazy(Entity.class, "getMaxFreezeTicks");
+    }
+
+    @Override
+    public boolean isFrozen() {
+        throw NotImplementedException.createByLazy(Entity.class, "isFrozen");
+    }
+
+    @Override
+    public boolean isFreezeTickingLocked() {
+        throw NotImplementedException.createByLazy(Entity.class, "isFreezeTickingLocked", boolean.class);
+    }
+
+    @Override
+    public void lockFreezeTicks(boolean b) {
+        throw NotImplementedException.createByLazy(Entity.class, "lockFreezeTicks", boolean.class);
+    }
+
+    @Override
+    public @NotNull Sound getSwimSound() {
+        throw NotImplementedException.createByLazy(Entity.class, "getSwimSound");
+    }
+
+    @Override
+    public @NotNull Sound getSwimSplashSound() {
+        throw NotImplementedException.createByLazy(Entity.class, "getSwimSplashSound");
+    }
+
+    @Override
+    public @NotNull Sound getSwimHighSpeedSplashSound() {
+        throw NotImplementedException.createByLazy(Entity.class, "getSwimHighSpeedSplashSound");
+    }
+
+    @Override
+    public boolean isVisibleByDefault() {
+        throw NotImplementedException.createByLazy(Entity.class, "isVisibleByDefault");
+    }
+
+    @Override
+    public void setVisibleByDefault(boolean b) {
+        throw NotImplementedException.createByLazy(Entity.class, "setVisibleByDefault", boolean.class);
+
+    }
+
+    @Override
+    public boolean isSneaking() {
+        throw NotImplementedException.createByLazy(Entity.class, "isSneaking");
+    }
+
+    @Override
+    public void setSneaking(boolean b) {
+        throw NotImplementedException.createByLazy(Entity.class, "setSneaking", boolean.class);
+    }
+
+    @Override
+    public @NotNull SpawnCategory getSpawnCategory() {
+        throw NotImplementedException.createByLazy(Entity.class, "getSpawnCategory");
+    }
+
+    @Override
+    public @NotNull Component teamDisplayName() {
+        throw NotImplementedException.createByLazy(Entity.class, "teamDisplayName");
+    }
+
+    @Override
+    public boolean isUnderWater() {
+        throw NotImplementedException.createByLazy(Entity.class, "isUnderWater");
+    }
+
+    @Override
+    public @NotNull Set<Player> getTrackedPlayers() {
+        throw NotImplementedException.createByLazy(Entity.class, "getTrackedPlayers");
+    }
+
+    @Override
+    public boolean spawnAt(@NotNull Location location, @NotNull CreatureSpawnEvent.SpawnReason spawnReason) {
+        throw NotImplementedException.createByLazy(Entity.class, "spawnAt", Location.class, CreatureSpawnEvent.SpawnReason.class);
+
+    }
+
+    @Override
+    public boolean isInPowderedSnow() {
+        throw NotImplementedException.createByLazy(Entity.class, "isInPowderedSnow");
+
+    }
+
+    @Override
+    public boolean collidesAt(@NotNull Location location) {
+        throw NotImplementedException.createByLazy(Entity.class, "collidesAt", Location.class);
+    }
+
+    @Override
+    public boolean wouldCollideUsing(@NotNull BoundingBox boundingBox) {
+        throw NotImplementedException.createByLazy(Entity.class, "wouldCollideUsing", BoundingBox.class);
+    }
+
+    @Override
+    public @NotNull Component name() {
+        return this.entity.type().asComponent();
     }
 
     @Override

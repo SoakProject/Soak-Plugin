@@ -6,6 +6,7 @@ import org.bukkit.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakFluidTypeMap;
 import org.soak.map.SoakResourceKeyMap;
+import org.soak.utils.TagHelper;
 import org.spongepowered.api.fluid.FluidType;
 
 import java.util.Set;
@@ -21,12 +22,12 @@ public class SoakFluidTag implements Tag<Fluid> {
 
     @Override
     public boolean isTagged(@NotNull Fluid item) {
-        return this.tag.contains(SoakFluidTypeMap.toSponge(item));
+        return SoakFluidTypeMap.toSponge(item).is(this.tag);
     }
 
     @Override
     public @NotNull Set<Fluid> getValues() {
-        return this.tag.values().stream().map(SoakFluidTypeMap::toBukkit).collect(Collectors.toSet());
+        return TagHelper.getFluidTypes(this.tag).map(SoakFluidTypeMap::toBukkit).collect(Collectors.toSet());
     }
 
     @Override

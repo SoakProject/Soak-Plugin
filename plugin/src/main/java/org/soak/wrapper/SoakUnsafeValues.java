@@ -2,27 +2,33 @@ package org.soak.wrapper;
 
 import com.google.common.collect.Multimap;
 import io.papermc.paper.inventory.ItemRarity;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.UnsafeValues;
+import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
+import org.bukkit.attribute.Attributable;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.CreativeCategory;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.soak.plugin.exception.NotImplementedException;
+
+import java.io.IOException;
 
 @SuppressWarnings("deprecation")
 public class SoakUnsafeValues implements UnsafeValues {
@@ -44,6 +50,11 @@ public class SoakUnsafeValues implements UnsafeValues {
     @Override
     public LegacyComponentSerializer legacyComponentSerializer() {
         return LegacyComponentSerializer.legacySection();
+    }
+
+    @Override
+    public Component resolveWithContext(Component component, CommandSender commandSender, Entity entity, boolean b) throws IOException {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "resolveWithContext", Component.class, CommandSender.class, Entity.class, boolean.class);
     }
 
     @Override
@@ -116,6 +127,26 @@ public class SoakUnsafeValues implements UnsafeValues {
     }
 
     @Override
+    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(Material material, EquipmentSlot equipmentSlot) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getDefaultAttributeModifiers", Material.class, EquipmentSlot.class);
+    }
+
+    @Override
+    public CreativeCategory getCreativeCategory(Material material) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getCreativeCategory", Material.class);
+    }
+
+    @Override
+    public String getBlockTranslationKey(Material material) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getBlockTranslationKey", Material.class);
+    }
+
+    @Override
+    public String getItemTranslationKey(Material material) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getItemTranslationKey", Material.class);
+    }
+
+    @Override
     public String getTimingsServerName() {
         throw NotImplementedException.createByLazy(UnsafeValues.class, "getTimingsServerName");
     }
@@ -131,8 +162,13 @@ public class SoakUnsafeValues implements UnsafeValues {
     }
 
     @Override
-    public String getTranslationKey(Material arg0) {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "getTranslationKey", Material.class);
+    public byte[] serializeEntity(Entity entity) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "serializeEntity", Entity.class);
+    }
+
+    @Override
+    public Entity deserializeEntity(byte[] bytes, World world, boolean b) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "deserializeEntity", byte.class, World.class, boolean.class);
     }
 
     @Override
@@ -141,18 +177,23 @@ public class SoakUnsafeValues implements UnsafeValues {
     }
 
     @Override
+    public @Nullable FeatureFlag getFeatureFlag(@NotNull NamespacedKey namespacedKey) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getFeatureFlag", NamespacedKey.class);
+    }
+
+    @Override
     public String getTranslationKey(EntityType arg0) {
         throw NotImplementedException.createByLazy(UnsafeValues.class, "getTranslationKey", EntityType.class);
     }
 
     @Override
-    public String getTranslationKey(Block arg0) {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "getTranslationKey", Block.class);
+    public int nextEntityId() {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "nextEntityId");
     }
 
     @Override
-    public int nextEntityId() {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "nextEntityId");
+    public @NotNull String getMainLevelName() {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getMainLevelName");
     }
 
     @Override
@@ -181,6 +222,31 @@ public class SoakUnsafeValues implements UnsafeValues {
     }
 
     @Override
+    public boolean hasDefaultEntityAttributes(@NotNull NamespacedKey namespacedKey) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "hasDefaultEntityAttributes", NamespacedKey.class);
+    }
+
+    @Override
+    public @NotNull Attributable getDefaultEntityAttributes(@NotNull NamespacedKey namespacedKey) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "getDefaultEntityAttributes", NamespacedKey.class);
+    }
+
+    @Override
+    public boolean isCollidable(@NotNull Material material) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "isCollidable", Material.class);
+    }
+
+    @Override
+    public @NotNull NamespacedKey getBiomeKey(RegionAccessor regionAccessor, int i, int i1, int i2) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "setBiomeKey", RegionAccessor.class, int.class, int.class, int.class);
+    }
+
+    @Override
+    public void setBiomeKey(RegionAccessor regionAccessor, int i, int i1, int i2, NamespacedKey namespacedKey) {
+        throw NotImplementedException.createByLazy(UnsafeValues.class, "setBiomeKey", RegionAccessor.class, int.class, int.class, int.class, NamespacedKey.class);
+    }
+
+    @Override
     public boolean isSupportedApiVersion(String arg0) {
         //example: 1.19
         DefaultArtifactVersion thisVersion = new DefaultArtifactVersion(arg0);
@@ -191,6 +257,11 @@ public class SoakUnsafeValues implements UnsafeValues {
     @Override
     public PlainComponentSerializer plainComponentSerializer() {
         return PlainComponentSerializer.plain();
+    }
+
+    @Override
+    public PlainTextComponentSerializer plainTextSerializer() {
+        return PlainTextComponentSerializer.plainText();
     }
 
 }
