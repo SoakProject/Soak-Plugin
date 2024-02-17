@@ -15,6 +15,8 @@ import java.util.stream.Stream;
 
 public enum BlockDataTypes {
 
+    BED(SoakBed.class, (state) -> TagHelper.getBlockTypes(BlockTypeTags.BEDS).anyMatch(blockType -> blockType.equals(state.type())) ? 100 : 0),
+
     WALL_SIGN(SoakWallSign.class, (state) -> TagHelper.getBlockTypes(BlockTypeTags.WALL_SIGNS).anyMatch(blockType -> blockType.equals(state.type())) ? 100 : 0),
     WATER_LOGGED_4_FACING(SoakFourDirectionalWaterloggedBlockData.class,
             (state) -> state.supports(Keys.DIRECTION) && state.supports(Keys.IS_WATERLOGGED) && state.with(Keys.DIRECTION,

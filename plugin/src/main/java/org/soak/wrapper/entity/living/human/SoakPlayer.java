@@ -30,6 +30,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.map.SoakLocationMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakSoundMap;
 import org.soak.plugin.SoakPlugin;
@@ -39,12 +40,14 @@ import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakInventoryView;
 import org.soak.wrapper.inventory.SoakOpeningInventoryView;
 import org.soak.wrapper.inventory.SoakPlayerInventory;
+import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.item.inventory.Container;
 import org.spongepowered.api.service.ban.BanService;
+import org.spongepowered.api.util.RespawnLocation;
 import org.spongepowered.math.vector.Vector3d;
 
 import java.net.InetSocketAddress;
@@ -1111,17 +1114,34 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public Location getBedSpawnLocation() {
-        throw NotImplementedException.createByLazy(Player.class, "getBedSpawnLocation");
+        var respawnLocations = this.spongeEntity().get(Keys.RESPAWN_LOCATIONS).orElseGet(HashMap::new);
+        var worldKey = ((SoakWorld) this.getWorld()).sponge().key();
+        var spongeLocation = respawnLocations.get(worldKey);
+        if (spongeLocation == null) {
+            return null;
+        }
+        return spongeLocation.asLocation().map(SoakLocationMap::toBukkit).orElseGet(() -> {
+            var position = spongeLocation.position();
+            return new Location(getWorld(), position.x(), position.y(), position.z());
+        });
     }
 
     @Override
-    public void setBedSpawnLocation(Location arg0) {
-        throw NotImplementedException.createByLazy(Player.class, "setBedSpawnLocation", Location.class);
+    public void setBedSpawnLocation(@Nullable Location location) {
+        setBedSpawnLocation(location, false);
     }
 
     @Override
-    public void setBedSpawnLocation(Location arg0, boolean arg1) {
-        throw NotImplementedException.createByLazy(Player.class, "setBedSpawnLocation", Location.class, boolean.class);
+    public void setBedSpawnLocation(@Nullable Location location, boolean force) {
+        var world = (SoakWorld) (location == null ? this.getWorld() : location.getWorld());
+        var respawnLocations = this.spongeEntity().get(Keys.RESPAWN_LOCATIONS).orElseGet(HashMap::new);
+        if (location == null) {
+            respawnLocations.remove(world.sponge().key());
+            return;
+        }
+        var spongeLocation = SoakLocationMap.toSponge(location);
+        var respawnLocation = RespawnLocation.builder().location(spongeLocation).forceSpawn(force).build();
+        respawnLocations.put(world.sponge().key(), respawnLocation);
     }
 
     @Deprecated
