@@ -2,6 +2,7 @@ package org.soak.wrapper.enchantment;
 
 import io.papermc.paper.enchantments.EnchantmentRarity;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
@@ -97,5 +98,14 @@ public class SoakEnchantment extends Enchantment {
     @Override
     public @NotNull Set<EquipmentSlot> getActiveSlots() {
         throw NotImplementedException.createByLazy(Enchantment.class, "getActiveSlots");
+    }
+
+    @Override
+    public @NotNull String translationKey() {
+        var component = this.type.asComponent();
+        if (!(component instanceof TranslatableComponent translatable)) {
+            throw new RuntimeException("No translation key could be found");
+        }
+        return translatable.key();
     }
 }

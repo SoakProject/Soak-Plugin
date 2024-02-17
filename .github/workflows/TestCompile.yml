@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '11', '17' ]
+        java: [ '17' ]
     permissions:
       actions: write
     steps:
@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 8
+          java-version: ${{matrix.java}}
           cache: 'gradle'
       - name: Make Forge gradle executable
         run: chmod +x ./ForgeBuild/gradlew

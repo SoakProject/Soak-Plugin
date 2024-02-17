@@ -6,48 +6,30 @@ group = "org.soak.plugin"
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_11
-        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+repositories {
+    maven {
+        url = uri("https://maven.minecraftforge.net")
+    }
+    maven {
+        url = uri("https://jitpack.io")
     }
 }
 
 dependencies {
-    var forgeSpis = fileTree(gradle.gradleUserHomeDir.absolutePath + "/caches")
-            .files
-            .filter {
-                return@filter it.name.endsWith(".jar");
-            }
-            .filter {
-                return@filter it.name.startsWith("forgespi");
-            }
-    var forgeFmls = fileTree(gradle.gradleUserHomeDir.absolutePath + "/caches")
-            .files
-            .filter {
-                return@filter it.name.endsWith("universal.jar");
-            }
-            .filter {
-                return@filter it.name.startsWith("forge-");
-            }
-
-    var forgeEventBuses = fileTree(gradle.gradleUserHomeDir.absolutePath + "/caches")
-            .files
-            .filter {
-                return@filter it.name.endsWith(".jar");
-            }
-            .filter {
-                return@filter it.name.startsWith("eventbus");
-            }
-    if (forgeSpis.isEmpty() || forgeFmls.isEmpty() || forgeEventBuses.isEmpty()) {
-        throw RuntimeException("Missing ForgeSPI/ForgeFML/EventBus from gradle cache -> Build a forge mod in another project to gain these");
-    }
-
     api(project(":bukkit-api"))
     api(project(":nms-bounce"))
-    implementation(files(forgeSpis.iterator().next()))
-    implementation(files(forgeFmls.iterator().next()))
-    implementation(files(forgeEventBuses.iterator().next()))
     implementation(project(":nms-replicate"))
-    implementation("org.spongepowered:spongeapi:8.1.0")
+    implementation("com.github.mosemister:MoseStream:master-SNAPSHOT")
+
+    implementation("net.minecraftforge:fmlcore:1.19.4-45.2.8")
+    implementation("net.minecraftforge:eventbus:6.0.3")
+    implementation("net.minecraftforge:forgespi:6.0.0")
+    implementation("org.spongepowered:spongeapi:10.0.0")
     implementation("org.spongepowered:plugin-spi:0.3.0")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
@@ -59,7 +41,8 @@ tasks.jar {
     dependsOn(":nms-bounce:jar")
     dependsOn(":VanillaMaterials:jar");
     val fat = configurations.runtimeClasspath.get().filter {
-        return@filter it.name.startsWith("bukkit-api") || it.name.startsWith("nms-bounce");
+        System.out.println("Name: " + it.name);
+        return@filter it.name.startsWith("bukkit-api") || it.name.startsWith("nms-bounce") || it.name.startsWith("MoseStream")
     }.map {
         return@map zipTree(it)
     }.toMutableList()

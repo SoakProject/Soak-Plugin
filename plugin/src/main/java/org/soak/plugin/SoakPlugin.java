@@ -1,19 +1,21 @@
 package org.soak.plugin;
 
 import com.google.inject.Inject;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPluginLoader;
 import org.jetbrains.annotations.NotNull;
 import org.soak.Compatibility;
 import org.soak.commands.soak.SoakCommand;
 import org.soak.config.SoakServerProperties;
 import org.soak.fix.forge.ForgeFixCommons;
 import org.soak.impl.data.BukkitPersistentData;
+import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.config.SoakConfiguration;
 import org.soak.plugin.loader.Locator;
 import org.soak.plugin.loader.common.AbstractSoakPluginContainer;
@@ -206,7 +208,9 @@ public class SoakPlugin {
                     Color color = Color.RED; //need to work this one out
                     String name = PlainTextComponentSerializer.plainText().serialize(spongeType.asComponent());
                     int id = map.getOrDefault(name.toUpperCase(), 0);
-                    return new SoakPotionEffectType(duration, isInstant, color, name, id);
+                    String translationkey = ((TranslatableComponent) spongeType.asComponent()).key();
+                    NamespacedKey key = SoakResourceKeyMap.mapToBukkit(spongeType.key(RegistryTypes.POTION_EFFECT_TYPE));
+                    return new SoakPotionEffectType(duration, isInstant, color, name, translationkey, id, key);
                 })
                 .forEach(effect -> {
                     while (true) {
@@ -219,7 +223,9 @@ public class SoakPlugin {
                                     effect.isInstant(),
                                     effect.getColor(),
                                     effect.getName(),
-                                    effect.getId() + 1);
+                                    effect.translationKey(),
+                                    effect.getId() + 1,
+                                    effect.getKey());
                         }
                     }
                 });
@@ -242,9 +248,8 @@ public class SoakPlugin {
         //System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
         SoakServer server = new SoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
+        pluginManager.loadPlugins(configuration.file());
         //noinspection deprecation
-        JavaPluginLoader loader = new JavaPluginLoader(server);
-        pluginManager.registerLoader(loader);
         Bukkit.setServer(server);
 
         Collection<File> files = Locator.files();

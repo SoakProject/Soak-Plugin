@@ -10,6 +10,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
 import org.bukkit.Bukkit;
@@ -212,6 +213,11 @@ public abstract class SoakCommandSender extends SoakPermissible implements Comma
     @Override
     public @NotNull String getName() {
         return this.subject.friendlyIdentifier().orElse(this.subject.identifier());
+    }
+
+    @Override
+    public @NotNull Component name() {
+        return PlainTextComponentSerializer.plainText().deserialize(getName());
     }
 
     @Override

@@ -3,9 +3,11 @@ package org.soak.wrapper.entity.living;
 import com.destroystokyo.paper.block.TargetBlockInfo;
 import com.destroystokyo.paper.entity.TargetEntityInfo;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.util.TriState;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.*;
@@ -15,7 +17,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Consumer;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.Constants;
@@ -42,6 +46,140 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
 
     public AbstractLivingEntity(Subject subject, Audience audience, E entity) {
         super(subject, audience, entity);
+    }
+
+    @Override
+    public @Nullable BlockFace getTargetBlockFace(int i, @NotNull FluidCollisionMode fluidCollisionMode) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getTargetBlockFace", FluidCollisionMode.class);
+    }
+
+    @Override
+    public @Nullable RayTraceResult rayTraceEntities(int i, boolean b) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "rayTraceEntities", int.class, boolean.class);
+    }
+
+    @Override
+    public void setArrowsInBody(int i, boolean b) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "setArrowsInBody", int.class, boolean.class);
+    }
+
+    @Override
+    public int getBeeStingerCooldown() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getBeeStingerCooldown");
+    }
+
+    @Override
+    public void setBeeStingerCooldown(int i) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "setBeeStingerCooldown", int.class);
+    }
+
+    @Override
+    public int getBeeStingersInBody() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getBeeStingersInBody");
+    }
+
+    @Override
+    public void setBeeStingersInBody(int i) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "setBeeStingersInBody", int.class);
+    }
+
+    @Override
+    public boolean isClimbing() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "isClimbing");
+    }
+
+    @Override
+    public @Nullable Sound getHurtSound() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getHurtSound");
+    }
+
+    @Override
+    public @Nullable Sound getDeathSound() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getDeathSound");
+    }
+
+    @Override
+    public @NotNull Sound getFallDamageSound(int i) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getFallDamageSound");
+    }
+
+    @Override
+    public @NotNull Sound getFallDamageSoundSmall() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getFallDamageSoundSmall");
+
+    }
+
+    @Override
+    public @NotNull Sound getFallDamageSoundBig() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getFallDamageSoundBig");
+
+    }
+
+    @Override
+    public @NotNull Sound getDrinkingSound(@NotNull ItemStack itemStack) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getDrinkingSound", ItemStack.class);
+    }
+
+    @Override
+    public @NotNull Sound getEatingSound(@NotNull ItemStack itemStack) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getEatingSound", ItemStack.class);
+    }
+
+    @Override
+    public boolean canBreatheUnderwater() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "canBreatheUnderwater");
+    }
+
+    @Override
+    public void knockback(double v, double v1, double v2) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "knockback", double.class, double.class, double.class);
+    }
+
+    @Override
+    public void broadcastSlotBreak(@NotNull EquipmentSlot equipmentSlot) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "broadcastSlotBreak", EquipmentSlot.class);
+    }
+
+    @Override
+    public void broadcastSlotBreak(@NotNull EquipmentSlot equipmentSlot, @NotNull Collection<Player> collection) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "broadcastSlotBreak", EquipmentSlot.class, Collection.class);
+    }
+
+    @Override
+    public @NotNull ItemStack damageItemStack(@NotNull ItemStack itemStack, int i) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "damageItemStack", ItemStack.class, int.class);
+    }
+
+    @Override
+    public void damageItemStack(@NotNull EquipmentSlot equipmentSlot, int i) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "damageItemStack", EquipmentSlot.class, int.class);
+
+    }
+
+    @Override
+    public float getBodyYaw() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getBodyYaw");
+    }
+
+    @Override
+    public void setBodyYaw(float v) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "setBodyYaw", float.class);
+    }
+
+    @Override
+    public @NotNull TriState getFrictionState() {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "getFrictionState");
+
+    }
+
+    @Override
+    public void setFrictionState(@NotNull TriState triState) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "setFrictionState", TriState.class);
+    }
+
+    @Override
+    public <T extends Projectile> @NotNull T launchProjectile(@NotNull Class<? extends T> aClass, @Nullable Vector vector, @Nullable Consumer<T> consumer) {
+        throw NotImplementedException.createByLazy(LivingEntity.class, "launchProjectile", Class.class, Vector.class, Consumer.class);
     }
 
     @Override

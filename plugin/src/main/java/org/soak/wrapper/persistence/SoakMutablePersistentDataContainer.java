@@ -4,11 +4,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.soak.impl.data.BukkitPersistentData;
 import org.soak.map.SoakPersistentDataMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.impl.data.BukkitPersistentData;
+import org.soak.plugin.exception.NotImplementedException;
 import org.spongepowered.api.data.SerializableDataHolder;
+
+import java.io.IOException;
 
 public class SoakMutablePersistentDataContainer<Holder extends SerializableDataHolder.Mutable> extends AbstractPersistentData<Holder> implements PersistentDataContainer {
 
@@ -24,6 +27,22 @@ public class SoakMutablePersistentDataContainer<Holder extends SerializableDataH
             return;
         }
         throw new RuntimeException("Could not offer BukkitPersistentData to " + this.holder.getClass().getSimpleName());
+    }
+
+    @Override
+    public boolean has(@NotNull NamespacedKey namespacedKey) {
+        BukkitPersistentData data = this.holder.get(SoakPlugin.BUKKIT_DATA).orElseGet(BukkitPersistentData::new);
+        return data.getValue(SoakResourceKeyMap.mapToSponge(namespacedKey)).isPresent();
+    }
+
+    @Override
+    public byte @NotNull [] serializeToBytes() throws IOException {
+        throw NotImplementedException.createByLazy(PersistentDataContainer.class, "serializeToBytes");
+    }
+
+    @Override
+    public void readFromBytes(byte @NotNull [] bytes, boolean b) throws IOException {
+        throw NotImplementedException.createByLazy(PersistentDataContainer.class, "readFromBytes", byte.class, boolean.class);
     }
 
     @Override

@@ -1,8 +1,9 @@
 package org.soak.plugin.loader.forge;
 
+import net.minecraftforge.forgespi.language.IConfigurable;
 import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
-import org.apache.maven.artifact.versioning.VersionRange;
+import net.minecraftforge.forgespi.locating.IModFile;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -20,11 +21,16 @@ public class SoakFileModInfo implements IModFileInfo {
         return Collections.unmodifiableList(this.soakPluginsCache);
     }
 
+    @Override
+    public List<LanguageSpec> requiredLanguageLoaders() {
+        return Collections.emptyList();
+    }
+
     public void addMod(SoakModInfo info) {
         this.soakPluginsCache.add(info);
     }
 
-    @Override
+    /*@Override
     public String getModLoader() {
         return "soak";
     }
@@ -32,7 +38,7 @@ public class SoakFileModInfo implements IModFileInfo {
     @Override
     public VersionRange getModLoaderVersion() {
         return VersionRange.createFromVersion("0+");
-    }
+    }*/
 
     @Override
     public boolean showAsResourcePack() {
@@ -47,5 +53,30 @@ public class SoakFileModInfo implements IModFileInfo {
     @Override
     public String getLicense() {
         return "MIT";
+    }
+
+    @Override
+    public String moduleName() {
+        return "soak";
+    }
+
+    @Override
+    public String versionString() {
+        return "1.0.0";
+    }
+
+    @Override
+    public List<String> usesServices() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public IModFile getFile() {
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @Override
+    public IConfigurable getConfig() {
+        throw new RuntimeException("not implemented yet");
     }
 }

@@ -1,7 +1,7 @@
 plugins {
     id 'eclipse'
     id 'idea'
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'net.minecraftforge.gradle' version '6.0.+'
 }
 
 
@@ -13,16 +13,7 @@ base {
 }
 
 java {
-    if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-        var java8Home = System.getenv("JAVA_HOME_8_X64");
-        compileJava.options.fork = true;
-        compileJava.options.forkOptions.executable = java8Home;
-    }
-    if (JavaVersion.current() != JavaVersion.VERSION_1_8) {
-        throw new RuntimeException("Requires JDK 8");
-    }
-
-    toolchain.languageVersion = JavaLanguageVersion.of(8)
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
 }
 
 minecraft {

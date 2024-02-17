@@ -15,17 +15,22 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.SpawnCategory;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.help.HelpMap;
 import org.bukkit.inventory.*;
 import org.bukkit.loot.LootTable;
 import org.bukkit.map.MapView;
+import org.bukkit.packs.DataPackManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.messaging.Messenger;
+import org.bukkit.potion.PotionBrewer;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.structure.StructureManager;
 import org.bukkit.util.CachedServerIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,8 +43,10 @@ import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.utils.Singleton;
 import org.soak.plugin.utils.Unfinal;
 import org.soak.plugin.utils.log.CustomLoggerFormat;
+import org.soak.utils.FakeRegistryHelper;
 import org.soak.utils.GenericHelper;
 import org.soak.utils.InventoryHelper;
+import org.soak.utils.TagHelper;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
@@ -47,11 +54,14 @@ import org.soak.wrapper.plugin.SoakPluginManager;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.tag.BlockTypeTags;
+import org.spongepowered.api.tag.EntityTypeTags;
 import org.spongepowered.api.tag.FluidTypeTags;
 import org.spongepowered.api.tag.ItemTypeTags;
 import org.spongepowered.api.world.DefaultWorldKeys;
@@ -96,24 +106,30 @@ public class SoakServer implements SimpServer {
     public <T extends Keyed> Tag<T> getTag(@NotNull String registry, @NotNull NamespacedKey tag, @NotNull Class<T> clazz) {
         ResourceKey key = SoakResourceKeyMap.mapToSponge(tag);
         if (clazz.getName().equals(Material.class.getName()) && registry.equals(Tag.REGISTRY_BLOCKS)) {
-            var opTag = RegistryTypes.BLOCK_TYPE_TAGS.get().findValue(key);
+            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.Tag<BlockType>>getFields(BlockTypeTags.class, org.spongepowered.api.tag.Tag.class)
+                    .stream()
+                    .filter(spongeTag -> spongeTag.key().equals(key))
+                    .findAny();
             if (opTag.isPresent()) {
-                return (Tag<T>) (Object) new MaterialSetTag(tag,
-                        opTag.get().values().stream().map(Material::getBlockMaterial).collect(Collectors.toList()));
+                return (Tag<T>) (Object) new MaterialSetTag(tag, TagHelper.getBlockTypes(opTag.get()).map(Material::getBlockMaterial).collect(Collectors.toList()));
             }
         }
         if (clazz.getName().equals(Material.class.getName()) && registry.equals(Tag.REGISTRY_ITEMS)) {
-            var opTag = RegistryTypes.ITEM_TYPE_TAGS.get().findValue(key);
+            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.Tag<ItemType>>getFields(ItemTypeTags.class, org.spongepowered.api.tag.Tag.class)
+                    .stream()
+                    .filter(spongeTag -> spongeTag.key().equals(key))
+                    .findAny();
             if (opTag.isPresent()) {
-                return (Tag<T>) (Object) new MaterialSetTag(tag,
-                        opTag.get().values().stream().map(Material::getItemMaterial).collect(Collectors.toList()));
+                return (Tag<T>) (Object) new MaterialSetTag(tag, TagHelper.getItemTypes(opTag.get()).map(Material::getItemMaterial).collect(Collectors.toList()));
             }
         }
-        if (clazz.getName().equals(EntityType.class.getName()) && registry.equals(Tag.REGISTRY_ENTITIES)) {
-            var opTag = RegistryTypes.ENTITY_TYPE_TAGS.get().findValue(key);
+        if (clazz.getName().equals(EntityType.class.getName()) && registry.equals(Tag.REGISTRY_ENTITY_TYPES)) {
+            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.Tag<org.spongepowered.api.entity.EntityType<?>>>getFields(EntityTypeTags.class, org.spongepowered.api.tag.Tag.class)
+                    .stream()
+                    .filter(spongeTag -> spongeTag.key().equals(key))
+                    .findAny();
             if (opTag.isPresent()) {
-                return (Tag<T>) (Object) new EntitySetTag(tag,
-                        opTag.get().values().stream().map(EntityType::fromSponge).collect(Collectors.toList()));
+                return (Tag<T>) (Object) new EntitySetTag(tag, TagHelper.getEntityTypes(opTag.get()).map(EntityType::fromSponge).collect(Collectors.toList()));
             }
         }
 
@@ -130,31 +146,22 @@ public class SoakServer implements SimpServer {
 
         if (registry.equals(Tag.REGISTRY_BLOCKS) && tag.asString()
                 .equals("minecraft:wool_carpets")) {
-            Set<Material> itemTypes = BlockTypeTags.CARPETS.get()
-                    .values()
-                    .stream()
-                    .map(blockType -> Material.getBlockMaterial(blockType))
-                    .collect(
-                            Collectors.toSet());
+            Set<Material> itemTypes = TagHelper.getBlockTypes(BlockTypeTags.WOOL_CARPETS).map(Material::getBlockMaterial).collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, itemTypes);
         }
 
         if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:wool_carpets")) {
-            Set<Material> itemTypes = ItemTypeTags.CARPETS.get()
-                    .values()
-                    .stream()
-                    .map(itemType -> Material.getItemMaterial(itemType))
-                    .collect(Collectors.toSet());
+            Set<Material> itemTypes = TagHelper.getItemTypes(ItemTypeTags.WOOL_CARPETS).map(Material::getItemMaterial).collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, itemTypes);
 
         }
 
         if (registry.equals(Tag.REGISTRY_FLUIDS) && tag.asString().equals("minecraft:water")) {
-            return (Tag<T>) (Object) new SoakFluidTag(FluidTypeTags.WATER.get());
+            return (Tag<T>) (Object) new SoakFluidTag(FluidTypeTags.WATER);
         }
 
         if (registry.equals(Tag.REGISTRY_FLUIDS) && tag.asString().equals("minecraft:lava")) {
-            return (Tag<T>) (Object) new SoakFluidTag(FluidTypeTags.LAVA.get());
+            return (Tag<T>) (Object) new SoakFluidTag(FluidTypeTags.LAVA);
         }
 
         if (registry.equals(Tag.REGISTRY_ITEMS) && tag.asString().equals("minecraft:crops")) {
@@ -191,6 +198,11 @@ public class SoakServer implements SimpServer {
     @Override
     public @NotNull File getWorldContainer() {
         throw NotImplementedException.createByLazy(Server.class, "getWorldContainer");
+    }
+
+    @Override
+    public @NotNull File getPluginsFolder() {
+        return new File("bukkit/plugins");
     }
 
     @Override
@@ -251,6 +263,11 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public int getSimulationDistance() {
+        throw NotImplementedException.createByLazy(Server.class, "getSimulationDistance");
+    }
+
+    @Override
     public @NotNull String getIp() {
         throw NotImplementedException.createByLazy(SoakServer.class, "getIp");
     }
@@ -281,8 +298,53 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public @NotNull List<String> getInitialEnabledPacks() {
+        throw NotImplementedException.createByLazy(Server.class, "getInitialEnabledPacks");
+    }
+
+    @Override
+    public @NotNull List<String> getInitialDisabledPacks() {
+        throw NotImplementedException.createByLazy(Server.class, "getInitialDisabledPacks");
+    }
+
+    @Override
+    public @NotNull DataPackManager getDataPackManager() {
+        throw NotImplementedException.createByLazy(Server.class, "getDataPackManager");
+    }
+
+    @Override
+    public @NotNull String getResourcePack() {
+        throw NotImplementedException.createByLazy(Server.class, "getResourcePack");
+    }
+
+    @Override
+    public @NotNull String getResourcePackHash() {
+        throw NotImplementedException.createByLazy(Server.class, "getResourcePackHash");
+    }
+
+    @Override
+    public @NotNull String getResourcePackPrompt() {
+        throw NotImplementedException.createByLazy(Server.class, "getResourcePackPrompt");
+    }
+
+    @Override
+    public boolean isResourcePackRequired() {
+        throw NotImplementedException.createByLazy(Server.class, "isResourcePackRequired");
+    }
+
+    @Override
     public void setWhitelist(boolean value) {
         throw NotImplementedException.createByLazy(SoakServer.class, "setWhitelist", boolean.class);
+    }
+
+    @Override
+    public boolean isWhitelistEnforced() {
+        throw NotImplementedException.createByLazy(Server.class, "isWhitelistEnforced");
+    }
+
+    @Override
+    public void setWhitelistEnforced(boolean b) {
+        throw NotImplementedException.createByLazy(Server.class, "setWhitelistEnforced", boolean.class);
     }
 
     @Override
@@ -337,8 +399,18 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public int getTicksPerWaterUndergroundCreatureSpawns() {
+        throw NotImplementedException.createByLazy(Server.class, "getTicksPerWaterUndergroundCreatureSpawns");
+    }
+
+    @Override
     public int getTicksPerAmbientSpawns() {
         throw NotImplementedException.createByLazy(SoakServer.class, "getTicksPerAmbientSpawns");
+    }
+
+    @Override
+    public int getTicksPerSpawns(@NotNull SpawnCategory spawnCategory) {
+        throw NotImplementedException.createByLazy(Server.class, "getTicksPerSpawns", SpawnCategory.class);
     }
 
     @Override
@@ -387,6 +459,11 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public boolean isTickingWorlds() {
+        throw NotImplementedException.createByLazy(Server.class, "isTickingWorlds");
+    }
+
+    @Override
     public @Nullable World createWorld(@NotNull WorldCreator creator) {
         throw NotImplementedException.createByLazy(SoakServer.class, "createWorld", WorldCreator.class);
     }
@@ -394,6 +471,11 @@ public class SoakServer implements SimpServer {
     @Override
     public boolean unloadWorld(@NotNull World world, boolean save) {
         throw NotImplementedException.createByLazy(SoakServer.class, "unloadWorld", World.class, boolean.class);
+    }
+
+    @Override
+    public @NotNull WorldBorder createWorldBorder() {
+        throw NotImplementedException.createByLazy(Server.class, "createWorldBorder");
     }
 
     @Override
@@ -474,6 +556,16 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public @Nullable Recipe getCraftingRecipe(@NotNull ItemStack[] itemStacks, @NotNull World world) {
+        throw NotImplementedException.createByLazy(Server.class, "getCraftingRecipe", ItemStack.class, World.class);
+    }
+
+    @Override
+    public @NotNull ItemStack craftItem(@NotNull ItemStack[] itemStacks, @NotNull World world, @NotNull Player player) {
+        throw NotImplementedException.createByLazy(Server.class, "craftItem", ItemStack.class, World.class, Player.class);
+    }
+
+    @Override
     public @NotNull Iterator<Recipe> recipeIterator() {
         return Sponge
                 .server()
@@ -530,6 +622,21 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public boolean shouldSendChatPreviews() {
+        throw NotImplementedException.createByLazy(Server.class, "shouldSendChatPreviews");
+    }
+
+    @Override
+    public boolean isEnforcingSecureProfiles() {
+        throw NotImplementedException.createByLazy(Server.class, "isEnforcingSecureProfiles");
+    }
+
+    @Override
+    public boolean getHideOnlinePlayers() {
+        throw NotImplementedException.createByLazy(Server.class, "getHideOnlinePlayers");
+    }
+
+    @Override
     public boolean getOnlineMode() {
         return SoakPlugin.plugin().getServerProperties().onlineMode().orElse();
     }
@@ -576,6 +683,21 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public org.bukkit.profile.@NotNull PlayerProfile createPlayerProfile(@Nullable UUID uuid, @Nullable String s) {
+        throw NotImplementedException.createByLazy(Server.class, "createPlayerProfile", UUID.class, String.class);
+    }
+
+    @Override
+    public org.bukkit.profile.@NotNull PlayerProfile createPlayerProfile(@NotNull UUID uuid) {
+        throw NotImplementedException.createByLazy(Server.class, "createPlayerProfile", UUID.class);
+    }
+
+    @Override
+    public org.bukkit.profile.@NotNull PlayerProfile createPlayerProfile(@NotNull String s) {
+        throw NotImplementedException.createByLazy(Server.class, "createPlayerProfile", String.class);
+    }
+
+    @Override
     public @NotNull Set<String> getIPBans() {
         throw NotImplementedException.createByLazy(SoakServer.class, "getIPBans");
     }
@@ -618,6 +740,11 @@ public class SoakServer implements SimpServer {
     @Override
     public @NotNull ConsoleCommandSender getConsoleSender() {
         return new SoakConsoleCommandSender();
+    }
+
+    @Override
+    public @NotNull CommandSender createCommandSender(@NotNull Consumer<? super Component> consumer) {
+        throw NotImplementedException.createByLazy(Server.class, "createCommandSender", Consumer.class);
     }
 
     @Override
@@ -692,6 +819,11 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public int getMaxChainedNeighborUpdates() {
+        throw NotImplementedException.createByLazy(Server.class, "getMaxChainedNeighborUpdates");
+    }
+
+    @Override
     public @NotNull Merchant createMerchant(Component arg0) {
         throw NotImplementedException.createByLazy(Server.class, "createMerchant", Component.class);
     }
@@ -717,8 +849,18 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public int getWaterUndergroundCreatureSpawnLimit() {
+        throw NotImplementedException.createByLazy(Server.class, "getWaterUndergroundCreatureSpawnLimit");
+    }
+
+    @Override
     public int getAmbientSpawnLimit() {
         throw NotImplementedException.createByLazy(Server.class, "getAmbientSpawnLimit");
+    }
+
+    @Override
+    public int getSpawnLimit(@NotNull SpawnCategory spawnCategory) {
+        throw NotImplementedException.createByLazy(Server.class, "getSpawnLimit", SpawnCategory.class);
     }
 
     @Override
@@ -761,6 +903,11 @@ public class SoakServer implements SimpServer {
     @Override
     public @NotNull ScoreboardManager getScoreboardManager() {
         throw NotImplementedException.createByLazy(Server.class, "getScoreboardManager");
+    }
+
+    @Override
+    public @NotNull Criteria getScoreboardCriteria(@NotNull String s) {
+        throw NotImplementedException.createByLazy(Server.class, "getScoreboardCriteria", String.class);
     }
 
     @Override
@@ -909,6 +1056,16 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public @NotNull StructureManager getStructureManager() {
+        throw NotImplementedException.createByLazy(Server.class, "getStructureManager");
+    }
+
+    @Override
+    public @Nullable <T extends Keyed> Registry<T> getRegistry(@NotNull Class<T> aClass) {
+        throw NotImplementedException.createByLazy(Server.class, "getRegistry", Class.class);
+    }
+
+    @Override
     public void reloadPermissions() {
         throw NotImplementedException.createByLazy(Server.class, "reloadPermissions");
     }
@@ -929,6 +1086,11 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
+    public @NotNull Component permissionMessage() {
+        throw NotImplementedException.createByLazy(Server.class, "permissionMessage");
+    }
+
+    @Override
     public @NotNull PlayerProfile createProfile(@NotNull UUID arg0) {
         throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class);
     }
@@ -936,6 +1098,11 @@ public class SoakServer implements SimpServer {
     @Override
     public @NotNull PlayerProfile createProfile(UUID arg0, String arg1) {
         throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class, String.class);
+    }
+
+    @Override
+    public @NotNull PlayerProfile createProfileExact(@Nullable UUID uuid, @Nullable String s) {
+        throw NotImplementedException.createByLazy(Server.class, "createProfileExact", UUID.class, String.class);
     }
 
     @Override
@@ -961,6 +1128,11 @@ public class SoakServer implements SimpServer {
     @Override
     public @NotNull DatapackManager getDatapackManager() {
         throw NotImplementedException.createByLazy(Server.class, "getDatapackManager");
+    }
+
+    @Override
+    public @NotNull PotionBrewer getPotionBrewer() {
+        throw NotImplementedException.createByLazy(Server.class, "getPotionBrewer");
     }
 
     @Override

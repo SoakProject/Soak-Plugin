@@ -4,6 +4,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.jetbrains.annotations.NotNull;
+import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 
 //used if a inventory has been requested to open, but another action is being done
@@ -42,5 +43,15 @@ public class SoakOpeningInventoryView extends InventoryView {
     @Override
     public @NotNull String getTitle() {
         return this.title;
+    }
+
+    @Override
+    public void setTitle(@NotNull String s) {
+        this.title = s;
+    }
+
+    @Override
+    public @NotNull String getOriginalTitle() {
+        throw NotImplementedException.createByLazy(InventoryView.class, "getOriginalTitle");
     }
 }

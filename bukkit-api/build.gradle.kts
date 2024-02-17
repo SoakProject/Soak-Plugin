@@ -6,15 +6,15 @@ group = "org.soak.wrapper.api"
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_11
-        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-    api("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
-    api("net.md-5:bungeecord-chat:1.16-R0.4")
-    implementation("org.spongepowered:spongeapi:8.0.0")
+    api("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
+    api("org.bstats:bstats-base:3.0.2")
+    implementation("org.spongepowered:spongeapi:10.0.0")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
@@ -22,25 +22,31 @@ dependencies {
 tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.WARN
     val fat = configurations.compileClasspath.get()
-            .filter {
-                val name = it.name;
-                if (name.startsWith("paper-api")) {
-                    return@filter true
-                }
-                if (name.startsWith("commons-lang")) {
-                    return@filter true
-                }
-                if (name.startsWith("bungeecord-chat")) {
-                    return@filter true
-                }
-                return@filter false
+        .filter {
+            val name = it.name;
+            if (name.startsWith("paper-api")) {
+                return@filter true
             }
-            .map {
-                return@map zipTree(it)
+            if (name.startsWith("commons-lang")) {
+                return@filter true
             }
+            if (name.startsWith("bungeecord-chat")) {
+                return@filter true
+            }
+            if (name.startsWith("bstats")) {
+                return@filter true
+            }
+            if (name.startsWith("adventure-text-logger-slf4j")) {
+                return@filter true
+            }
+            System.out.println("BukkitName: " + name);
+            return@filter false
+        }
+        .map {
+            return@map zipTree(it)
+        }
     from(fat).exclude {
-        return@exclude it.name.equals("JavaPluginLoader.class") ||
-                it.name.equals("Material.class") ||
+        return@exclude it.name.equals("Material.class") ||
                 it.name.equals("EntityType.class") ||
                 it.name.equals("InventoryType.class") ||
                 it.name.equals("InventoryType\$SlotType.class") ||

@@ -1,5 +1,6 @@
 package org.soak.wrapper.block.data.type;
 
+import org.soak.utils.TagHelper;
 import org.soak.wrapper.block.data.CommonBlockData;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Keys;
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
 
 public enum BlockDataTypes {
 
-    WALL_SIGN(SoakWallSign.class, (state) -> BlockTypeTags.WALL_SIGNS.get().contains(state.type()) ? 100 : 0),
+    WALL_SIGN(SoakWallSign.class, (state) -> TagHelper.getBlockTypes(BlockTypeTags.WALL_SIGNS).anyMatch(blockType -> blockType.equals(state.type())) ? 100 : 0),
     WATER_LOGGED_4_FACING(SoakFourDirectionalWaterloggedBlockData.class,
             (state) -> state.supports(Keys.DIRECTION) && state.supports(Keys.IS_WATERLOGGED) && state.with(Keys.DIRECTION,
                     Direction.NORTHEAST).isEmpty() && state.with(Keys.DIRECTION, Direction.DOWN).isEmpty() ? 80 : 0);

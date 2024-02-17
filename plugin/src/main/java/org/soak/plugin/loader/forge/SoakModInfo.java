@@ -1,7 +1,9 @@
 package org.soak.plugin.loader.forge;
 
+import net.minecraftforge.forgespi.language.IConfigurable;
 import net.minecraftforge.forgespi.language.IModFileInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
+import net.minecraftforge.forgespi.locating.ForgeFeature;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 
@@ -9,6 +11,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class SoakModInfo implements IModInfo {
 
@@ -49,6 +52,11 @@ public class SoakModInfo implements IModInfo {
     }
 
     @Override
+    public List<? extends ForgeFeature.Bound> getForgeFeatures() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public String getNamespace() {
         return this.metadata.plugin().getClass().getPackageName();
     }
@@ -59,7 +67,27 @@ public class SoakModInfo implements IModInfo {
     }
 
     @Override
-    public URL getUpdateURL() {
-        return null;
+    public Optional<URL> getUpdateURL() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public Optional<URL> getModURL() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getLogoFile() {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean getLogoBlur() {
+        return false;
+    }
+
+    @Override
+    public IConfigurable getConfig() {
+        throw new RuntimeException("Not implemented");
     }
 }

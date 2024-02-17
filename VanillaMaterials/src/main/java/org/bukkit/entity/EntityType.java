@@ -185,7 +185,7 @@ public enum EntityType implements Keyed, Translatable {
 
     public boolean isAlive() {
         var category = this.spongeType.get().category();
-        return !category.equals(EntityCategories.AMBIENT.get()) && !category.equals(EntityCategories.WATER_AMBIENT.get()) && !category.equals(EntityCategories.MISCELLANEOUS.get());
+        return !category.equals(EntityCategories.AMBIENT.get()) && !category.equals(EntityCategories.WATER_AMBIENT.get()) && !category.equals(EntityCategories.MISC.get());
     }
 
     @Override

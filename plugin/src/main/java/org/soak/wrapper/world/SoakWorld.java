@@ -7,21 +7,23 @@ import net.minecraft.server.level.WorldServer;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.DragonBattle;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.generator.structure.Structure;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.Consumer;
-import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import org.bukkit.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakResourceKeyMap;
@@ -164,6 +166,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public @NotNull Chunk getChunkAt(int arg0, int arg1) {
         throw NotImplementedException.createByLazy(World.class, "getChunkAt", int.class, int.class);
+    }
+
+    @Override
+    public @NotNull Chunk getChunkAt(int i, int i1, boolean b) {
+        throw NotImplementedException.createByLazy(World.class, "getChunkAt", int.class, int.class, boolean.class);
     }
 
     @Override
@@ -340,6 +347,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
         function.accept(bukkitEntity);
         this.sponge().spawnEntity(spongeEntity);
         return bukkitEntity;
+    }
+
+    @Override
+    public <T extends Entity> @NotNull T spawn(@NotNull Location location, @NotNull Class<T> aClass, boolean b, @Nullable Consumer<T> consumer) throws IllegalArgumentException {
+        throw NotImplementedException.createByLazy(World.class, "spawn", Location.class, Class.class, boolean.class, Consumer.class);
     }
 
     @Override
@@ -542,6 +554,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public boolean hasCollisionsIn(@NotNull BoundingBox boundingBox) {
+        return false;
+    }
+
+    @Override
     public boolean isChunkLoaded(@NotNull Chunk arg0) {
         throw NotImplementedException.createByLazy(World.class, "isChunkLoaded", Chunk.class);
     }
@@ -733,6 +750,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public @NotNull Entity spawnEntity(@NotNull Location location, @NotNull EntityType entityType, boolean b) {
+        throw NotImplementedException.createByLazy(World.class, "spawnEntity", Location.class, EntityType.class, boolean.class);
+    }
+
+    @Override
     public @NotNull LightningStrike strikeLightning(@NotNull Location arg0) {
         throw NotImplementedException.createByLazy(World.class, "strikeLightning", Location.class);
     }
@@ -740,6 +762,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public @NotNull LightningStrike strikeLightningEffect(@NotNull Location arg0) {
         throw NotImplementedException.createByLazy(World.class, "strikeLightningEffect", Location.class);
+    }
+
+    @Override
+    public @Nullable Location findLightningRod(@NotNull Location location) {
+        throw NotImplementedException.createByLazy(World.class, "findLightningRod", Location.class);
+    }
+
+    @Override
+    public @Nullable Location findLightningTarget(@NotNull Location location) {
+        throw NotImplementedException.createByLazy(World.class, "findLightningTarget", Location.class);
     }
 
     @Override
@@ -988,6 +1020,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public @Nullable BiomeProvider getBiomeProvider() {
+        throw NotImplementedException.createByLazy(World.class, "getBiomeProvider");
+    }
+
+    @Override
     public @NotNull List<BlockPopulator> getPopulators() {
         throw NotImplementedException.createByLazy(World.class, "getPopulators");
     }
@@ -1076,8 +1113,23 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public @NotNull Biome getBiome(@NotNull Location location) {
+        throw NotImplementedException.createByLazy(World.class, "getBiome", Location.class);
+    }
+
+    @Override
     public @NotNull Biome getBiome(int arg0, int arg1, int arg2) {
         throw NotImplementedException.createByLazy(World.class, "getBiome", int.class, int.class, int.class);
+    }
+
+    @Override
+    public @NotNull Biome getComputedBiome(int i, int i1, int i2) {
+        throw NotImplementedException.createByLazy(World.class, "getBiome", int.class, int.class, int.class);
+    }
+
+    @Override
+    public void setBiome(@NotNull Location location, @NotNull Biome biome) {
+        throw NotImplementedException.createByLazy(World.class, "setBiome", Location.class, Biome.class);
     }
 
     @Deprecated
@@ -1094,6 +1146,73 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
                 int.class,
                 int.class,
                 Biome.class);
+    }
+
+    @Override
+    public @NotNull BlockState getBlockState(@NotNull Location location) {
+        return getBlockState(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    @Override
+    public @NotNull BlockState getBlockState(int i, int i1, int i2) {
+        throw NotImplementedException.createByLazy(World.class, "getBlockState", int.class, int.class, int.class);
+    }
+
+    @Override
+    public @NotNull BlockData getBlockData(@NotNull Location location) {
+        return getBlockData(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    @Override
+    public @NotNull BlockData getBlockData(int i, int i1, int i2) {
+        throw NotImplementedException.createByLazy(World.class, "getBlockData", int.class, int.class, int.class);
+    }
+
+    @Override
+    public @NotNull Material getType(@NotNull Location location) {
+        return getType(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    @Override
+    public @NotNull Material getType(int i, int i1, int i2) {
+        throw NotImplementedException.createByLazy(World.class, "getType", int.class, int.class, int.class);
+
+    }
+
+    @Override
+    public void setBlockData(@NotNull Location location, @NotNull BlockData blockData) {
+        setBlockData(location.getBlockX(), location.getBlockY(), location.getBlockZ(), blockData);
+    }
+
+    @Override
+    public void setBlockData(int i, int i1, int i2, @NotNull BlockData blockData) {
+        throw NotImplementedException.createByLazy(World.class, "setBlockData", int.class, int.class, int.class, BlockData.class);
+    }
+
+    @Override
+    public void setType(@NotNull Location location, @NotNull Material material) {
+        setType(location.getBlockX(), location.getBlockY(), location.getBlockZ(), material);
+    }
+
+    @Override
+    public void setType(int i, int i1, int i2, @NotNull Material material) {
+        throw NotImplementedException.createByLazy(World.class, "setType", int.class, int.class, int.class, Material.class);
+
+    }
+
+    @Override
+    public boolean generateTree(@NotNull Location location, @NotNull Random random, @NotNull TreeType treeType) {
+        throw NotImplementedException.createByLazy(World.class, "generateTree", Location.class, Random.class, TreeType.class);
+    }
+
+    @Override
+    public boolean generateTree(@NotNull Location location, @NotNull Random random, @NotNull TreeType treeType, @Nullable Consumer<BlockState> consumer) {
+        throw NotImplementedException.createByLazy(World.class, "generateTree", Location.class, Random.class, TreeType.class, Consumer.class);
+    }
+
+    @Override
+    public boolean generateTree(@NotNull Location location, @NotNull Random random, @NotNull TreeType treeType, @Nullable Predicate<BlockState> predicate) {
+        throw NotImplementedException.createByLazy(World.class, "generateTree", Location.class, Random.class, TreeType.class, Predicate.class);
     }
 
     @Deprecated
@@ -1125,6 +1244,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public int getLogicalHeight() {
+        return this.world.height();
+    }
+
+    @Override
     public int getMinHeight() {
         throw NotImplementedException.createByLazy(World.class, "getMinHeight");
     }
@@ -1132,6 +1256,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public int getMaxHeight() {
         throw NotImplementedException.createByLazy(World.class, "getMaxHeight");
+    }
+
+    @Override
+    public @NotNull BiomeProvider vanillaBiomeProvider() {
+        throw NotImplementedException.createByLazy(World.class, "vanillaBiomeProvider");
     }
 
     @Override
@@ -1236,6 +1365,17 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public long getTicksPerWaterUndergroundCreatureSpawns() {
+        throw NotImplementedException.createByLazy(World.class, "getTickPerWaterUndergroundCreatureSpawns");
+    }
+
+    @Override
+    public void setTicksPerWaterUndergroundCreatureSpawns(int i) {
+        throw NotImplementedException.createByLazy(World.class, "setTickPerWaterUndergroundCreatureSpawns", int.class);
+
+    }
+
+    @Override
     public long getTicksPerAmbientSpawns() {
         throw NotImplementedException.createByLazy(World.class, "getTicksPerAmbientSpawns");
     }
@@ -1243,6 +1383,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public void setTicksPerAmbientSpawns(int arg0) {
         throw NotImplementedException.createByLazy(World.class, "setTicksPerAmbientSpawns", int.class);
+    }
+
+    @Override
+    public long getTicksPerSpawns(@NotNull SpawnCategory spawnCategory) {
+        throw NotImplementedException.createByLazy(World.class, "getTicksPerSpawns", SpawnCategory.class);
+    }
+
+    @Override
+    public void setTicksPerSpawns(@NotNull SpawnCategory spawnCategory, int i) {
+        throw NotImplementedException.createByLazy(World.class, "setTicksPerSpawns", SpawnCategory.class, int.class);
     }
 
     @Override
@@ -1276,6 +1426,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public int getWaterUndergroundCreatureSpawnLimit() {
+        return 0;
+    }
+
+    @Override
+    public void setWaterUndergroundCreatureSpawnLimit(int i) {
+
+    }
+
+    @Override
     public int getWaterAmbientSpawnLimit() {
         throw NotImplementedException.createByLazy(World.class, "getWaterAmbientSpawnLimit");
     }
@@ -1293,6 +1453,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public void setAmbientSpawnLimit(int arg0) {
         throw NotImplementedException.createByLazy(World.class, "setAmbientSpawnLimit", int.class);
+    }
+
+    @Override
+    public int getSpawnLimit(@NotNull SpawnCategory spawnCategory) {
+        throw NotImplementedException.createByLazy(World.class, "getSpawnLimit", SpawnCategory.class);
+    }
+
+    @Override
+    public void setSpawnLimit(@NotNull SpawnCategory spawnCategory, int i) {
+        throw NotImplementedException.createByLazy(World.class, "setSpawnLimit", SpawnCategory.class, int.class);
     }
 
     @Override
@@ -1338,6 +1508,29 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public void playSound(@NotNull Entity entity, @NotNull Sound sound, float v, float v1) {
+        throw NotImplementedException.createByLazy(World.class, "playSound", Entity.class, Sound.class, float.class, float.class);
+    }
+
+    @Override
+    public void playSound(@NotNull Entity entity, @NotNull String s, float v, float v1) {
+        throw NotImplementedException.createByLazy(World.class, "playSound", Entity.class, String.class, float.class, float.class);
+
+    }
+
+    @Override
+    public void playSound(@NotNull Entity entity, @NotNull Sound sound, @NotNull SoundCategory soundCategory, float v, float v1) {
+        throw NotImplementedException.createByLazy(World.class, "playSound", Entity.class, Sound.class, SoundCategory.class, float.class, float.class);
+
+    }
+
+    @Override
+    public void playSound(@NotNull Entity entity, @NotNull String s, @NotNull SoundCategory soundCategory, float v, float v1) {
+        throw NotImplementedException.createByLazy(World.class, "playSound", Entity.class, String.class, SoundCategory.class, float.class, float.class);
+
+    }
+
+    @Override
     public String[] getGameRules() {
         throw NotImplementedException.createByLazy(World.class, "getGameRules");
     }
@@ -1366,7 +1559,7 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
 
     @Override
     public <T> @Nullable T getGameRuleDefault(@NotNull GameRule<T> rule) {
-        return null;
+        throw NotImplementedException.createByLazy(World.class, "getGameRuleDefault", GameRule.class);
     }
 
     @Override
@@ -1387,6 +1580,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
                 StructureType.class,
                 int.class,
                 boolean.class);
+    }
+
+    @Override
+    public @Nullable StructureSearchResult locateNearestStructure(@NotNull Location location, org.bukkit.generator.structure.@NotNull StructureType structureType, int i, boolean b) {
+        throw NotImplementedException.createByLazy(World.class, "locateNearestStructure", Location.class, org.bukkit.generator.structure.StructureType.class, int.class, boolean.class);
+    }
+
+    @Override
+    public @Nullable StructureSearchResult locateNearestStructure(@NotNull Location location, @NotNull Structure structure, int i, boolean b) {
+        throw NotImplementedException.createByLazy(World.class, "locateNearestStructure", Location.class, Structure.class, int.class, boolean.class);
     }
 
     @Override
@@ -1419,6 +1622,21 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public boolean isBedWorks() {
+        return this.doesBedWork();
+    }
+
+    @Override
+    public boolean hasSkyLight() {
+        return this.hasSkylight();
+    }
+
+    @Override
+    public boolean hasCeiling() {
+        return this.hasBedrockCeiling();
+    }
+
+    @Override
     public boolean hasSkylight() {
         throw NotImplementedException.createByLazy(World.class, "hasSkylight");
     }
@@ -1434,6 +1652,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public boolean isRespawnAnchorWorks() {
+        return false;
+    }
+
+    @Override
     public boolean doesBedWork() {
         throw NotImplementedException.createByLazy(World.class, "doesBedWork");
     }
@@ -1441,6 +1664,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public boolean hasRaids() {
         throw NotImplementedException.createByLazy(World.class, "hasRaids");
+    }
+
+    @Override
+    public boolean isUltraWarm() {
+        return this.isUltrawarm();
     }
 
     @Override
@@ -1454,6 +1682,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public void sendGameEvent(@Nullable Entity entity, @NotNull GameEvent gameEvent, @NotNull Vector vector) {
+
+    }
+
+    @Override
     public int getViewDistance() {
         return this.world.properties().viewDistance();
     }
@@ -1464,6 +1697,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    public int getSimulationDistance() {
+        throw NotImplementedException.createByLazy(World.class, "getSimulationDistance");
+    }
+
+    @Override
+    public void setSimulationDistance(int i) {
+        throw NotImplementedException.createByLazy(World.class, "setSimulationDistance", int.class);
+    }
+
+    @Override
     public int getNoTickViewDistance() {
         throw NotImplementedException.createByLazy(World.class, "getNoTickViewDistance");
     }
@@ -1471,6 +1714,16 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public void setNoTickViewDistance(int arg0) {
         throw NotImplementedException.createByLazy(World.class, "setNoTickViewDistance", int.class);
+    }
+
+    @Override
+    public int getSendViewDistance() {
+        throw NotImplementedException.createByLazy(World.class, "getSendViewDistance");
+    }
+
+    @Override
+    public void setSendViewDistance(int i) {
+        throw NotImplementedException.createByLazy(World.class, "setSendViewDistance", int.class);
     }
 
     @Override
@@ -1491,6 +1744,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public DragonBattle getEnderDragonBattle() {
         throw NotImplementedException.createByLazy(World.class, "getEnderDragonBattle");
+    }
+
+    @Override
+    public @NotNull Set<FeatureFlag> getFeatureFlags() {
+        return Collections.emptySet();
     }
 
     @Override
@@ -1582,5 +1840,10 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public boolean isSame(ServerWorld sponge) {
         return this.key.equals(sponge.key());
+    }
+
+    @Override
+    public @NotNull PersistentDataContainer getPersistentDataContainer() {
+        throw NotImplementedException.createByLazy(World.class, "getPersistentDataContainer");
     }
 }
