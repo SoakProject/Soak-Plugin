@@ -15,12 +15,17 @@ repositories {
     maven {
         url = uri("https://maven.minecraftforge.net")
     }
+    maven {
+        url = uri("https://jitpack.io")
+    }
 }
 
 dependencies {
     api(project(":bukkit-api"))
     api(project(":nms-bounce"))
     implementation(project(":nms-replicate"))
+    implementation("com.github.mosemister:MoseStream:master-SNAPSHOT")
+
     implementation("net.minecraftforge:fmlcore:1.19.4-45.2.8")
     implementation("net.minecraftforge:eventbus:6.0.3")
     implementation("net.minecraftforge:forgespi:6.0.0")
@@ -36,7 +41,8 @@ tasks.jar {
     dependsOn(":nms-bounce:jar")
     dependsOn(":VanillaMaterials:jar");
     val fat = configurations.runtimeClasspath.get().filter {
-        return@filter it.name.startsWith("bukkit-api") || it.name.startsWith("nms-bounce");
+        System.out.println("Name: " + it.name);
+        return@filter it.name.startsWith("bukkit-api") || it.name.startsWith("nms-bounce") || it.name.startsWith("MoseStream")
     }.map {
         return@map zipTree(it)
     }.toMutableList()

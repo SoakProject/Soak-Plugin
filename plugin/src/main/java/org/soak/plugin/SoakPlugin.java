@@ -9,7 +9,6 @@ import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPluginLoader;
 import org.jetbrains.annotations.NotNull;
 import org.soak.Compatibility;
 import org.soak.commands.soak.SoakCommand;
@@ -249,9 +248,8 @@ public class SoakPlugin {
         //System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
         SoakServer server = new SoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
+        pluginManager.loadPlugins(configuration.file());
         //noinspection deprecation
-        JavaPluginLoader loader = new JavaPluginLoader(server);
-        pluginManager.registerLoader(loader);
         Bukkit.setServer(server);
 
         Collection<File> files = Locator.files();

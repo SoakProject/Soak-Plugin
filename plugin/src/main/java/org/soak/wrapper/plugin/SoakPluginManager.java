@@ -1,6 +1,7 @@
 package org.soak.wrapper.plugin;
 
 import io.papermc.paper.plugin.PermissionManager;
+import io.papermc.paper.plugin.bootstrap.PluginProviderContext;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
@@ -9,27 +10,30 @@ import org.bukkit.event.Listener;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.*;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mosestream.MoseStream;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.event.EventClassMapping;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
+import org.soak.plugin.loader.papar.SoakPluginProviderContext;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.service.permission.PermissionService;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Supplier;
 
-public class SoakPluginManager implements SimpPluginManager {
+public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
     private final Supplier<PluginManager> spongePluginManager;
-    private final Collection<PluginLoader> loaders = new LinkedTransferQueue<>();
+    private final Map<PluginProviderContext, JavaPlugin> loaders = new LinkedHashMap<>();
     private final Collection<EventSingleListenerWrapper<?>> events = new HashSet<>();
 
     public SoakPluginManager(Supplier<PluginManager> manager) {
@@ -43,24 +47,39 @@ public class SoakPluginManager implements SimpPluginManager {
 
     @Override
     public @Nullable Plugin loadPlugin(@NotNull File file) throws InvalidPluginException, InvalidDescriptionException, UnknownDependencyException {
-        Throwable e = null;
-        for (PluginLoader loader : this.loaders) {
-            try {
-                return loader.loadPlugin(file);
-            } catch (Exception ex) {
-                e = ex;
-            }
+        var context = new SoakPluginProviderContext(file);
+        try {
+            context.init();
+            JavaPlugin plugin = (JavaPlugin) context.mainClass().getConstructor().newInstance();
+            var meta = plugin.getPluginMeta();
+
+            return plugin;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new InvalidPluginException(e);
+        } catch (Throwable e) {
+            throw new RuntimeException("Error when loading plugin", e);
         }
-        if (e == null) {
-            throw new RuntimeException("Unknown error loading " + file.getPath());
+
+    }
+
+    @Override
+    public @NotNull Plugin[] loadPlugins(@NotNull File file) {
+        var array = file.listFiles((file1, s) -> s.endsWith(".jar"));
+        if (array == null || array.length == 0) {
+            SoakPlugin.plugin().logger().warn("Could not load any plugins in '" + file.getPath() + "'");
+            return new Plugin[0];
         }
-        if (e instanceof InvalidPluginException) {
-            throw (InvalidPluginException) e;
-        }
-        if (e instanceof UnknownDependencyException) {
-            throw (UnknownDependencyException) e;
-        }
-        throw (RuntimeException) e;
+        return MoseStream.stream(array).map(this::loadPlugin).toArray(Plugin[]::new);
+    }
+
+    @Override
+    public void disablePlugins() {
+
+    }
+
+    @Override
+    public void clearPlugins() {
+
     }
 
     @Override
@@ -80,6 +99,15 @@ public class SoakPluginManager implements SimpPluginManager {
     }
 
     @Override
+    public @Nullable Plugin getPlugin(@NotNull String s) {
+        return Arrays.stream(getPlugins()).filter(plugin -> plugin.getPluginMeta().getName().equals(s)).findAny().orElse(null);
+    }
+
+    public @Nullable JavaPlugin getPlugin(PluginMeta meta) {
+        return this.loaders.get(meta);
+    }
+
+    @Override
     public @NotNull Plugin[] getPlugins() {
         return this
                 .spongeManager()
@@ -88,6 +116,14 @@ public class SoakPluginManager implements SimpPluginManager {
                 .filter(container -> container instanceof SoakPluginContainer)
                 .map(container -> ((SoakPluginContainer) container).plugin())
                 .toArray(Plugin[]::new);
+    }
+
+    @Override
+    public boolean isPluginEnabled(@NotNull String s) {
+        if (getPlugin(s) == null) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -121,6 +157,11 @@ public class SoakPluginManager implements SimpPluginManager {
     }
 
     @Override
+    public void registerEvent(@NotNull Class<? extends Event> aClass, @NotNull Listener listener, @NotNull EventPriority eventPriority, @NotNull EventExecutor eventExecutor, @NotNull Plugin plugin) {
+        this.registerEvent(aClass, listener, eventPriority, eventExecutor, plugin, false);
+    }
+
+    @Override
     public void registerEvent(@NotNull Class<? extends Event> event, @NotNull Listener listener, @NotNull EventPriority priority, @NotNull EventExecutor executor, @NotNull Plugin plugin, boolean ignoreCancelled) {
         EventSingleListenerWrapper<?> wrapper = new EventSingleListenerWrapper<>(listener,
                 plugin,
@@ -128,6 +169,11 @@ public class SoakPluginManager implements SimpPluginManager {
                 priority,
                 ignoreCancelled);
         registerEvent(wrapper);
+    }
+
+    @Override
+    public void enablePlugin(@NotNull Plugin plugin) {
+
     }
 
     private void registerEvent(EventSingleListenerWrapper<?> eventWrapper) {
@@ -187,8 +233,8 @@ public class SoakPluginManager implements SimpPluginManager {
         throw NotImplementedException.createByLazy(SoakPluginManager.class, "removePermission", String.class);
     }
 
-    public void registerLoader(PluginLoader loader) {
-        this.loaders.add(loader);
+    public void registerLoader(PluginProviderContext loader, JavaPlugin plugin) {
+        this.loaders.put(loader, plugin);
     }
 
     @Override
