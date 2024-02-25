@@ -22,4 +22,33 @@ public interface SoakPluginInjector {
         }
     }
 
+    static void removePluginFromPlatform(String id) {
+        try {
+            VanillaPluginInjector.removePluginFromPlatform(id);
+        } catch (NoSuchFieldException e) {
+            try {
+                ForgePluginInjector.removePluginFromPlatform(id);
+            } catch (Throwable ex) {
+                throw new RuntimeException(ex);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static void removePluginFromPlatform(SoakPluginContainer container) {
+        try {
+            VanillaPluginInjector.removePluginFromPlatform(container);
+        } catch (NoSuchFieldException e) {
+            try {
+                ForgePluginInjector.removePluginFromPlatform(container);
+            } catch (Throwable ex) {
+                throw new RuntimeException(ex);
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 }

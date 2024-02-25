@@ -51,6 +51,7 @@ import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
+import org.soak.wrapper.profile.SoakPlayerProfile;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
@@ -70,6 +71,7 @@ import org.spongepowered.api.world.server.ServerWorld;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -184,7 +186,6 @@ public class SoakServer implements SimpServer {
                     .collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, items);
         }
-
 
         System.err.println("No tag found of registry: '" + registry + "' Type: " + clazz.getSimpleName() + " id: " + tag.asString());
         return null;
@@ -522,7 +523,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @Nullable PluginCommand getPluginCommand(@NotNull String name) {
-        return Sponge
+        PluginCommand pluginCommand = Sponge
                 .pluginManager()
                 .plugins()
                 .stream()
@@ -535,6 +536,11 @@ public class SoakServer implements SimpServer {
                 .findFirst()
                 .map(cmd -> (PluginCommand) cmd)
                 .orElse(null);
+        if (pluginCommand == null) {
+            SoakPlugin.plugin().logger().warn("A Bukkit plugin attempted to access the command '" + name + "'. It however does not exist");
+        }
+        return pluginCommand;
+
     }
 
     @Override
@@ -1091,23 +1097,62 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
-    public @NotNull PlayerProfile createProfile(@NotNull UUID arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class);
+    public @NotNull PlayerProfile createProfile(@NotNull UUID id) {
+        var profileManager = Sponge.server().gameProfileManager();
+        var opProfile = profileManager.cache().findById(id).map(profile -> new SoakPlayerProfile(profile, true));
+        if (opProfile.isPresent()) {
+            return opProfile.get();
+        }
+        try {
+            //blocking -> need to fix this
+            return profileManager.uncached()
+                    .profile(id).thenApply(profile -> new SoakPlayerProfile(profile, false)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public @NotNull PlayerProfile createProfile(UUID arg0, String arg1) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class, String.class);
+    public @NotNull PlayerProfile createProfile(@Nullable UUID uuid, @Nullable String name) {
+        if (uuid == null) {
+            if (name == null) {
+                throw new IllegalArgumentException("Id or name must be provided");
+            }
+            return createProfile(name);
+        }
+        var profileManager = Sponge.server().gameProfileManager();
+        var opProfile = profileManager.cache().findById(uuid).map(profile -> name == null ? profile : profile.withName(name)).map(profile -> new SoakPlayerProfile(profile, true));
+        if (opProfile.isPresent()) {
+            return opProfile.get();
+        }
+        try {
+            //blocking -> need to fix this
+            return profileManager.uncached()
+                    .profile(uuid).thenApply(profile -> new SoakPlayerProfile(name == null ? profile : profile.withName(name), false)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public @NotNull PlayerProfile createProfileExact(@Nullable UUID uuid, @Nullable String s) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfileExact", UUID.class, String.class);
+        return this.createProfile(uuid, s);
     }
 
     @Override
-    public @NotNull PlayerProfile createProfile(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfile", String.class);
+    public @NotNull PlayerProfile createProfile(@NotNull String name) {
+        var profileManager = Sponge.server().gameProfileManager();
+        var opProfile = profileManager.cache().findByName(name).map(profile -> new SoakPlayerProfile(profile, true));
+        if (opProfile.isPresent()) {
+            return opProfile.get();
+        }
+        try {
+            //blocking -> need to fix this
+            return profileManager.uncached()
+                    .profile(name).thenApply(profile -> new SoakPlayerProfile(profile, false)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -21,6 +21,7 @@ public class SoakPluginWrapper {
     public static final String CMD_USAGE = "usage";
     private final SoakPluginContainer pluginContainer;
     private final Collection<org.bukkit.command.Command> commands = new LinkedHashSet<>();
+    private boolean hasRunShutdown;
 
     public SoakPluginWrapper(SoakPluginContainer pluginContainer) {
         this.pluginContainer = pluginContainer;
@@ -72,11 +73,15 @@ public class SoakPluginWrapper {
 
     @Listener
     public void onPluginDisable(StoppingEngineEvent<Server> event) {
+        if (hasRunShutdown) {
+            return;
+        }
         Plugin plugin = this.pluginContainer.plugin();
         try {
             plugin.onDisable();
         } catch (Throwable e) {
             SoakPlugin.plugin().displayError(e, plugin);
         }
+        hasRunShutdown = true;
     }
 }

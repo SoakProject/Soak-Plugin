@@ -1,12 +1,13 @@
 package org.soak.plugin.loader.common;
 
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.plugin.PluginContainer;
 
 public interface SoakPluginContainer extends PluginContainer {
 
-    Plugin plugin();
+    @NotNull JavaPlugin plugin();
 
     @Override
-    SoakPluginWrapper instance();
+    @NotNull SoakPluginWrapper instance();
 }

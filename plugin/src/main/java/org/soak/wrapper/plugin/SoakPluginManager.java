@@ -26,6 +26,7 @@ import org.spongepowered.api.service.permission.PermissionService;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Supplier;
@@ -46,20 +47,30 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
 
     @Override
-    public @Nullable Plugin loadPlugin(@NotNull File file) throws InvalidPluginException, InvalidDescriptionException, UnknownDependencyException {
+    public @Nullable JavaPlugin loadPlugin(@NotNull File file) throws InvalidPluginException, InvalidDescriptionException, UnknownDependencyException {
         var context = new SoakPluginProviderContext(file);
         try {
             context.init();
             JavaPlugin plugin = (JavaPlugin) context.mainClass().getConstructor().newInstance();
-            var meta = plugin.getPluginMeta();
-
+            loaders.put(context, plugin);
             return plugin;
         } catch (IOException | ClassNotFoundException e) {
             throw new InvalidPluginException(e);
         } catch (Throwable e) {
             throw new RuntimeException("Error when loading plugin", e);
         }
+    }
 
+    public SoakPluginProviderContext getContext(JavaPlugin plugin) {
+        return this
+                .loaders
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().equals(plugin))
+                .findAny()
+                .map(Map.Entry::getKey)
+                .map(context -> (SoakPluginProviderContext) context)
+                .orElseThrow(() -> new RuntimeException("Could not find context for plugin"));
     }
 
     @Override
@@ -69,7 +80,7 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
             SoakPlugin.plugin().logger().warn("Could not load any plugins in '" + file.getPath() + "'");
             return new Plugin[0];
         }
-        return MoseStream.stream(array).map(this::loadPlugin).toArray(Plugin[]::new);
+        return MoseStream.stream(array).map(this::loadPlugin).toArray(JavaPlugin[]::new);
     }
 
     @Override
@@ -200,7 +211,8 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
             try {
                 var soakEvent = soakEventClass.getDeclaredConstructor(EventSingleListenerWrapper.class)
                         .newInstance(eventWrapper);
-                Sponge.eventManager().registerListeners(pluginContainer, soakEvent);
+                var lookup = MethodHandles.lookup();
+                Sponge.eventManager().registerListeners(pluginContainer, soakEvent, lookup);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                      NoSuchMethodException e) {
                 throw new RuntimeException(e);

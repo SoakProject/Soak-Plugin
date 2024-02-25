@@ -17,13 +17,16 @@ import org.spongepowered.api.registry.RegistryTypes;
 import java.util.stream.Stream;
 
 public enum EntityType implements Keyed, Translatable {
+    ALLAY(EntityTypes.ALLAY),
     AREA_EFFECT_CLOUD(EntityTypes.AREA_EFFECT_CLOUD),
     ARMOR_STAND(EntityTypes.ARMOR_STAND),
     ARROW(EntityTypes.ARROW),
     BAT(EntityTypes.BAT),
     BEE(EntityTypes.BEE),
     BLAZE(EntityTypes.BLAZE),
+    BLOCK_DISPLAY(EntityTypes.BLOCK_DISPLAY),
     BOAT(EntityTypes.BOAT),
+    CAMEL(EntityTypes.CAMEL),
     CAT(EntityTypes.CAT),
     CAVE_SPIDER(EntityTypes.CAVE_SPIDER),
     CHICKEN(EntityTypes.CHICKEN),
@@ -51,14 +54,18 @@ public enum EntityType implements Keyed, Translatable {
     FIREWORK(EntityTypes.FIREWORK_ROCKET),
     FISHING_HOOK(EntityTypes.FISHING_BOBBER),
     FOX(EntityTypes.FOX),
+    FROG(EntityTypes.FROG),
     GHAST(EntityTypes.GHAST),
+    GLOW_SQUID(EntityTypes.GLOW_SQUID),
     GIANT(EntityTypes.GIANT),
     GUARDIAN(EntityTypes.GUARDIAN),
     HOGLIN(EntityTypes.HOGLIN),
     HORSE(EntityTypes.HORSE),
     HUSK(EntityTypes.HUSK),
     ILLUSIONER(EntityTypes.ILLUSIONER),
+    INTERACTION(EntityTypes.INTERACTION),
     IRON_GOLEM(EntityTypes.IRON_GOLEM),
+    ITEM_DISPLAY(EntityTypes.ITEM_DISPLAY),
     ITEM_FRAME(EntityTypes.ITEM_FRAME),
     LEASH_HITCH(EntityTypes.LEASH_KNOT),
     LIGHTNING(EntityTypes.LIGHTNING_BOLT),
@@ -106,6 +113,8 @@ public enum EntityType implements Keyed, Translatable {
     SQUID(EntityTypes.SQUID),
     STRAY(EntityTypes.STRAY),
     STRIDER(EntityTypes.STRIDER),
+    TADPOLE(EntityTypes.TADPOLE),
+    TEXT_DISPLAY(EntityTypes.TEXT_DISPLAY),
     THROWN_EXP_BOTTLE(EntityTypes.EXPERIENCE_BOTTLE),
     TRADER_LLAMA(EntityTypes.TRADER_LLAMA),
     TRIDENT(EntityTypes.TRIDENT),
@@ -115,6 +124,7 @@ public enum EntityType implements Keyed, Translatable {
     VILLAGER(EntityTypes.VILLAGER),
     VINDICATOR(EntityTypes.VINDICATOR),
     WANDERING_TRADER(EntityTypes.WANDERING_TRADER),
+    WARDON(EntityTypes.WARDEN),
     WITCH(EntityTypes.WITCH),
     WITHER(EntityTypes.WITHER),
     WITHER_SKELETON(EntityTypes.WITHER_SKELETON),
@@ -125,6 +135,7 @@ public enum EntityType implements Keyed, Translatable {
     ZOMBIE_HORSE(EntityTypes.ZOMBIE_HORSE),
     ZOMBIE_VILLAGER(EntityTypes.ZOMBIE_VILLAGER),
     ZOMBIFIED_PIGLIN(EntityTypes.ZOMBIFIED_PIGLIN),
+
     UNKNOWN(null);
 
     private final DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType;
@@ -133,7 +144,7 @@ public enum EntityType implements Keyed, Translatable {
         this.spongeType = spongeType;
     }
 
-    public static Stream<EntityType> stream(){
+    public static Stream<EntityType> stream() {
         return Stream.of(values()).filter(type -> type != UNKNOWN);
     }
 
@@ -170,7 +181,7 @@ public enum EntityType implements Keyed, Translatable {
         throw NotImplementedException.createByLazy(EntityType.class, "getEntityClass");
     }
 
-    public Class<? extends Entity> getSoakEntityClass(){
+    public Class<? extends Entity> getSoakEntityClass() {
         throw NotImplementedException.createByLazy(EntityType.class, "getSoakEntityClass");
     }
 

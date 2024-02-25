@@ -32,6 +32,8 @@ dependencies {
     implementation("org.spongepowered:spongeapi:10.0.0")
     implementation("org.spongepowered:plugin-spi:0.3.0")
 
+    implementation("org.slf4j:slf4j-api")
+
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

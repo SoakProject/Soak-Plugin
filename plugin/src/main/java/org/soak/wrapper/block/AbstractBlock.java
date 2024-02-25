@@ -70,7 +70,8 @@ public abstract class AbstractBlock<Holder extends DataHolder> implements Block 
 
     @Override
     public @NotNull Location getLocation() {
-        return new Location(this.getWorld(), this.getX(), this.getY(), this.getZ());
+        var loc = new Location(this.getWorld(), this.getX(), this.getY(), this.getZ());
+        return ((AbstractBlockData) getBlockData()).withDefaultY(loc);
     }
 
     @Override

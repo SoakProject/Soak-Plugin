@@ -7,6 +7,7 @@ import org.bukkit.block.sign.SignSide;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.map.SoakColourMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.state.AbstractBlockState;
@@ -105,16 +106,16 @@ public class SoakSignBlockEntity extends AbstractBlockState<Sign> implements org
 
     @Override
     public @Nullable DyeColor getColor() {
-        throw NotImplementedException.createByLazy(SoakSignBlockEntity.class, "getColor");
+        return this.blockEntity.get(Keys.COLOR).map(colour -> DyeColor.getByColor(SoakColourMap.toBukkit(colour))).orElse(DyeColor.BLACK);
     }
 
     @Override
     public void setColor(DyeColor color) {
-        throw NotImplementedException.createByLazy(SoakSignBlockEntity.class, "setColor", DyeColor.class);
+        this.blockEntity.offer(Keys.COLOR, SoakColourMap.toSponge(color.getColor()));
     }
 
     @Override
     public @NotNull SignSide getSide(@NotNull Side side) {
-        return null;
+        throw NotImplementedException.createByLazy(SoakSignBlockEntity.class, "getSide", Side.class);
     }
 }

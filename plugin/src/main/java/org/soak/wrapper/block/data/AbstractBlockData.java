@@ -40,6 +40,10 @@ public abstract class AbstractBlockData implements BlockData, CommonBlockData {
         }).orElseGet(() -> new SoakBlockData(state));
     }
 
+    public Location withDefaultY(@NotNull Location loc) {
+        return loc;
+    }
+
     @Override
     public int getLightEmission() {
         return this.spongeState.getInt(Keys.LIGHT_EMISSION).orElse(-1);

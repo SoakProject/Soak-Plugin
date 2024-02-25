@@ -9,7 +9,9 @@ import org.bukkit.Color;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.mosestream.MoseStream;
 import org.soak.Compatibility;
 import org.soak.commands.soak.SoakCommand;
 import org.soak.config.SoakServerProperties;
@@ -21,6 +23,7 @@ import org.soak.plugin.loader.Locator;
 import org.soak.plugin.loader.common.AbstractSoakPluginContainer;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.loader.common.SoakPluginInjector;
+import org.soak.plugin.utils.log.CustomLoggerFormat;
 import org.soak.utils.SoakMemoryStore;
 import org.soak.wrapper.SoakServer;
 import org.soak.wrapper.enchantment.SoakEnchantment;
@@ -49,6 +52,8 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
@@ -56,6 +61,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,6 +77,8 @@ public class SoakPlugin {
     private final SoakMemoryStore memoryStore = new SoakMemoryStore();
 
     private final SoakServerProperties serverProperties = new SoakServerProperties();
+    private final ConsoleHandler consoleHandler = new ConsoleHandler();
+
 
     @Inject
     public SoakPlugin(PluginContainer pluginContainer, Logger logger) {
@@ -79,8 +87,11 @@ public class SoakPlugin {
         this.logger = logger;
         this.compatibility = new Compatibility();
         try {
-            Path path = Sponge.configManager().pluginConfig(this.container).directory();
+            Path path = Sponge.configManager().pluginConfig(this.container).configPath();
             this.configuration = new SoakConfiguration(path.toFile());
+            if (!this.configuration.file().exists()) {
+                this.configuration.save();
+            }
         } catch (ConfigurateException e) {
             throw new RuntimeException(e);
         }
@@ -92,6 +103,10 @@ public class SoakPlugin {
 
     public static SoakServer server() {
         return (SoakServer) Bukkit.getServer();
+    }
+
+    public ConsoleHandler getConsole() {
+        return this.consoleHandler;
     }
 
     public SoakMemoryStore getMemoryStore() {
@@ -134,13 +149,51 @@ public class SoakPlugin {
 
     @Listener(order = Order.LAST)
     public void endingPlugin(StoppingEngineEvent<Server> event) {
-        this.getPlugins().forEach(plugin -> {
+        var plugins = this.getPlugins().toList();
+        plugins.forEach(plugin -> {
             Sponge.server().scheduler().executor(plugin).shutdown();
             Sponge.asyncScheduler().executor(plugin).shutdown();
         });
 
         Sponge.server().scheduler().executor(container).shutdown();
         Sponge.asyncScheduler().executor(container).shutdown();
+
+        plugins.forEach(container -> {
+            //ensures shutdown
+            container.plugin().onDisable();
+        });
+        MoseStream.stream(plugins)
+                .map(plugin -> SoakPlugin
+                        .server()
+                        .getPluginManager()
+                        .getContext(plugin.plugin()))
+                .forEach(context -> {
+                    var loader = context.loader();
+                    try {
+                        logger.debug("Closing: " + context.getConfiguration().getName());
+                        loader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+        plugins.forEach(SoakPluginInjector::removePluginFromPlatform);
+
+        var thread = new Thread(() -> {
+            while (Thread.getAllStackTraces().keySet().stream().anyMatch(mainThread -> mainThread.getName().equals("server thread"))) {
+                try {
+                    Thread.currentThread().wait(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            //for some reason threads get blocked when soak loads plugins. this forces the shutoff.
+            //TODO -> figure out why threads get blocked
+            logger.debug("Using ublocking fix from Soak");
+            System.exit(0);
+        });
+        thread.setName("unblocker");
+        thread.start();
     }
 
     public Compatibility getCompatibility() {
@@ -244,8 +297,8 @@ public class SoakPlugin {
             }
         }
 
+        this.consoleHandler.setFormatter(new CustomLoggerFormat());
 
-        //System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tF %1$tT] [%4$s] %5$s %n");
         SoakServer server = new SoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
         pluginManager.loadPlugins(configuration.file());
@@ -254,7 +307,7 @@ public class SoakPlugin {
 
         Collection<File> files = Locator.files();
         for (File file : files) {
-            Plugin plugin;
+            JavaPlugin plugin;
             try {
                 //noinspection deprecation
                 plugin = pluginManager.loadPlugin(file);
@@ -269,7 +322,7 @@ public class SoakPlugin {
 
             SoakPluginContainer container = new AbstractSoakPluginContainer(file, plugin);
             SoakPluginInjector.injectPlugin(container);
-            Sponge.eventManager().registerListeners(container, container.instance());
+            Sponge.eventManager().registerListeners(container, container.instance(), MethodHandles.lookup());
         }
     }
 

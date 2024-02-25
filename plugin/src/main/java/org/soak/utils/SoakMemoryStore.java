@@ -32,7 +32,7 @@ public class SoakMemoryStore {
             return found.get();
         }
         var overrideInstance = collection.stream().filter(soak -> soak.isSame(sponge)).findAny();
-        if(overrideInstance.isPresent()){
+        if (overrideInstance.isPresent()) {
             var instance = overrideInstance.get();
             instance.setSponge(sponge);
             return instance;

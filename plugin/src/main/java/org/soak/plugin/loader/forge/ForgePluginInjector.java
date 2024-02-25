@@ -11,6 +11,8 @@ import java.util.List;
 
 public class ForgePluginInjector implements SoakPluginInjector {
 
+
+    //this is most likely broken
     public static void injectPluginToPlatform(SoakPluginContainer container) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, InstantiationException {
         var modContainer = new SoakModContainer(container);
         var modFileInfo = SoakFileModInfo.MOD_INFO;
@@ -19,13 +21,20 @@ public class ForgePluginInjector implements SoakPluginInjector {
 
         var modListAccessor = ModList.get();
 
-        /*var modFileScanData = modListAccessor.getAllScanData();
-        modFileScanData.add(pluginFileScanData);*/
-
         var modsField = modListAccessor.getClass().getDeclaredField("mods");
         modsField.setAccessible(true);
         var mods = (List<ModContainer>) modsField.get(modListAccessor);
         mods.add(modContainer);
         modsField.set(modListAccessor, mods);
     }
+
+    public static void removePluginFromPlatform(String id) {
+//TODO
+    }
+
+    public static void removePluginFromPlatform(SoakPluginContainer container) {
+//TODO
+    }
+
+
 }

@@ -3,6 +3,7 @@ package org.soak.plugin.loader.common;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.spongepowered.plugin.metadata.PluginMetadata;
 
 import java.io.File;
@@ -15,10 +16,10 @@ public class AbstractSoakPluginContainer implements SoakPluginContainer {
     private final SoakPluginMetadata pluginMetadata;
     //private final URLClassLoader loader;
     private final Logger logger;
-    private final Plugin plugin;
+    private final JavaPlugin plugin;
     private final SoakPluginWrapper mainInstance;
 
-    public AbstractSoakPluginContainer(File bukkitPluginFile, Plugin plugin) {
+    public AbstractSoakPluginContainer(File bukkitPluginFile, JavaPlugin plugin) {
         this.bukkitPluginFile = bukkitPluginFile;
         this.plugin = plugin;
         this.logger = LogManager.getLogger(plugin.getName());
@@ -32,7 +33,7 @@ public class AbstractSoakPluginContainer implements SoakPluginContainer {
         return this.bukkitPluginFile;
     }
 
-    public Plugin plugin() {
+    public JavaPlugin plugin() {
         return this.plugin;
     }
 

@@ -26,29 +26,19 @@ public class CustomLoggerFormat extends Formatter {
         return "0" + value;
     }
 
+
     @Override
     public String format(LogRecord record) {
         var time = LocalTime.ofInstant(record.getInstant(), ZoneId.systemDefault());
 
         String levelColour = LEVEL_COLOURS.getOrDefault(record.getLevel().getName(), AnsiEscapeCodes.RESET);
-        return "[" +
-                formatInt(time.getHour()) +
-                ":" +
-                formatInt(time.getMinute()) +
-                ":" +
-                formatInt(time.getSecond()) +
-                "] [" +
-                Thread.currentThread().getName() +
-                "/" +
-                levelColour +
-                record.getLevel().getName() +
-                AnsiEscapeCodes.RESET +
-                "] [" +
-                record.getLoggerName() +
-                "]: " +
-                (record.getLevel().getName().equalsIgnoreCase("info") ? "" : levelColour) +
-                record.getMessage() +
-                AnsiEscapeCodes.RESET +
-                "\n";
+
+        String timeString = "[" + formatInt(time.getHour()) + ":" + formatInt(time.getMinute()) + ":" + formatInt(time.getSecond()) + "]";
+        String threadString = "[" + Thread.currentThread().getName() + "/" + levelColour + record.getLevel().getName() + AnsiEscapeCodes.RESET + "]";
+        String loggerName = "[" + record.getLoggerName() + "]";
+        String messageColour = (record.getLevel().getName().equalsIgnoreCase("info") ? "" : levelColour);
+        String message = record.getMessage() + "\n";
+
+        return AnsiEscapeCodes.RESET + timeString + " " + threadString + " " + loggerName + ": " + messageColour + message + AnsiEscapeCodes.RESET;
     }
 }

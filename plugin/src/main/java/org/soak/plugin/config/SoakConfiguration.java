@@ -42,7 +42,7 @@ public class SoakConfiguration {
     }
 
     public File configFolder() {
-        return parse(CONFIG_FOLDER).orElseGet(() -> new File("mods/bukkit/config"));
+        return parse(CONFIG_FOLDER).orElseGet(() -> new File("plugins"));
     }
 
     public <T> Optional<T> parse(ConfigNode<T> node) {
@@ -51,6 +51,10 @@ public class SoakConfiguration {
 
     public <T> void set(ConfigNode<T> node, T value) throws SerializationException {
         node.set(this.node, value);
+    }
+
+    public void save() throws ConfigurateException {
+        this.loader.save(this.node);
     }
 
 }
