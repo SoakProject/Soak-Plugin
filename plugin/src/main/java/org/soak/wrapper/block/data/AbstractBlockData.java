@@ -30,18 +30,13 @@ public abstract class AbstractBlockData implements BlockData, CommonBlockData {
     }
 
     public static CommonBlockData createBlockData(BlockState state) {
-        return BlockDataTypes.valueFor(state).map(type -> {
-            try {
-                return type.instance(state);
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
-                     IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }).orElseGet(() -> new SoakBlockData(state));
-    }
-
-    public Location withDefaultY(@NotNull Location loc) {
-        return loc;
+        var blockData = BlockDataTypes.valueFor(state);
+        try {
+            return blockData.instance(state);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
