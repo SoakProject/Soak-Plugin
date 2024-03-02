@@ -28,11 +28,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SoakLoadedChunk implements SoakChunk {
+public class AbstractSoakChunk implements SoakChunk {
 
-    private final WorldChunk chunk;
+    private WorldChunk chunk;
 
-    public SoakLoadedChunk(WorldChunk chunk) {
+    public AbstractSoakChunk(WorldChunk chunk) {
         this.chunk = chunk;
     }
 
@@ -58,12 +58,13 @@ public class SoakLoadedChunk implements SoakChunk {
 
     @Override
     public @NotNull ChunkSnapshot getChunkSnapshot() {
-        throw NotImplementedException.createByLazy(Chunk.class, "getChunkSnapshot");
+        return new SoakChunkSnapshot(this.chunk);
     }
 
     @Override
-    public @NotNull ChunkSnapshot getChunkSnapshot(boolean b, boolean b1, boolean b2) {
-        throw NotImplementedException.createByLazy(Chunk.class, "getChunkSnapshot", boolean.class, boolean.class, boolean.class);
+    public @NotNull ChunkSnapshot getChunkSnapshot(boolean includeMaxBlocky, boolean includeBiome, boolean includeBiomeTempRain) {
+        //TODO parameters
+        return getChunkSnapshot();
     }
 
     @Override
@@ -102,12 +103,17 @@ public class SoakLoadedChunk implements SoakChunk {
 
     @Override
     public boolean isLoaded() {
-        return true;
+        return this.getWorld().isChunkLoaded(this);
     }
 
     @Override
     public boolean load(boolean generate) {
-        return false;
+        var opWorldChunk = this.chunk.world().loadChunk(getX(), 0, getZ(), generate);
+        if (opWorldChunk.isEmpty()) {
+            return false;
+        }
+        this.chunk = opWorldChunk.get();
+        return true;
     }
 
     @Override

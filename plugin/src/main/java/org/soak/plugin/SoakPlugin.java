@@ -17,6 +17,8 @@ import org.soak.commands.soak.SoakCommand;
 import org.soak.config.SoakServerProperties;
 import org.soak.fix.forge.ForgeFixCommons;
 import org.soak.impl.data.BukkitPersistentData;
+import org.soak.impl.data.sponge.PortalCooldownCustomData;
+import org.soak.impl.data.sponge.SoakKeys;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.config.SoakConfiguration;
 import org.soak.plugin.loader.Locator;
@@ -139,12 +141,15 @@ public class SoakPlugin {
                 .build();
 
         event.register(registration);
+
+        SoakKeys.init(event);
     }
 
     @Listener(order = Order.FIRST)
     public void startingPlugin(StartingEngineEvent<Server> event) {
         startEnchantmentTypes();
         startPotionEffects();
+        PortalCooldownCustomData.createTickScheduler();
     }
 
     @Listener(order = Order.LAST)

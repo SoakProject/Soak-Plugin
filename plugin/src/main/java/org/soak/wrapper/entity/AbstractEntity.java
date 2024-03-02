@@ -16,6 +16,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.soak.impl.data.sponge.SoakKeys;
 import org.soak.map.SoakDirectionMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakVectorMap;
@@ -557,12 +558,16 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public int getPortalCooldown() {
-        throw NotImplementedException.createByLazy(Entity.class, "getPortalCooldown");
+        return this.entity.get(SoakKeys.PORTAL_COOLDOWN).map(ticks -> (int) ticks.ticks()).orElse(0);
     }
 
     @Override
-    public void setPortalCooldown(int arg0) {
-        throw NotImplementedException.createByLazy(Entity.class, "setPortalCooldown", int.class);
+    public void setPortalCooldown(int ticks) {
+        if (ticks == 0) {
+            entity.remove(SoakKeys.PORTAL_COOLDOWN);
+            return;
+        }
+        entity.offer(SoakKeys.PORTAL_COOLDOWN, Ticks.of(ticks));
     }
 
     @Override

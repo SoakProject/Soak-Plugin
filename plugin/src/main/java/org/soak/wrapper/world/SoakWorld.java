@@ -34,7 +34,7 @@ import org.soak.plugin.exception.NotImplementedException;
 import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
-import org.soak.wrapper.world.chunk.SoakLoadedChunk;
+import org.soak.wrapper.world.chunk.AbstractSoakChunk;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.MinecraftDayTime;
@@ -199,11 +199,11 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public @NotNull Chunk getChunkAt(int x, int z, boolean generate) {
         if (this.world.hasChunk(x, 0, z)) {
-            return new SoakLoadedChunk(this.world.chunk(x, 0, z));
+            return new AbstractSoakChunk(this.world.chunk(x, 0, z));
         }
         return this.world
                 .loadChunk(x, 0, z, generate)
-                .map(SoakLoadedChunk::new)
+                .map(AbstractSoakChunk::new)
                 .orElseThrow(() -> new IllegalArgumentException("Chunk not loaded and not generating"));
     }
 
@@ -594,23 +594,25 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
-    public boolean isChunkLoaded(@NotNull Chunk arg0) {
-        throw NotImplementedException.createByLazy(World.class, "isChunkLoaded", Chunk.class);
+    public boolean isChunkLoaded(@NotNull Chunk chunk) {
+        return isChunkLoaded(chunk.getX(), chunk.getZ());
     }
 
     @Override
-    public boolean isChunkLoaded(int arg0, int arg1) {
-        throw NotImplementedException.createByLazy(World.class, "isChunkLoaded", int.class, int.class);
+    public boolean isChunkLoaded(int x, int z) {
+        return this.world.isChunkLoaded(x, 0, z, false);
     }
 
     @Override
     public Chunk[] getLoadedChunks() {
-        throw NotImplementedException.createByLazy(World.class, "getLoadedChunks");
+        return StreamSupport.stream(this.world.loadedChunks().spliterator(), true)
+                .map(AbstractSoakChunk::new)
+                .toArray(AbstractSoakChunk[]::new);
     }
 
     @Override
-    public void loadChunk(@NotNull Chunk arg0) {
-        throw NotImplementedException.createByLazy(World.class, "loadChunk", Chunk.class);
+    public void loadChunk(@NotNull Chunk chunk) {
+        chunk.load();
     }
 
     @Override
@@ -1285,12 +1287,12 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
 
     @Override
     public int getMinHeight() {
-        throw NotImplementedException.createByLazy(World.class, "getMinHeight");
+        return this.getMaxHeight() - this.world.height();
     }
 
     @Override
     public int getMaxHeight() {
-        throw NotImplementedException.createByLazy(World.class, "getMaxHeight");
+        return this.world.maximumHeight();
     }
 
     @Override

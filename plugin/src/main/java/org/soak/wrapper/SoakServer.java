@@ -7,6 +7,7 @@ import io.papermc.paper.datapack.DatapackManager;
 import io.papermc.paper.tag.EntitySetTag;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.data.BlockData;
@@ -34,6 +35,7 @@ import org.bukkit.structure.StructureManager;
 import org.bukkit.util.CachedServerIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.map.SoakGameModeMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.item.SoakRecipeMap;
@@ -48,6 +50,7 @@ import org.soak.utils.GenericHelper;
 import org.soak.utils.InventoryHelper;
 import org.soak.utils.TagHelper;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
+import org.soak.wrapper.entity.living.human.user.SoakLoadingUser;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
@@ -531,7 +534,12 @@ public class SoakServer implements SimpServer {
                 .sorted(Comparator.comparing(pl -> pl.metadata().id()))
                 .map(pl -> ((SoakPluginContainer) pl).instance())
                 .flatMap(pl -> pl.commands().stream())
-                .filter(cmd -> cmd.getName().equalsIgnoreCase(name))
+                .filter(cmd -> {
+                    if (cmd.getName().equalsIgnoreCase(name)) {
+                        return true;
+                    }
+                    return cmd.getAliases().stream().anyMatch(alias -> alias.equalsIgnoreCase(name));
+                })
                 .filter(cmd -> cmd instanceof PluginCommand)
                 .findFirst()
                 .map(cmd -> (PluginCommand) cmd)
@@ -735,7 +743,9 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull GameMode getDefaultGameMode() {
-        throw NotImplementedException.createByLazy(Server.class, "getDefaultGameMode");
+        var property = SoakPlugin.plugin().getServerProperties().gamemode();
+        var spongeGameMode = property.value().orElse(property.defaultValue());
+        return SoakGameModeMap.toBukkit(spongeGameMode);
     }
 
     @Override
@@ -755,7 +765,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public OfflinePlayer[] getOfflinePlayers() {
-        throw NotImplementedException.createByLazy(Server.class, "getOfflinePlayers");
+        return Sponge.server().userManager().streamAll().map(SoakLoadingUser::new).toArray(OfflinePlayer[]::new);
     }
 
     @Override
@@ -1088,12 +1098,12 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull String getPermissionMessage() {
-        throw NotImplementedException.createByLazy(Server.class, "getPermissionMessage");
+        return LegacyComponentSerializer.legacySection().serialize(permissionMessage());
     }
 
     @Override
     public @NotNull Component permissionMessage() {
-        throw NotImplementedException.createByLazy(Server.class, "permissionMessage");
+        return SoakPlugin.plugin().config().noPermissionMessage();
     }
 
     @Override

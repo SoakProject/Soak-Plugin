@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakLocationMap;
 import org.soak.map.SoakMessageMap;
+import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.SoakSoundMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
@@ -46,7 +47,9 @@ import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.event.Cause;
 import org.spongepowered.api.item.inventory.Container;
+import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.api.service.ban.BanService;
+import org.spongepowered.api.statistic.Statistics;
 import org.spongepowered.api.util.RespawnLocation;
 import org.spongepowered.math.vector.Vector3d;
 
@@ -189,110 +192,90 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void incrementStatistic(@NotNull Statistic arg0, @NotNull Material arg1, int arg2) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "incrementStatistic",
-                Statistic.class,
-                Material.class,
-                int.class);
+        decrementStatistic(arg0, arg1, -arg2);
     }
 
     @Override
     public void incrementStatistic(@NotNull Statistic arg0, @NotNull Material arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "incrementStatistic",
-                Statistic.class,
-                Material.class);
+        incrementStatistic(arg0, arg1, 1);
     }
 
     @Override
     public void incrementStatistic(@NotNull Statistic arg0, @NotNull EntityType arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "incrementStatistic",
-                Statistic.class,
-                EntityType.class);
+        decrementStatistic(arg0, arg1, 1);
     }
 
     @Override
-    public void incrementStatistic(@NotNull Statistic arg0, @NotNull EntityType arg1, int arg2) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "incrementStatistic",
-                Statistic.class,
-                EntityType.class,
-                int.class);
+    public void incrementStatistic(@NotNull Statistic statistic, @NotNull EntityType type, int amount) {
+        decrementStatistic(statistic, type, -amount);
     }
 
     @Override
-    public void incrementStatistic(@NotNull Statistic arg0) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class, "incrementStatistic", Statistic.class);
+    public void incrementStatistic(@NotNull Statistic statistic) {
+        incrementStatistic(statistic, 1);
     }
 
     @Override
-    public void incrementStatistic(@NotNull Statistic arg0, int arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "incrementStatistic",
-                Statistic.class,
-                int.class);
+    public void incrementStatistic(@NotNull Statistic statistic, int amount) {
+        decrementStatistic(statistic, -amount);
     }
 
     @Override
-    public void decrementStatistic(@NotNull Statistic arg0) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class, "decrementStatistic", Statistic.class);
+    public void decrementStatistic(@NotNull Statistic statistic) {
+        decrementStatistic(statistic, 1);
     }
 
     @Override
-    public void decrementStatistic(@NotNull Statistic arg0, @NotNull Material arg1, int arg2) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "decrementStatistic",
-                Statistic.class,
-                Material.class,
-                int.class);
+    public void decrementStatistic(@NotNull Statistic statistic, @NotNull Material material, int amount) {
+        var value = getStatistic(statistic, material);
+        setStatistic(statistic, material, value - amount);
     }
 
     @Override
-    public void decrementStatistic(@NotNull Statistic arg0, @NotNull EntityType arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "decrementStatistic",
-                Statistic.class,
-                EntityType.class);
+    public void decrementStatistic(@NotNull Statistic statistic, @NotNull EntityType type) {
+        decrementStatistic(statistic, type, 1);
     }
 
     @Override
-    public void decrementStatistic(@NotNull Statistic arg0, @NotNull EntityType arg1, int arg2) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "decrementStatistic",
-                Statistic.class,
-                EntityType.class,
-                int.class);
+    public void decrementStatistic(@NotNull Statistic statistic, @NotNull EntityType type, int amount) {
+        var value = getStatistic(statistic, type);
+        setStatistic(statistic, type, value - amount);
     }
 
     @Override
-    public void decrementStatistic(@NotNull Statistic arg0, int arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "decrementStatistic",
-                Statistic.class,
-                int.class);
+    public void decrementStatistic(@NotNull Statistic statistic, int amount) {
+        var value = getStatistic(statistic);
+        setStatistic(statistic, value - amount);
     }
 
     @Override
-    public void decrementStatistic(@NotNull Statistic arg0, @NotNull Material arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "decrementStatistic",
-                Statistic.class,
-                Material.class);
+    public void decrementStatistic(@NotNull Statistic statistic, @NotNull Material material) {
+        decrementStatistic(statistic, material, 1);
     }
 
     @Override
-    public void setStatistic(@NotNull Statistic arg0, @NotNull EntityType arg1, int arg2) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "setStatistic",
-                Statistic.class,
-                EntityType.class,
-                int.class);
+    public void setStatistic(@NotNull Statistic statistic, @NotNull EntityType type, int value) {
+//TODO fix lazy code
+        setStatistic(statistic, value);
+    }
+
+    private org.spongepowered.api.statistic.Statistic toSponge(Statistic statistic) {
+        return Statistics.registry().value(SoakResourceKeyMap.mapToSponge(statistic.getKey()));
     }
 
     @Override
-    public void setStatistic(@NotNull Statistic arg0, int arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class, "setStatistic", Statistic.class, int.class);
+    public void setStatistic(@NotNull Statistic statistic, int value) {
+        var opSpongeStatistic = statistic(statistic);
+        var spongeStatistics = this.spongeEntity().get(Keys.STATISTICS).orElse(Collections.emptyMap());
+        org.spongepowered.api.statistic.Statistic spongeStatistic;
+        if (opSpongeStatistic.isPresent()) {
+            spongeStatistics.remove(opSpongeStatistic.get().getKey());
+            spongeStatistic = opSpongeStatistic.get().getKey();
+        } else {
+            spongeStatistic = toSponge(statistic);
+        }
+        spongeStatistics.put(spongeStatistic, (long) value);
+        this.spongeEntity().offer(Keys.STATISTICS, spongeStatistics);
     }
 
     @Override
@@ -304,25 +287,69 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
                 int.class);
     }
 
-    @Override
-    public int getStatistic(@NotNull Statistic arg0, @NotNull Material arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "getStatistic",
-                Statistic.class,
-                Material.class);
+    private Optional<Map.Entry<org.spongepowered.api.statistic.Statistic, Long>> statistic(Statistic statistic, Material material) {
+        var spongeStatistics = this.spongeEntity().statistics().get();
+        var spongeKey = SoakResourceKeyMap.mapToSponge(statistic.getKey());
+        return spongeStatistics
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().criterion().isPresent())
+                .filter(entry -> entry.getKey().criterion().get().key(RegistryTypes.STATISTIC).equals(spongeKey))
+                .filter(entry -> entry.getKey() instanceof org.spongepowered.api.statistic.Statistic.TypeInstance<?>)
+                .filter(entry -> {
+                    var typedStatistic = ((org.spongepowered.api.statistic.Statistic.TypeInstance<?>) entry.getKey()).type();
+                    if (material.asBlock().map(typedStatistic::equals).orElse(false)) {
+                        return true;
+                    }
+                    return material.asItem().map(typedStatistic::equals).orElse(false);
+                })
+                .findAny();
     }
 
     @Override
-    public int getStatistic(@NotNull Statistic arg0) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class, "getStatistic", Statistic.class);
+    public int getStatistic(@NotNull Statistic statistic, @NotNull Material material) {
+        return statistic(statistic, material)
+                .map(entry -> entry.getValue().intValue())
+                .orElse(-1);
+    }
+
+    private Optional<Map.Entry<org.spongepowered.api.statistic.Statistic, Long>> statistic(Statistic statistic) {
+        var spongeStatistics = this.spongeEntity().statistics().get();
+        var spongeKey = SoakResourceKeyMap.mapToSponge(statistic.getKey());
+        return spongeStatistics
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().criterion().isPresent())
+                .filter(entry -> entry.getKey().criterion().get().key(RegistryTypes.STATISTIC).equals(spongeKey))
+                .findAny();
     }
 
     @Override
-    public int getStatistic(@NotNull Statistic arg0, @NotNull EntityType arg1) {
-        throw NotImplementedException.createByLazy(OfflinePlayer.class,
-                "getStatistic",
-                Statistic.class,
-                EntityType.class);
+    public int getStatistic(@NotNull Statistic statistic) {
+        return statistic(statistic)
+                .map(entry -> entry.getValue().intValue())
+                .orElse(-1);
+    }
+
+    public Optional<Map.Entry<org.spongepowered.api.statistic.Statistic, Long>> statistic(Statistic statistic, EntityType type) {
+        var spongeStatistics = this.spongeEntity().statistics().get();
+        var spongeEntityType = type.asSponge();
+        var spongeKey = SoakResourceKeyMap.mapToSponge(statistic.getKey());
+        return spongeStatistics
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().criterion().isPresent())
+                .filter(entry -> entry.getKey().criterion().get().key(RegistryTypes.STATISTIC).equals(spongeKey))
+                .filter(entry -> entry.getKey() instanceof org.spongepowered.api.statistic.Statistic.TypeInstance<?>)
+                .filter(entry -> ((org.spongepowered.api.statistic.Statistic.TypeInstance<?>) entry.getKey()).type().equals(spongeEntityType))
+                .findAny();
+    }
+
+    @Override
+    public int getStatistic(@NotNull Statistic statistic, @NotNull EntityType type) {
+        return statistic(statistic, type)
+                .map(entry -> entry.getValue().intValue())
+                .orElse(-1);
     }
 
     @Deprecated

@@ -1,5 +1,6 @@
 package org.soak.config;
 
+import org.soak.config.node.properties.GamemodeProperty;
 import org.soak.config.node.properties.OnlineModeProperty;
 import org.soak.config.node.properties.PropertiesNode;
 import org.soak.config.node.properties.SpawnProtectionProperty;
@@ -17,6 +18,7 @@ public class SoakServerProperties {
 
     private final OnlineModeProperty onlineMode = new OnlineModeProperty();
     private final SpawnProtectionProperty spawnProtection = new SpawnProtectionProperty();
+    private final GamemodeProperty gamemode = new GamemodeProperty();
 
     public SoakServerProperties() {
 
@@ -80,6 +82,16 @@ public class SoakServerProperties {
 
     public SpawnProtectionProperty spawnProtection() {
         var property = property(SpawnProtectionProperty.class);
+        if (property.value().isEmpty()) {
+            if (!loadValue(property)) {
+                SoakPlugin.plugin().logger().warn("Cannot read server.properties");
+            }
+        }
+        return property;
+    }
+
+    public GamemodeProperty gamemode() {
+        var property = property(GamemodeProperty.class);
         if (property.value().isEmpty()) {
             if (!loadValue(property)) {
                 SoakPlugin.plugin().logger().warn("Cannot read server.properties");

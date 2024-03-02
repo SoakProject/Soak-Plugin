@@ -46,7 +46,7 @@ public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredP
         logger.setUseParentHandlers(false);
         logger.addHandler(SoakPlugin.plugin().getConsole());
         try {
-            File configFile = new File(this.context.getDataDirectory().toFile(), "config.yaml");
+            File configFile = new File(this.context.getDataDirectory().toFile(), "config.yml");
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configFile);
             applyValue("isEnabled", javaPlugin, true);
             //applyValue("loader", javaPlugin, this);
