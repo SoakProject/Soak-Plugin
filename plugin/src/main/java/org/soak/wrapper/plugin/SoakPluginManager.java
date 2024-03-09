@@ -19,6 +19,7 @@ import org.soak.map.event.EventClassMapping;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
+import org.soak.plugin.loader.common.SpongeJavaPlugin;
 import org.soak.plugin.loader.papar.SoakPluginProviderContext;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;
@@ -111,7 +112,12 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
     @Override
     public @Nullable Plugin getPlugin(@NotNull String s) {
-        return Arrays.stream(getPlugins()).filter(plugin -> plugin.getPluginMeta().getName().equals(s)).findAny().orElse(null);
+        var opBukkitPlugin = Arrays.stream(getPlugins()).filter(plugin -> plugin.getPluginMeta().getName().equals(s)).findAny();
+        if (opBukkitPlugin.isPresent()) {
+            return opBukkitPlugin.get();
+        }
+        var opSpongePlugin = this.spongePluginManager.get().plugins().stream().filter(pc -> pc.metadata().id().equals(s) || pc.metadata().name().map(name -> name.equalsIgnoreCase(s)).orElse(false)).findAny();
+        return opSpongePlugin.map(SpongeJavaPlugin::new).orElse(null);
     }
 
     public @Nullable JavaPlugin getPlugin(PluginMeta meta) {

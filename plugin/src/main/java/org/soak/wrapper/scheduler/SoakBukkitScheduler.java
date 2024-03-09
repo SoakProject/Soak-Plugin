@@ -195,6 +195,10 @@ public class SoakBukkitScheduler implements BukkitScheduler {
     }
 
     private @NotNull BukkitTask runTaskTimer(@NotNull Scheduler scheduler, @NotNull Plugin plugin, @NotNull Runnable runner, long delay, long interval) {
+        if (interval == 0) {
+            //sponge takes a 0 interval as a delay, however this should always create a repeating task
+            interval = 1;
+        }
         SoakPluginContainer container = SoakPlugin.plugin().getPlugin(plugin);
         Task task = Task.builder()
                 .plugin(container)

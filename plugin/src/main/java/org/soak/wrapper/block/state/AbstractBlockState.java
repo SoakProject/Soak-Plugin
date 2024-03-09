@@ -54,7 +54,8 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
 
     @Override
     public @NotNull BlockData getBlockData() {
-        return AbstractBlockData.createBlockData(this.blockEntity.block());
+        var spongeBlockState = this.blockEntity.block();
+        return SoakPlugin.plugin().getMemoryStore().get(spongeBlockState);
     }
 
     @Override

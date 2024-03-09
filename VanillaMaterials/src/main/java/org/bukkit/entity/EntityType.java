@@ -138,9 +138,9 @@ public enum EntityType implements Keyed, Translatable {
 
     UNKNOWN(null);
 
-    private final DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType;
+    private final @Nullable DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType;
 
-    EntityType(DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType) {
+    EntityType(@Nullable DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType) {
         this.spongeType = spongeType;
     }
 
@@ -162,17 +162,26 @@ public enum EntityType implements Keyed, Translatable {
     }
 
     public static EntityType fromSponge(org.spongepowered.api.entity.EntityType<?> type) {
-        return stream().filter(bType -> bType.asSponge().equals(type)).findAny().orElseThrow(() -> new RuntimeException("No mapping for EntityType of " + type.key(RegistryTypes.ENTITY_TYPE).formatted()));
+        return stream()
+                .filter(bType -> type.equals(bType.asSponge()))
+                .findAny()
+                .orElseThrow(() -> new RuntimeException("No mapping for EntityType of " + type.key(RegistryTypes.ENTITY_TYPE).formatted()));
     }
 
     @Deprecated
     public String getName() {
+        if (this.spongeType == null) {
+            return "Unknown";
+        }
         return PlainTextComponentSerializer.plainText().serialize(this.spongeType.get().asComponent());
     }
 
     @NotNull
     @Override
     public NamespacedKey getKey() {
+        if (this.spongeType == null) {
+            return new NamespacedKey("soak", "unknown");
+        }
         return SoakResourceKeyMap.mapToBukkit(this.spongeType.get().key(RegistryTypes.ENTITY_TYPE));
     }
 
@@ -191,20 +200,32 @@ public enum EntityType implements Keyed, Translatable {
     }
 
     public boolean isSpawnable() {
+        if (this.spongeType == null) {
+            return false;
+        }
         return this.spongeType.get().isSummonable();
     }
 
     public boolean isAlive() {
+        if (this.spongeType == null) {
+            return false;
+        }
         var category = this.spongeType.get().category();
         return !category.equals(EntityCategories.AMBIENT.get()) && !category.equals(EntityCategories.WATER_AMBIENT.get()) && !category.equals(EntityCategories.MISC.get());
     }
 
     @Override
     public @NotNull String translationKey() {
+        if (this.spongeType == null) {
+            return "";
+        }
         return ((Translatable) this.spongeType.get().asComponent()).translationKey();
     }
 
-    public @NotNull org.spongepowered.api.entity.EntityType<?> asSponge() {
+    public @Nullable org.spongepowered.api.entity.EntityType<?> asSponge() {
+        if (this.spongeType == null) {
+            return null;
+        }
         return this.spongeType.get();
     }
 }

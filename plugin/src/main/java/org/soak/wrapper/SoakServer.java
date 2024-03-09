@@ -26,6 +26,7 @@ import org.bukkit.map.MapView;
 import org.bukkit.packs.DataPackManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicesManager;
+import org.bukkit.plugin.SimpleServicesManager;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.potion.PotionBrewer;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -49,6 +50,7 @@ import org.soak.utils.FakeRegistryHelper;
 import org.soak.utils.GenericHelper;
 import org.soak.utils.InventoryHelper;
 import org.soak.utils.TagHelper;
+import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.entity.living.human.user.SoakLoadingUser;
 import org.soak.wrapper.inventory.SoakInventory;
@@ -58,6 +60,7 @@ import org.soak.wrapper.profile.SoakPlayerProfile;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.item.ItemType;
@@ -89,6 +92,7 @@ public class SoakServer implements SimpServer {
     private final Singleton<SoakUnsafeValues> unsafeValues = new Singleton<>(SoakUnsafeValues::new);
     private final Singleton<SoakItemFactory> itemFactory = new Singleton<>(SoakItemFactory::new);
     private final Singleton<SoakBukkitScheduler> scheduler = new Singleton<>(SoakBukkitScheduler::new);
+    private final Singleton<SimpleServicesManager> servicesManager = new Singleton<>(SimpleServicesManager::new);
 
     private final Collection<Recipe> recipes = new LinkedTransferQueue<>();
     private final java.util.logging.Logger logger;
@@ -449,7 +453,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull ServicesManager getServicesManager() {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getServicesManager");
+        return this.servicesManager.get();
     }
 
     @Override
@@ -1037,22 +1041,23 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
-    public @NotNull BlockData createBlockData(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createBlockData", String.class);
+    public @NotNull BlockData createBlockData(@NotNull String blockStateString) {
+        var spongeState = BlockState.fromString(blockStateString);
+        return SoakPlugin.plugin().getMemoryStore().get(spongeState);
     }
 
     @Override
-    public @NotNull BlockData createBlockData(@NotNull Material arg0) {
-        return arg0.createBlockData();
+    public @NotNull BlockData createBlockData(@NotNull Material material) {
+        return material.createBlockData();
     }
 
     @Override
-    public @NotNull BlockData createBlockData(@NotNull Material arg0, Consumer arg1) {
+    public @NotNull BlockData createBlockData(@NotNull Material material, @Nullable Consumer<BlockData> consumer) {
         throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, Consumer.class);
     }
 
     @Override
-    public @NotNull BlockData createBlockData(Material arg0, String arg1) {
+    public @NotNull BlockData createBlockData(@Nullable Material material, @Nullable String s) throws IllegalArgumentException {
         throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, String.class);
     }
 

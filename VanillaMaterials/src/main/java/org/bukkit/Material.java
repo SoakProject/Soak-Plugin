@@ -1534,14 +1534,15 @@ public enum Material implements Keyed {
     }
 
     public BlockData createBlockData() {
-        return AbstractBlockData.createBlockData(this.asBlock()
+        var spongeBlockState = this.asBlock()
                 .map(StateContainer::defaultState)
-                .orElseThrow(() -> new IllegalStateException("Cannot create BlockData from a item")));
+                .orElseThrow(() -> new IllegalStateException("Cannot create BlockData from a item"));
+        return SoakPlugin.plugin().getMemoryStore().get(spongeBlockState);
     }
 
     public BlockData createBlockData(@Nullable String data) {
         BlockState state = BlockState.fromString(this.getKey().asString() + (data == null ? "" : "[" + data + "]"));
-        return AbstractBlockData.createBlockData(state);
+        return SoakPlugin.plugin().getMemoryStore().get(state);
     }
 
     public BlockData createBlockData(@Nullable Consumer<BlockData> consumer) {

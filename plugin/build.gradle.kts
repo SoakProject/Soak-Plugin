@@ -18,6 +18,9 @@ repositories {
     maven {
         url = uri("https://jitpack.io")
     }
+    maven {
+        url = uri("https://maven.enginehub.org/repo/")
+    }
 }
 
 dependencies {
@@ -41,16 +44,24 @@ dependencies {
 tasks.jar {
     dependsOn(":bukkit-api:jar")
     dependsOn(":nms-bounce:jar")
+    dependsOn(":plugin-bounce:jar")
     dependsOn(":VanillaMaterials:jar");
     val fat = configurations.runtimeClasspath.get().filter {
         System.out.println("Name: " + it.name);
-        return@filter it.name.startsWith("bukkit-api") || it.name.startsWith("nms-bounce") || it.name.startsWith("MoseStream")
+        return@filter it.name.startsWith("bukkit-api")
+                || it.name.startsWith("nms-bounce")
+                || it.name.startsWith("MoseStream")
+                || it.name.startsWith("json-simple")
+                || it.name.startsWith("paperlib")
     }.map {
         return@map zipTree(it)
     }.toMutableList()
 
-    val materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar");
+    val materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar")
     fat.add(zipTree(materialFile));
+
+    val pluginBounce = project.file("../plugin-bounce/build/libs/plugin-bounce-1.0.0.jar")
+    fat.add(zipTree(pluginBounce))
 
     from(fat).exclude {
         return@exclude it.name == "Compatibility.class" && !it.file.absolutePath.contains("zip_");

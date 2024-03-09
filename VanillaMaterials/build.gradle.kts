@@ -1,8 +1,8 @@
 plugins {
-    id("java")
+    id("java-library")
 }
 
-group = "org"
+group = "org.soak.wrapper.vanilla"
 version = "1.0.0"
 
 java {
@@ -14,6 +14,9 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://jitpack.io")
+    }
 }
 
 dependencies {

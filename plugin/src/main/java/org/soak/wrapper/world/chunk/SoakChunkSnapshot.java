@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Biome;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.data.AbstractBlockData;
 import org.spongepowered.api.world.LightTypes;
@@ -50,7 +51,8 @@ public class SoakChunkSnapshot implements ChunkSnapshot {
 
     @Override
     public @NotNull BlockData getBlockData(int x, int y, int z) {
-        return AbstractBlockData.createBlockData(this.chunk.block(x, y, z));
+        var spongeBlockState = this.chunk.block(x, y, z);
+        return SoakPlugin.plugin().getMemoryStore().get(spongeBlockState);
 
     }
 
