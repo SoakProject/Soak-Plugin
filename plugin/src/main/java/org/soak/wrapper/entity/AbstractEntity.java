@@ -11,12 +11,12 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.metadata.MetadataValue;
-import org.bukkit.metadata.Metadatable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.soak.impl.data.sponge.SoakKeys;
 import org.soak.map.SoakDirectionMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakVectorMap;
@@ -43,14 +43,14 @@ import org.spongepowered.api.world.server.ServerWorld;
 import org.spongepowered.api.world.weather.WeatherTypes;
 import org.spongepowered.math.vector.Vector3d;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Entity> extends SoakCommandSender implements Entity {
 
+    private static final Map<UUID, Map<String, MetadataValue>> METADATA = new ConcurrentHashMap<>();
     protected E entity;
 
     public AbstractEntity(Subject subject, Audience audience, E entity) {
@@ -77,23 +77,33 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
     }
 
     @Override
-    public void setMetadata(@NotNull String arg0, @NotNull MetadataValue arg1) {
-        throw NotImplementedException.createByLazy(Metadatable.class, "setMetadata", String.class, MetadataValue.class);
+    public void setMetadata(@NotNull String id, @NotNull MetadataValue value) {
+        var metadata = METADATA.computeIfAbsent(getUniqueId(), k -> new HashMap<>());
+        metadata.remove(id);
+        metadata.put(id, value);
     }
 
     @Override
     public @NotNull List<MetadataValue> getMetadata(@NotNull String metadataKey) {
-        throw NotImplementedException.createByLazy(Metadatable.class, "getMetadata", String.class);
+        var metadata = METADATA.getOrDefault(getUniqueId(), new ConcurrentHashMap<>());
+        var value = metadata.get(metadataKey);
+        if (value == null) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(value);
     }
 
     @Override
-    public boolean hasMetadata(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Metadatable.class, "hasMetadata", String.class);
+    public boolean hasMetadata(@NotNull String metadataKey) {
+        var metadata = METADATA.getOrDefault(getUniqueId(), new ConcurrentHashMap<>());
+        var value = metadata.get(metadataKey);
+        return value != null;
     }
 
     @Override
-    public void removeMetadata(@NotNull String arg0, @NotNull Plugin arg1) {
-        throw NotImplementedException.createByLazy(Metadatable.class, "removeMetadata", String.class, Plugin.class);
+    public void removeMetadata(@NotNull String metadataKey, @NotNull Plugin arg1) {
+        var metadata = METADATA.getOrDefault(getUniqueId(), new ConcurrentHashMap<>());
+        metadata.remove(metadataKey);
     }
 
     @Override
@@ -151,7 +161,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull Chunk getChunk() {
-        throw NotImplementedException.createByLazy(Entity.class, "getChunk");
+        return getWorld().getChunkAt(getLocation());
     }
 
     @Override
@@ -368,11 +378,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull List<Entity> getNearbyEntities(double x, double y, double z) {
-        throw NotImplementedException.createByLazy(Entity.class,
-                "getNearbyEntities",
-                double.class,
-                double.class,
-                double.class);
+        return new LinkedList<>(this.getWorld().getNearbyEntities(getLocation(), x, y, z));
     }
 
     @Override
@@ -413,7 +419,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
     @Deprecated
     @Override
     public Entity getPassenger() {
-        @NotNull List<Entity> passengers = getPassengers();
+        List<Entity> passengers = getPassengers();
         if (passengers.isEmpty()) {
             return null;
         }
@@ -428,7 +434,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull List<Entity> getPassengers() {
-        throw NotImplementedException.createByLazy(Entity.class, "getPassengers");
+        return this.entity.get(Keys.PASSENGERS).stream().flatMap(Collection::stream).map(AbstractEntity::wrap).collect(Collectors.toList());
     }
 
     @Override
@@ -443,7 +449,8 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean eject() {
-        throw NotImplementedException.createByLazy(Entity.class, "eject");
+        getPassengers().forEach(this::removePassenger);
+        return true;
     }
 
     @Override
@@ -496,7 +503,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public Entity getVehicle() {
-        throw NotImplementedException.createByLazy(Entity.class, "getVehicle");
+        return this.entity.get(Keys.VEHICLE).map(AbstractEntity::wrap).orElse(null);
     }
 
     @Override
@@ -551,12 +558,16 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public int getPortalCooldown() {
-        throw NotImplementedException.createByLazy(Entity.class, "getPortalCooldown");
+        return this.entity.get(SoakKeys.PORTAL_COOLDOWN).map(ticks -> (int) ticks.ticks()).orElse(0);
     }
 
     @Override
-    public void setPortalCooldown(int arg0) {
-        throw NotImplementedException.createByLazy(Entity.class, "setPortalCooldown", int.class);
+    public void setPortalCooldown(int ticks) {
+        if (ticks == 0) {
+            entity.remove(SoakKeys.PORTAL_COOLDOWN);
+            return;
+        }
+        entity.offer(SoakKeys.PORTAL_COOLDOWN, Ticks.of(ticks));
     }
 
     @Override

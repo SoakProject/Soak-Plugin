@@ -13,23 +13,29 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.soak.impl.event.block.*;
 import org.soak.impl.event.block.piston.SoakPistonExtendEvent;
+import org.soak.impl.event.block.piston.SoakPistonRetractEvent;
+import org.soak.impl.event.block.portal.SoakEndPortalCreateEvent;
+import org.soak.impl.event.block.portal.SoakNetherPortalCreateEvent;
 import org.soak.impl.event.command.SoakPreCommandEvent;
+import org.soak.impl.event.entity.SoakCreatureSpawnEvent;
 import org.soak.impl.event.entity.SoakEntityDeathEvent;
 import org.soak.impl.event.entity.SoakEntityExplosionEvent;
-import org.soak.impl.event.entity.move.SoakVehicleMoveEvent;
-import org.soak.impl.event.entity.move.SoakVehicleRotateEvent;
+import org.soak.impl.event.entity.move.*;
 import org.soak.impl.event.entity.player.combat.SoakPlayerDeathEvent;
 import org.soak.impl.event.entity.player.combat.SoakPlayerRespawnEvent;
 import org.soak.impl.event.entity.player.connection.SoakPlayerJoinEvent;
 import org.soak.impl.event.entity.player.connection.SoakPlayerKickEvent;
 import org.soak.impl.event.entity.player.connection.SoakPlayerQuitEvent;
+import org.soak.impl.event.entity.player.connection.SoakPreJoinEvent;
 import org.soak.impl.event.entity.player.data.*;
 import org.soak.impl.event.entity.player.interact.SoakPlayerInteractAirEvent;
 import org.soak.impl.event.entity.player.interact.SoakPlayerInteractBlockEvent;
+import org.soak.impl.event.entity.player.interact.move.SoakPlayerChangedWorldEvent;
 import org.soak.impl.event.entity.player.interact.move.SoakPlayerMoveEvent;
 import org.soak.impl.event.entity.player.interact.move.SoakPlayerRotateEvent;
 import org.soak.impl.event.entity.player.interact.move.SoakPlayerTeleportEvent;
@@ -79,6 +85,9 @@ public class EventClassMapping {
         }
         if (name.equals(PlayerJoinEvent.class.getName())) {
             return array(SoakPlayerJoinEvent.class);
+        }
+        if (name.equals(AsyncPlayerPreLoginEvent.class.getName())) {
+            return array(SoakPreJoinEvent.class);
         }
         if (name.equals(PlayerQuitEvent.class.getName())) {
             return array(SoakPlayerQuitEvent.class);
@@ -137,11 +146,35 @@ public class EventClassMapping {
         if (name.equals(BlockFromToEvent.class.getName())) {
             return array(SoakBlockFlowExpandEvent.class);
         }
+        if (name.equals(EntityBlockFormEvent.class.getName())) {
+            return array(SoakBlockPlaceByEntityEvent.class);
+        }
         if (name.equals(EntityExplodeEvent.class.getName())) {
             return array(SoakEntityExplosionEvent.class);
         }
         if (name.equals(BlockPistonExtendEvent.class.getName())) {
             return array(SoakPistonExtendEvent.class);
+        }
+        if (name.equals(BlockPistonRetractEvent.class.getName())) {
+            return array(SoakPistonRetractEvent.class);
+        }
+        if (name.equals(PlayerChangedWorldEvent.class.getName())) {
+            return array(SoakPlayerChangedWorldEvent.class);
+        }
+        if (name.equals(EntityPortalEnterEvent.class.getName())) {
+            return array(SoakEntityEnterPortalEvent.class);
+        }
+        if (name.equals(EntityPortalExitEvent.class.getName())) {
+            return array(SoakEntityExitPortalEvent.class);
+        }
+        if (name.equals(EntityPortalEvent.class.getName())) {
+            return array(SoakPortalTeleportEntityEvent.class);
+        }
+        if (name.equals(CreatureSpawnEvent.class.getName())) {
+            return array(SoakCreatureSpawnEvent.class);
+        }
+        if (name.equals(PortalCreateEvent.class.getName())) {
+            return array(SoakNetherPortalCreateEvent.class, SoakEndPortalCreateEvent.class);
         }
         throw new RuntimeException("No mapping found for Bukkit Event: " + bukkitClass.getName());
     }

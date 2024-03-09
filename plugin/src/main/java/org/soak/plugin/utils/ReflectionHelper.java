@@ -7,6 +7,18 @@ import java.util.stream.Collectors;
 
 public class ReflectionHelper {
 
+    public static <T> T getField(Object obj, String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        return getField(obj.getClass(), obj, fieldName);
+    }
+
+    public static <T> T getField(Class<?> fromClass, Object obj, String fieldName) throws IllegalAccessException, NoSuchFieldException {
+        var field = fromClass.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        var value = field.get(obj);
+        field.setAccessible(false);
+        return (T) value;
+    }
+
     public static <T> T runMethod(Object obj, String methodName, Object... parameters) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Method foundMethod = Arrays
                 .stream(obj.getClass().getDeclaredMethods())

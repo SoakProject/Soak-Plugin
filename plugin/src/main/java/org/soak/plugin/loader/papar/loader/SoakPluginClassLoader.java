@@ -42,9 +42,11 @@ public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredP
 
     @Override
     public void init(JavaPlugin javaPlugin) {
-        var pluginClass = JavaPlugin.class;
+        var logger = PaperPluginLogger.getLogger(this.getConfiguration().getName());
+        logger.setUseParentHandlers(false);
+        logger.addHandler(SoakPlugin.plugin().getConsole());
         try {
-            File configFile = new File(this.context.getDataDirectory().toFile(), "config.yaml");
+            File configFile = new File(this.context.getDataDirectory().toFile(), "config.yml");
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configFile);
             applyValue("isEnabled", javaPlugin, true);
             //applyValue("loader", javaPlugin, this);
@@ -60,12 +62,10 @@ public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredP
             applyValue("classLoader", javaPlugin, this);
             applyValue("newConfig", javaPlugin, configuration);
             applyValue("configFile", javaPlugin, configFile);
-            applyValue("logger", javaPlugin, PaperPluginLogger.getLogger(this.getConfiguration().getName()));
+            applyValue("logger", javaPlugin, logger);
         } catch (IllegalAccessException | NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
-
-        System.out.println("BukkitPlugin created: " + javaPlugin.getClass().getName());
     }
 
     private void applyValue(String fieldName, JavaPlugin plugin, Object value) throws NoSuchFieldException, IllegalAccessException {

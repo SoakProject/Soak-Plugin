@@ -1,8 +1,11 @@
 package org.soak.utils;
 
 import org.soak.utils.single.SoakSingleInstance;
+import org.soak.wrapper.block.data.AbstractBlockData;
+import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.world.SoakWorld;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.world.server.ServerWorld;
 
@@ -17,6 +20,9 @@ this means the typical new wrapped object won't work. This stores the wrapped ve
  */
 public class SoakMemoryStore {
 
+    public static final BiPredicate<CommonBlockData, BlockState> COMPARE_BLOCK_DATA = (soak, sponge) -> soak.sponge().equals(sponge);
+    public static final Function<BlockState, CommonBlockData> CREATE_BLOCK_DATA = AbstractBlockData::internalCreateBlockData;
+
     private static final BiPredicate<SoakWorld, ServerWorld> COMPARE_WORLD = (soak, sponge) -> soak.sponge()
             .equals(sponge);
     private static final Function<ServerWorld, SoakWorld> CREATE_WORLD = SoakWorld::new;
@@ -25,6 +31,7 @@ public class SoakMemoryStore {
     private static final Function<ServerPlayer, SoakPlayer> CREATE_PLAYER = SoakPlayer::new;
     private final LinkedTransferQueue<SoakWorld> worlds = new LinkedTransferQueue<>();
     private final LinkedTransferQueue<SoakPlayer> players = new LinkedTransferQueue<>();
+    private final LinkedTransferQueue<CommonBlockData> blockStates = new LinkedTransferQueue<>();
 
     private <Sponge, Soak extends SoakSingleInstance<Sponge>> Soak getOrCreate(Collection<Soak> collection, BiPredicate<Soak, Sponge> match, Function<Sponge, Soak> create, Sponge sponge) {
         var found = collection.stream().filter(soak -> match.test(soak, sponge)).findAny();
@@ -32,7 +39,7 @@ public class SoakMemoryStore {
             return found.get();
         }
         var overrideInstance = collection.stream().filter(soak -> soak.isSame(sponge)).findAny();
-        if(overrideInstance.isPresent()){
+        if (overrideInstance.isPresent()) {
             var instance = overrideInstance.get();
             instance.setSponge(sponge);
             return instance;
@@ -49,6 +56,10 @@ public class SoakMemoryStore {
 
     public SoakPlayer get(ServerPlayer player) {
         return getOrCreate(this.players, COMPARE_PLAYER, CREATE_PLAYER, player);
+    }
+
+    public CommonBlockData get(BlockState state) {
+        return this.getOrCreate(this.blockStates, COMPARE_BLOCK_DATA, CREATE_BLOCK_DATA, state);
     }
 
 }

@@ -11,6 +11,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.structure.Mirror;
 import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakMirrorMap;
 import org.soak.map.SoakRotationMap;
@@ -29,15 +30,15 @@ public abstract class AbstractBlockData implements BlockData, CommonBlockData {
         this.spongeState = state;
     }
 
-    public static CommonBlockData createBlockData(BlockState state) {
-        return BlockDataTypes.valueFor(state).map(type -> {
-            try {
-                return type.instance(state);
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
-                     IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        }).orElseGet(() -> new SoakBlockData(state));
+    @ApiStatus.Internal
+    public static CommonBlockData internalCreateBlockData(BlockState state) {
+        var blockData = BlockDataTypes.valueFor(state);
+        try {
+            return blockData.instance(state);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -106,9 +107,8 @@ public abstract class AbstractBlockData implements BlockData, CommonBlockData {
     }
 
     @Override
-    public CommonBlockData setSponge(BlockState state) {
+    public void setSponge(BlockState state) {
         this.spongeState = state;
-        return this;
     }
 
     @Override

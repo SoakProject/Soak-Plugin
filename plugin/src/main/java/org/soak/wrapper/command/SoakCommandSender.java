@@ -35,6 +35,10 @@ public abstract class SoakCommandSender extends SoakPermissible implements Comma
         this.audience = audience;
     }
 
+    public Audience getAudience() {
+        return this.audience;
+    }
+
     @Override
     public void sendMessage(@NotNull Identity identity, @NotNull Component message, @NotNull MessageType type) {
         this.audience.sendMessage(identity, message, type);

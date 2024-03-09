@@ -7,6 +7,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakDirectionMap;
+import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.data.DataHolder;
@@ -70,7 +71,8 @@ public abstract class AbstractBlock<Holder extends DataHolder> implements Block 
 
     @Override
     public @NotNull Location getLocation() {
-        return new Location(this.getWorld(), this.getX(), this.getY(), this.getZ());
+        var loc = new Location(this.getWorld(), this.getX(), this.getY(), this.getZ());
+        return ((AbstractBlockData) getBlockData()).withDefaultY(loc);
     }
 
     @Override
@@ -90,7 +92,7 @@ public abstract class AbstractBlock<Holder extends DataHolder> implements Block 
 
     @Override
     public @NotNull BlockData getBlockData() {
-        return AbstractBlockData.createBlockData(this.spongeBlockState());
+        return SoakPlugin.plugin().getMemoryStore().get(this.spongeBlockState());
     }
 
     @Override

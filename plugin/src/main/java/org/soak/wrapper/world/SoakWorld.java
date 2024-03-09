@@ -26,29 +26,35 @@ import org.bukkit.util.Vector;
 import org.bukkit.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.map.SoakBoundingBox;
+import org.soak.map.SoakLocationMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.SoakWorldTypeMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
+import org.soak.wrapper.world.chunk.AbstractSoakChunk;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.util.MinecraftDayTime;
 import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.server.ServerWorld;
+import org.spongepowered.math.vector.Vector2i;
 import org.spongepowered.math.vector.Vector3d;
 import org.spongepowered.math.vector.Vector3i;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spongepowered.api.world.server.ServerWorld> {
 
     private final ResourceKey key;
+    private final Map<Vector2i, Collection<Plugin>> chunkKeepLoadedTickets = new ConcurrentHashMap<>();
     private org.spongepowered.api.world.server.ServerWorld world;
 
     public SoakWorld(org.spongepowered.api.world.server.ServerWorld world) {
@@ -58,6 +64,28 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
 
     public org.spongepowered.api.world.server.ServerWorld sponge() {
         return this.world;
+    }
+
+    public boolean addKeepAliveTicket(Vector2i pos, Plugin plugin) {
+        var plugins = this.chunkKeepLoadedTickets.get(pos);
+        boolean shouldInsert = plugins == null;
+        if (shouldInsert) {
+            plugins = new LinkedList<>();
+        }
+        boolean added = plugins.add(plugin);
+        if (shouldInsert) {
+            this.chunkKeepLoadedTickets.put(pos, plugins);
+        }
+        return added;
+    }
+
+    public boolean removeKeepAliveTicket(Vector2i pos, Plugin plugin) {
+        var plugins = this.chunkKeepLoadedTickets.getOrDefault(pos, new LinkedList<>());
+        return plugins.remove(plugin);
+    }
+
+    public Collection<Plugin> getKeepAliveTickets(Vector2i pos) {
+        return this.chunkKeepLoadedTickets.getOrDefault(pos, new LinkedList<>());
     }
 
     @Override
@@ -164,23 +192,31 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
-    public @NotNull Chunk getChunkAt(int arg0, int arg1) {
-        throw NotImplementedException.createByLazy(World.class, "getChunkAt", int.class, int.class);
+    public @NotNull Chunk getChunkAt(int x, int z) {
+        return getChunkAt(x, z, false);
     }
 
     @Override
-    public @NotNull Chunk getChunkAt(int i, int i1, boolean b) {
-        throw NotImplementedException.createByLazy(World.class, "getChunkAt", int.class, int.class, boolean.class);
+    public @NotNull Chunk getChunkAt(int x, int z, boolean generate) {
+        if (this.world.hasChunk(x, 0, z)) {
+            return new AbstractSoakChunk(this.world.chunk(x, 0, z));
+        }
+        return this.world
+                .loadChunk(x, 0, z, generate)
+                .map(AbstractSoakChunk::new)
+                .orElseThrow(() -> new IllegalArgumentException("Chunk not loaded and not generating"));
     }
 
     @Override
-    public @NotNull Chunk getChunkAt(@NotNull Location arg0) {
-        throw NotImplementedException.createByLazy(World.class, "getChunkAt", Location.class);
+    public @NotNull Chunk getChunkAt(@NotNull Location location) {
+        var spongeLocation = SoakLocationMap.toSponge(location);
+        var chunkPos = spongeLocation.chunkPosition();
+        return getChunkAt(chunkPos.x(), chunkPos.z());
     }
 
     @Override
-    public @NotNull Chunk getChunkAt(@NotNull Block arg0) {
-        throw NotImplementedException.createByLazy(World.class, "getChunkAt", Block.class);
+    public @NotNull Chunk getChunkAt(@NotNull Block block) {
+        return getChunkAt(block.getLocation());
     }
 
     @Override
@@ -211,25 +247,24 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
 
     @Override
     public @NotNull Collection<Entity> getNearbyEntities(@NotNull Location location, double x, double y, double z) {
-        throw NotImplementedException.createByLazy(World.class,
-                "getNearbyEntities",
-                Location.class,
-                double.class,
-                double.class,
-                double.class);
+        return getNearbyEntities(BoundingBox.of(location, x, y, z));
     }
 
     @Override
     public @NotNull Collection<Entity> getNearbyEntities(@NotNull BoundingBox boundingBox) {
-        throw NotImplementedException.createByLazy(World.class, "getNearbyEntities", BoundingBox.class);
+        return getNearbyEntities(boundingBox, null);
     }
 
     @Override
     public @NotNull Collection<Entity> getNearbyEntities(@NotNull BoundingBox boundingBox, @Nullable Predicate<Entity> filter) {
-        throw NotImplementedException.createByLazy(World.class,
-                "getNearbyEntities",
-                BoundingBox.class,
-                Predicate.class);
+        return this
+                .world
+                .entities(SoakBoundingBox.toSponge(boundingBox))
+                .stream()
+                .map(entity -> (Entity) AbstractEntity.wrap(entity))
+                .filter(Objects.requireNonNullElse(filter, (entity) -> true))
+                .toList();
+
     }
 
     @Override
@@ -559,23 +594,25 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
-    public boolean isChunkLoaded(@NotNull Chunk arg0) {
-        throw NotImplementedException.createByLazy(World.class, "isChunkLoaded", Chunk.class);
+    public boolean isChunkLoaded(@NotNull Chunk chunk) {
+        return isChunkLoaded(chunk.getX(), chunk.getZ());
     }
 
     @Override
-    public boolean isChunkLoaded(int arg0, int arg1) {
-        throw NotImplementedException.createByLazy(World.class, "isChunkLoaded", int.class, int.class);
+    public boolean isChunkLoaded(int x, int z) {
+        return this.world.isChunkLoaded(x, 0, z, false);
     }
 
     @Override
     public Chunk[] getLoadedChunks() {
-        throw NotImplementedException.createByLazy(World.class, "getLoadedChunks");
+        return StreamSupport.stream(this.world.loadedChunks().spliterator(), true)
+                .map(AbstractSoakChunk::new)
+                .toArray(AbstractSoakChunk[]::new);
     }
 
     @Override
-    public void loadChunk(@NotNull Chunk arg0) {
-        throw NotImplementedException.createByLazy(World.class, "loadChunk", Chunk.class);
+    public void loadChunk(@NotNull Chunk chunk) {
+        chunk.load();
     }
 
     @Override
@@ -1250,12 +1287,12 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
 
     @Override
     public int getMinHeight() {
-        throw NotImplementedException.createByLazy(World.class, "getMinHeight");
+        return this.getMaxHeight() - this.world.height();
     }
 
     @Override
     public int getMaxHeight() {
-        throw NotImplementedException.createByLazy(World.class, "getMaxHeight");
+        return this.world.maximumHeight();
     }
 
     @Override
@@ -1612,6 +1649,7 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    @Deprecated
     public boolean isUltrawarm() {
         throw NotImplementedException.createByLazy(World.class, "isUltrawarm");
     }
@@ -1637,11 +1675,13 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    @Deprecated
     public boolean hasSkylight() {
         throw NotImplementedException.createByLazy(World.class, "hasSkylight");
     }
 
     @Override
+    @Deprecated
     public boolean hasBedrockCeiling() {
         throw NotImplementedException.createByLazy(World.class, "hasBedrockCeiling");
     }
@@ -1657,6 +1697,7 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    @Deprecated
     public boolean doesBedWork() {
         throw NotImplementedException.createByLazy(World.class, "doesBedWork");
     }
@@ -1752,6 +1793,7 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     }
 
     @Override
+    @Deprecated
     public boolean doesRespawnAnchorWork() {
         throw NotImplementedException.createByLazy(World.class, "doesRespawnAnchorWork");
     }

@@ -6,7 +6,9 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mosestream.MoseStream;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.loader.papar.loader.SoakPluginClassLoader;
 import org.soak.plugin.loader.papar.meta.SoakPluginMetaBuilder;
 import org.soak.plugin.loader.papar.yaml.AbstractPluginYamlValue;
@@ -86,6 +88,10 @@ public class SoakPluginProviderContext implements PluginProviderContext {
 
     }
 
+    public @Nullable SoakPluginClassLoader loader() {
+        return this.loader;
+    }
+
 
     @Override
     public @NotNull PluginMeta getConfiguration() {
@@ -94,7 +100,7 @@ public class SoakPluginProviderContext implements PluginProviderContext {
 
     @Override
     public @NotNull Path getDataDirectory() {
-        return new File("config/" + this.descriptionFile.getName().toLowerCase() + "/").toPath();
+        return new File(SoakPlugin.plugin().config().configFolder(), this.descriptionFile.getName() + "/").toPath();
     }
 
     @Override

@@ -19,7 +19,9 @@ import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.block.data.AbstractBlockData;
+import org.soak.wrapper.block.state.bed.SoakBedBlockEntity;
 import org.soak.wrapper.block.state.sign.SoakSignBlockEntity;
+import org.spongepowered.api.block.entity.Bed;
 import org.spongepowered.api.block.entity.BlockEntity;
 import org.spongepowered.api.block.entity.Sign;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -36,8 +38,11 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
     }
 
     public static <T extends BlockEntity> AbstractBlockState<T> wrap(T blockEntity) {
-        if (blockEntity instanceof Sign) {
-            return (AbstractBlockState<T>) new SoakSignBlockEntity((Sign) blockEntity);
+        if (blockEntity instanceof Sign sign) {
+            return (AbstractBlockState<T>) new SoakSignBlockEntity(sign);
+        }
+        if (blockEntity instanceof Bed bed) {
+            return (AbstractBlockState<T>) new SoakBedBlockEntity(bed);
         }
         throw new RuntimeException("No mapping found for BlockEntity of " + blockEntity.getClass().getName());
     }
@@ -49,7 +54,8 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
 
     @Override
     public @NotNull BlockData getBlockData() {
-        return AbstractBlockData.createBlockData(this.blockEntity.block());
+        var spongeBlockState = this.blockEntity.block();
+        return SoakPlugin.plugin().getMemoryStore().get(spongeBlockState);
     }
 
     @Override

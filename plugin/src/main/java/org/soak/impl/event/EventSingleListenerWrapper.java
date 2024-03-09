@@ -66,10 +66,12 @@ public class EventSingleListenerWrapper<T extends Event> {
                 break;
             }
             try {
+                method.setAccessible(true);
                 method.invoke(this.listener, event);
             } catch (Throwable e) {
                 SoakPlugin.plugin().displayError(e, this.plugin, new BasicEntry<>("event", event.getEventName()));
             }
+            method.setAccessible(false);
         }
     }
 

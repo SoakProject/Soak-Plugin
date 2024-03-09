@@ -195,6 +195,10 @@ public class SoakBukkitScheduler implements BukkitScheduler {
     }
 
     private @NotNull BukkitTask runTaskTimer(@NotNull Scheduler scheduler, @NotNull Plugin plugin, @NotNull Runnable runner, long delay, long interval) {
+        if (interval == 0) {
+            //sponge takes a 0 interval as a delay, however this should always create a repeating task
+            interval = 1;
+        }
         SoakPluginContainer container = SoakPlugin.plugin().getPlugin(plugin);
         Task task = Task.builder()
                 .plugin(container)
@@ -227,7 +231,7 @@ public class SoakBukkitScheduler implements BukkitScheduler {
         throw NotImplementedException.createByLazy(BukkitScheduler.class, "getMainThreadExecutor", Plugin.class);
     }
 
-    public SoakBukkitTask scheduleDelayTask(Scheduler scheduler, Plugin plugin, Runnable runnable, long delay){
+    public SoakBukkitTask scheduleDelayTask(Scheduler scheduler, Plugin plugin, Runnable runnable, long delay) {
         var pluginContainer = SoakPlugin.plugin().getPlugin(plugin);
         var ticks = Ticks.duration(delay);
         var spongeTask = scheduler.executor(pluginContainer).schedule(runnable, ticks.toMillis(), TimeUnit.MILLISECONDS);
@@ -269,14 +273,14 @@ public class SoakBukkitScheduler implements BukkitScheduler {
 
     @Deprecated
     @Override
-    public int scheduleAsyncDelayedTask(@NotNull Plugin arg0, @NotNull Runnable arg1, long arg2) {
-        throw NotImplementedException.createByLazy(BukkitScheduler.class, "scheduleAsyncDelayedTask", Plugin.class, Runnable.class, long.class);
+    public int scheduleAsyncDelayedTask(@NotNull Plugin plugin, @NotNull Runnable exec, long ticks) {
+        return this.scheduleDelayTask(Sponge.asyncScheduler(), plugin, exec, ticks).getTaskId();
     }
 
     @Deprecated
     @Override
-    public int scheduleAsyncDelayedTask(@NotNull Plugin arg0, @NotNull Runnable arg1) {
-        throw NotImplementedException.createByLazy(BukkitScheduler.class, "scheduleAsyncDelayedTask", Plugin.class, Runnable.class);
+    public int scheduleAsyncDelayedTask(@NotNull Plugin plugin, @NotNull Runnable exec) {
+        return this.scheduleAsyncDelayedTask(plugin, exec);
     }
 
     private static class SoakRunnerWrapper implements Runnable {

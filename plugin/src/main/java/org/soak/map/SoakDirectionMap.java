@@ -14,6 +14,20 @@ public class SoakDirectionMap {
         return org.bukkit.Axis.valueOf(axis.name());
     }
 
+    public static float toYaw(BlockFace face) {
+        return switch (face) {
+            case NORTH -> 337.5F;
+            case EAST -> 67.5F;
+            case SOUTH -> 157.5F;
+            case WEST -> 247.5F;
+            case NORTH_EAST -> 22.5F;
+            case NORTH_WEST -> 292.5F;
+            case SOUTH_EAST -> 112.5F;
+            case SOUTH_WEST -> 202.5F;
+            default -> 0.0f;
+        };
+    }
+
     public static Direction toSponge(BlockFace face) {
         switch (face) {
             case NORTH:

@@ -7,6 +7,7 @@ import io.papermc.paper.datapack.DatapackManager;
 import io.papermc.paper.tag.EntitySetTag;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.data.BlockData;
@@ -25,6 +26,7 @@ import org.bukkit.map.MapView;
 import org.bukkit.packs.DataPackManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicesManager;
+import org.bukkit.plugin.SimpleServicesManager;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.potion.PotionBrewer;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -34,6 +36,7 @@ import org.bukkit.structure.StructureManager;
 import org.bukkit.util.CachedServerIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.map.SoakGameModeMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.item.SoakRecipeMap;
@@ -47,13 +50,17 @@ import org.soak.utils.FakeRegistryHelper;
 import org.soak.utils.GenericHelper;
 import org.soak.utils.InventoryHelper;
 import org.soak.utils.TagHelper;
+import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
+import org.soak.wrapper.entity.living.human.user.SoakLoadingUser;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
+import org.soak.wrapper.profile.SoakPlayerProfile;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.item.ItemType;
@@ -70,6 +77,7 @@ import org.spongepowered.api.world.server.ServerWorld;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -84,6 +92,7 @@ public class SoakServer implements SimpServer {
     private final Singleton<SoakUnsafeValues> unsafeValues = new Singleton<>(SoakUnsafeValues::new);
     private final Singleton<SoakItemFactory> itemFactory = new Singleton<>(SoakItemFactory::new);
     private final Singleton<SoakBukkitScheduler> scheduler = new Singleton<>(SoakBukkitScheduler::new);
+    private final Singleton<SimpleServicesManager> servicesManager = new Singleton<>(SimpleServicesManager::new);
 
     private final Collection<Recipe> recipes = new LinkedTransferQueue<>();
     private final java.util.logging.Logger logger;
@@ -184,7 +193,6 @@ public class SoakServer implements SimpServer {
                     .collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, items);
         }
-
 
         System.err.println("No tag found of registry: '" + registry + "' Type: " + clazz.getSimpleName() + " id: " + tag.asString());
         return null;
@@ -445,7 +453,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull ServicesManager getServicesManager() {
-        throw NotImplementedException.createByLazy(SoakServer.class, "getServicesManager");
+        return this.servicesManager.get();
     }
 
     @Override
@@ -522,7 +530,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @Nullable PluginCommand getPluginCommand(@NotNull String name) {
-        return Sponge
+        PluginCommand pluginCommand = Sponge
                 .pluginManager()
                 .plugins()
                 .stream()
@@ -530,11 +538,21 @@ public class SoakServer implements SimpServer {
                 .sorted(Comparator.comparing(pl -> pl.metadata().id()))
                 .map(pl -> ((SoakPluginContainer) pl).instance())
                 .flatMap(pl -> pl.commands().stream())
-                .filter(cmd -> cmd.getName().equalsIgnoreCase(name))
+                .filter(cmd -> {
+                    if (cmd.getName().equalsIgnoreCase(name)) {
+                        return true;
+                    }
+                    return cmd.getAliases().stream().anyMatch(alias -> alias.equalsIgnoreCase(name));
+                })
                 .filter(cmd -> cmd instanceof PluginCommand)
                 .findFirst()
                 .map(cmd -> (PluginCommand) cmd)
                 .orElse(null);
+        if (pluginCommand == null) {
+            SoakPlugin.plugin().logger().warn("A Bukkit plugin attempted to access the command '" + name + "'. It however does not exist");
+        }
+        return pluginCommand;
+
     }
 
     @Override
@@ -729,7 +747,9 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull GameMode getDefaultGameMode() {
-        throw NotImplementedException.createByLazy(Server.class, "getDefaultGameMode");
+        var property = SoakPlugin.plugin().getServerProperties().gamemode();
+        var spongeGameMode = property.value().orElse(property.defaultValue());
+        return SoakGameModeMap.toBukkit(spongeGameMode);
     }
 
     @Override
@@ -749,7 +769,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public OfflinePlayer[] getOfflinePlayers() {
-        throw NotImplementedException.createByLazy(Server.class, "getOfflinePlayers");
+        return Sponge.server().userManager().streamAll().map(SoakLoadingUser::new).toArray(OfflinePlayer[]::new);
     }
 
     @Override
@@ -1021,22 +1041,23 @@ public class SoakServer implements SimpServer {
     }
 
     @Override
-    public @NotNull BlockData createBlockData(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createBlockData", String.class);
+    public @NotNull BlockData createBlockData(@NotNull String blockStateString) {
+        var spongeState = BlockState.fromString(blockStateString);
+        return SoakPlugin.plugin().getMemoryStore().get(spongeState);
     }
 
     @Override
-    public @NotNull BlockData createBlockData(@NotNull Material arg0) {
-        return arg0.createBlockData();
+    public @NotNull BlockData createBlockData(@NotNull Material material) {
+        return material.createBlockData();
     }
 
     @Override
-    public @NotNull BlockData createBlockData(@NotNull Material arg0, Consumer arg1) {
+    public @NotNull BlockData createBlockData(@NotNull Material material, @Nullable Consumer<BlockData> consumer) {
         throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, Consumer.class);
     }
 
     @Override
-    public @NotNull BlockData createBlockData(Material arg0, String arg1) {
+    public @NotNull BlockData createBlockData(@Nullable Material material, @Nullable String s) throws IllegalArgumentException {
         throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, String.class);
     }
 
@@ -1082,32 +1103,71 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull String getPermissionMessage() {
-        throw NotImplementedException.createByLazy(Server.class, "getPermissionMessage");
+        return LegacyComponentSerializer.legacySection().serialize(permissionMessage());
     }
 
     @Override
     public @NotNull Component permissionMessage() {
-        throw NotImplementedException.createByLazy(Server.class, "permissionMessage");
+        return SoakPlugin.plugin().config().noPermissionMessage();
     }
 
     @Override
-    public @NotNull PlayerProfile createProfile(@NotNull UUID arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class);
+    public @NotNull PlayerProfile createProfile(@NotNull UUID id) {
+        var profileManager = Sponge.server().gameProfileManager();
+        var opProfile = profileManager.cache().findById(id).map(profile -> new SoakPlayerProfile(profile, true));
+        if (opProfile.isPresent()) {
+            return opProfile.get();
+        }
+        try {
+            //blocking -> need to fix this
+            return profileManager.uncached()
+                    .profile(id).thenApply(profile -> new SoakPlayerProfile(profile, false)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public @NotNull PlayerProfile createProfile(UUID arg0, String arg1) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfile", UUID.class, String.class);
+    public @NotNull PlayerProfile createProfile(@Nullable UUID uuid, @Nullable String name) {
+        if (uuid == null) {
+            if (name == null) {
+                throw new IllegalArgumentException("Id or name must be provided");
+            }
+            return createProfile(name);
+        }
+        var profileManager = Sponge.server().gameProfileManager();
+        var opProfile = profileManager.cache().findById(uuid).map(profile -> name == null ? profile : profile.withName(name)).map(profile -> new SoakPlayerProfile(profile, true));
+        if (opProfile.isPresent()) {
+            return opProfile.get();
+        }
+        try {
+            //blocking -> need to fix this
+            return profileManager.uncached()
+                    .profile(uuid).thenApply(profile -> new SoakPlayerProfile(name == null ? profile : profile.withName(name), false)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public @NotNull PlayerProfile createProfileExact(@Nullable UUID uuid, @Nullable String s) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfileExact", UUID.class, String.class);
+        return this.createProfile(uuid, s);
     }
 
     @Override
-    public @NotNull PlayerProfile createProfile(@NotNull String arg0) {
-        throw NotImplementedException.createByLazy(Server.class, "createProfile", String.class);
+    public @NotNull PlayerProfile createProfile(@NotNull String name) {
+        var profileManager = Sponge.server().gameProfileManager();
+        var opProfile = profileManager.cache().findByName(name).map(profile -> new SoakPlayerProfile(profile, true));
+        if (opProfile.isPresent()) {
+            return opProfile.get();
+        }
+        try {
+            //blocking -> need to fix this
+            return profileManager.uncached()
+                    .profile(name).thenApply(profile -> new SoakPlayerProfile(profile, false)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -4,6 +4,7 @@ import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModLoadingStage;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.loader.common.SoakPluginWrapper;
 import org.spongepowered.plugin.metadata.PluginMetadata;
@@ -23,7 +24,7 @@ public class SoakModContainer extends ModContainer implements SoakPluginContaine
     }
 
     @Override
-    public Plugin plugin() {
+    public JavaPlugin plugin() {
         return this.container.plugin();
     }
 

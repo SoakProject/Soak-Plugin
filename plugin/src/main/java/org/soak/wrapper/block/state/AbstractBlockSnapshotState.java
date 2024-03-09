@@ -51,7 +51,8 @@ public class AbstractBlockSnapshotState implements BlockState {
 
     @Override
     public @NotNull BlockData getBlockData() {
-        return AbstractBlockData.createBlockData(this.snapshot.state());
+        var spongeBlockState = this.snapshot.state();
+        return SoakPlugin.plugin().getMemoryStore().get(spongeBlockState);
     }
 
     @Override
