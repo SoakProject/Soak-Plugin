@@ -8,12 +8,19 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakResourceKeyMap;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.wrapper.entity.SoakEntity;
+import org.soak.wrapper.entity.projectile.SoakFirework;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.EntityCategories;
 import org.spongepowered.api.entity.EntityTypes;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
+import org.spongepowered.api.entity.projectile.explosive.FireworkRocket;
 import org.spongepowered.api.registry.DefaultedRegistryReference;
 import org.spongepowered.api.registry.RegistryTypes;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public enum EntityType implements Keyed, Translatable {
@@ -51,7 +58,7 @@ public enum EntityType implements Keyed, Translatable {
     EXPERIENCE_ORB(EntityTypes.EXPERIENCE_ORB),
     FALLING_BLOCK(EntityTypes.FALLING_BLOCK),
     FIREBALL(EntityTypes.FIREBALL),
-    FIREWORK(EntityTypes.FIREWORK_ROCKET),
+    FIREWORK(EntityTypes.FIREWORK_ROCKET, (FireworkRocket rocket) -> new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), rocket)),
     FISHING_HOOK(EntityTypes.FISHING_BOBBER),
     FOX(EntityTypes.FOX),
     FROG(EntityTypes.FROG),
@@ -80,7 +87,7 @@ public enum EntityType implements Keyed, Translatable {
     MINECART_MOB_SPAWNER(EntityTypes.SPAWNER_MINECART),
     MINECART_TNT(EntityTypes.TNT_MINECART),
     MULE(EntityTypes.MULE),
-    //MUSHROOM_COW(EntityTypes.COW), -> This hasnt been a entity type for a while, but instead a varient of cow
+    MUSHROOM_COW(EntityTypes.COW), //this hasn't existed in Minecraft as a type for a while. Its a variant of the cow
     OCELOT(EntityTypes.OCELOT),
     PAINTING(EntityTypes.PAINTING),
     PANDA(EntityTypes.PANDA),
@@ -90,7 +97,7 @@ public enum EntityType implements Keyed, Translatable {
     PIGLIN(EntityTypes.PIGLIN),
     PIGLIN_BRUTE(EntityTypes.PIGLIN_BRUTE),
     PILLAGER(EntityTypes.PILLAGER),
-    PLAYER(EntityTypes.PLAYER),
+    PLAYER(EntityTypes.PLAYER, (ServerPlayer player) -> SoakPlugin.plugin().getMemoryStore().get(player)),
     POLAR_BEAR(EntityTypes.POLAR_BEAR),
     PRIMED_TNT(EntityTypes.TNT),
     PUFFERFISH(EntityTypes.PUFFERFISH),
@@ -139,9 +146,16 @@ public enum EntityType implements Keyed, Translatable {
     UNKNOWN(null);
 
     private final @Nullable DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType;
+    private final @NotNull Function<? extends org.spongepowered.api.entity.Entity, Entity> create;
 
+    @Deprecated
     EntityType(@Nullable DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType) {
+        this(spongeType, entity -> new SoakEntity<>(Sponge.systemSubject(), Sponge.systemSubject(), entity));
+    }
+
+    <E extends org.spongepowered.api.entity.Entity> EntityType(@Nullable DefaultedRegistryReference<? extends org.spongepowered.api.entity.EntityType<?>> spongeType, Function<E, Entity> create) {
         this.spongeType = spongeType;
+        this.create = create;
     }
 
     public static Stream<EntityType> stream() {
@@ -166,6 +180,10 @@ public enum EntityType implements Keyed, Translatable {
                 .filter(bType -> type.equals(bType.asSponge()))
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("No mapping for EntityType of " + type.key(RegistryTypes.ENTITY_TYPE).formatted()));
+    }
+
+    public <E extends Entity> E postCreate(org.spongepowered.api.entity.Entity entity) {
+        throw new RuntimeException("incorrect implementation");
     }
 
     @Deprecated
