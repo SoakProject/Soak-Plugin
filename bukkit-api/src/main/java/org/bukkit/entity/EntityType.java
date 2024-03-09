@@ -141,6 +141,10 @@ public enum EntityType implements Keyed, Translatable {
         throw new RuntimeException("Incorrect implementation");
     }
 
+    public <E extends Entity> E postCreate(org.spongepowered.api.entity.Entity entity) {
+        throw new RuntimeException("incorrect implementation");
+    }
+
     @Deprecated
     @Nullable
     public String getName() {

@@ -63,13 +63,9 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
     }
 
     public static <E extends org.spongepowered.api.entity.Entity> AbstractEntity<E> wrap(E entity) {
-        if (entity instanceof ServerPlayer) {
-            return (AbstractEntity<E>) (Object) SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) entity);
-        }
-        if (entity instanceof FireworkRocket) {
-            return (AbstractEntity<E>) new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), (FireworkRocket) entity);
-        }
-        return new SoakEntity<>(Sponge.systemSubject(), Sponge.systemSubject(), entity);
+        var spongeType = entity.type();
+        var bukkitType = EntityType.fromSponge(spongeType);
+        return bukkitType.postCreate(entity);
     }
 
     public E spongeEntity() {

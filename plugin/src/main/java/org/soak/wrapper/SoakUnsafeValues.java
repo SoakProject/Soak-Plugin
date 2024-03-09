@@ -27,6 +27,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.plugin.exception.NotImplementedException;
+import org.spongepowered.api.Sponge;
 
 import java.io.IOException;
 
@@ -94,7 +95,7 @@ public class SoakUnsafeValues implements UnsafeValues {
 
     @Override
     public int getDataVersion() {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "getDataVersion");
+        return Sponge.platform().minecraftVersion().dataVersion().orElse(-1);
     }
 
     @Override

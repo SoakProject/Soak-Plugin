@@ -13,7 +13,6 @@ import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.mosestream.MoseStream;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.event.EventClassMapping;
 import org.soak.plugin.SoakPlugin;
@@ -58,7 +57,8 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
         } catch (IOException | ClassNotFoundException e) {
             throw new InvalidPluginException(e);
         } catch (Throwable e) {
-            throw new RuntimeException("Error when loading plugin", e);
+            SoakPlugin.plugin().displayError(e, file);
+            return null;
         }
     }
 
@@ -81,7 +81,14 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
             SoakPlugin.plugin().logger().warn("Could not load any plugins in '" + file.getPath() + "'");
             return new Plugin[0];
         }
-        return MoseStream.stream(array).map(this::loadPlugin).toArray(JavaPlugin[]::new);
+        return Arrays.stream(array).map(pluginFile -> {
+            try {
+                return this.loadPlugin(file);
+            } catch (Throwable e) {
+                SoakPlugin.plugin().displayError(e, file);
+                return null;
+            }
+        }).filter(Objects::nonNull).toArray(JavaPlugin[]::new);
     }
 
     @Override
