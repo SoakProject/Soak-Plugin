@@ -15,19 +15,10 @@ jobs:
           distribution: 'temurin'
           java-version: ${{matrix.java}}
           cache: 'gradle'
-      - name: Make Forge gradle executable
-        run: chmod +x ./ForgeBuild/gradlew
       - name: Make gradle executable
         run: chmod +x ./gradlew
-      - name: Build forge cache
-        run: ./gradlew build
-        working-directory: ./ForgeBuild
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: ${{matrix.java}}
       - name: Build Soak
-        run: ./gradlew plugin:build
+        run: ./gradlew build
       - name: Upload plugin
         uses: actions/upload-artifact@v3
         with:
