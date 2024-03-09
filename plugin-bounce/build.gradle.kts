@@ -1,3 +1,7 @@
+import org.gradle.internal.impldep.com.google.common.io.Files
+import java.io.FileOutputStream
+import java.io.FileWriter
+
 plugins {
     id("java-library")
 }
@@ -27,15 +31,20 @@ dependencies {
     implementation(project(mapOf("path" to ":plugin")))
     implementation("org.spongepowered:spongeapi:10.0.0")
 
-    val worldeditPath = File(project.projectDir,"libs").listFiles()?.filter {
+    var worldeditPath = File(project.projectDir, "libs").listFiles()?.filter {
         logger.info("file: " + it.path);
         return@filter it.name.toLowerCase().contains("worldedit")
     }?.firstOrNull();
 
     if (worldeditPath == null) {
-        logger.warn("No local worldedit sponge plugin found in '" + project.projectDir + "/libs/worldedit.jar'. Here's hoping the maven is fixed")
-    } else {
-        implementation(files(worldeditPath))
+        logger.warn("No local worldedit sponge plugin found in '" + project.projectDir + "/libs/worldedit.jar'. Downloading now")
+        val worldeditStream = uri("https://ore.spongepowered.org/EngineHub/WorldEdit/versions/7.2.16+6534-2066eb4/download").toURL().openStream();
+        val file = File(project.projectDir, "libs/worldedit.jar");
+        file.createNewFile();
+        val writer = FileOutputStream(file)
+        worldeditStream.copyTo(writer);
+        worldeditPath = file;
     }
+    implementation(files(worldeditPath))
 
 }
