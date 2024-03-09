@@ -40,6 +40,7 @@ dependencies {
         logger.warn("No local worldedit sponge plugin found in '" + project.projectDir + "/libs/worldedit.jar'. Downloading now")
         val worldeditStream = uri("https://ore.spongepowered.org/EngineHub/WorldEdit/versions/7.2.16+6534-2066eb4/download").toURL().openStream();
         val file = File(project.projectDir, "libs/worldedit.jar");
+        file.parentFile.mkdirs();
         file.createNewFile();
         val writer = FileOutputStream(file)
         worldeditStream.copyTo(writer);
