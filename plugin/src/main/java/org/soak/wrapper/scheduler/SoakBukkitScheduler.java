@@ -7,15 +7,18 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scheduler.BukkitWorker;
 import org.jetbrains.annotations.NotNull;
+import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
+import org.soak.utils.ListMappingUtils;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.scheduler.ScheduledTask;
 import org.spongepowered.api.scheduler.Scheduler;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.scheduler.TaskFuture;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -95,11 +98,8 @@ public class SoakBukkitScheduler implements BukkitScheduler {
 
     @Override
     public @NotNull List<BukkitTask> getPendingTasks() {
-        return get(sch -> sch.tasks().stream())
-                .map(SoakBukkitTask::new)
-                .filter(SoakBukkitTask::isBukkit)
-                .map(task -> (BukkitTask) task)
-                .collect(Collectors.toList());
+        var builder =  CollectionStreamBuilder.builder().stream(get(sch -> sch.tasks().stream())).basicMap(t -> (BukkitTask)new SoakBukkitTask(t));
+        return ListMappingUtils.fromStream(builder, () -> get((sch) -> sch.tasks().stream()), (scheduledTask, soakBukkitTask) -> ((SoakBukkitTask)soakBukkitTask).spongeTask().equals(scheduledTask), Comparator.comparing(task -> task.name())).buildList();
     }
 
     @Deprecated

@@ -1,7 +1,10 @@
 package org.soak.wrapper.block;
 
 import com.destroystokyo.paper.block.BlockSoundGroup;
-import org.bukkit.*;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.SoundGroup;
 import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
@@ -14,12 +17,14 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.util.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockState;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;
 import org.soak.wrapper.world.SoakWorld;
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.api.world.server.ServerLocation;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -27,6 +32,7 @@ import org.spongepowered.math.vector.Vector3i;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public class SoakBlock extends AbstractBlock<ServerLocation> {
 
@@ -79,12 +85,8 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
 
     @Override
     public boolean isValidTool(ItemStack arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "isValidTool", ItemStack.class);
-    }
-
-    @Override
-    public Chunk getChunk() {
-        throw NotImplementedException.createByLazy(Block.class, "getChunk");
+        var spongeItem = SoakItemStackMap.toSponge(arg0);
+        return spongeItem.getOrElse(Keys.BREAKABLE_BLOCK_TYPES, Set.of()).stream().anyMatch(blockType -> this.block.blockType().equals(blockType));
     }
 
     @Override
@@ -120,16 +122,6 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
     }
 
     @Override
-    public boolean isBlockPowered() {
-        throw NotImplementedException.createByLazy(Block.class, "isBlockPowered");
-    }
-
-    @Override
-    public boolean isBlockIndirectlyPowered() {
-        throw NotImplementedException.createByLazy(Block.class, "isBlockIndirectlyPowered");
-    }
-
-    @Override
     public boolean isBlockFacePowered(BlockFace arg0) {
         throw NotImplementedException.createByLazy(Block.class, "isBlockFacePowered", BlockFace.class);
     }
@@ -145,16 +137,6 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
     }
 
     @Override
-    public int getBlockPower() {
-        throw NotImplementedException.createByLazy(Block.class, "getBlockPower");
-    }
-
-    @Override
-    public boolean isLiquid() {
-        throw NotImplementedException.createByLazy(Block.class, "isLiquid");
-    }
-
-    @Override
     public boolean isBuildable() {
         throw NotImplementedException.createByLazy(Block.class, "isBuildable");
     }
@@ -167,11 +149,6 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
     @Override
     public boolean isReplaceable() {
         throw NotImplementedException.createByLazy(Block.class, "isReplaceable");
-    }
-
-    @Override
-    public boolean isSolid() {
-        throw NotImplementedException.createByLazy(Block.class, "isSolid");
     }
 
     @Override
@@ -237,11 +214,6 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
     @Override
     public Collection getDrops(ItemStack arg0) {
         throw NotImplementedException.createByLazy(Block.class, "getDrops", ItemStack.class);
-    }
-
-    @Override
-    public boolean isPreferredTool(ItemStack arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "isPreferredTool", ItemStack.class);
     }
 
     @Override
@@ -317,7 +289,7 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
     @Override
     public BlockState getState() {
         return this.block.blockEntity()
-                .map(entity -> (BlockState) AbstractBlockState.wrap(entity))
+                .map(entity -> (BlockState) AbstractBlockState.wrap(entity, false))
                 .orElseGet(() -> new GenericBlockSnapshotState(this.block.createSnapshot()));
     }
 

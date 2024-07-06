@@ -1,19 +1,26 @@
 package org.soak.wrapper.block;
 
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakDirectionMap;
+import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.world.SoakWorld;
+import org.soak.wrapper.world.chunk.AbstractSoakChunk;
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.data.type.MatterTypes;
 import org.spongepowered.api.world.server.ServerLocation;
 import org.spongepowered.math.vector.Vector3i;
+
+import java.util.Set;
 
 public abstract class AbstractBlock<Holder extends DataHolder> implements Block {
 
@@ -108,6 +115,46 @@ public abstract class AbstractBlock<Holder extends DataHolder> implements Block 
     @Override
     public int getZ() {
         return this.spongePosition().z();
+    }
+
+    @Override
+    public Chunk getChunk() {
+        var spongeLoc = this.spongeLocation();
+        var chunkLoc = spongeLoc.chunkPosition();
+        var spongeChunk = spongeLoc.world().chunk(chunkLoc);
+        return new AbstractSoakChunk(spongeChunk);
+    }
+
+    @Override
+    public boolean isBlockPowered() {
+        return this.spongeBlockState().get(Keys.IS_POWERED).orElse(false);
+    }
+
+    @Override
+    public boolean isBlockIndirectlyPowered() {
+        return this.spongeBlockState().get(Keys.IS_INDIRECTLY_POWERED).orElse(false);
+    }
+
+    @Override
+    public int getBlockPower() {
+        return this.spongeBlockState().get(Keys.POWER).orElse(0);
+    }
+
+    @Override
+    public boolean isLiquid() {
+        return this.spongeBlockState().get(Keys.MATTER_TYPE).map(type -> type.equals(MatterTypes.LIQUID.get())).orElse(false);
+    }
+
+    @Override
+    public boolean isSolid() {
+        return this.spongeBlockState().get(Keys.MATTER_TYPE).map(type -> type.equals(MatterTypes.SOLID.get())).orElse(false);
+    }
+
+    @Override
+    public boolean isPreferredTool(ItemStack arg0) {
+        var spongeItem = SoakItemStackMap.toSponge(arg0);
+        var thisBlockType = this.spongeBlockState().type();
+        return spongeItem.getOrElse(Keys.BREAKABLE_BLOCK_TYPES, Set.of()).stream().anyMatch(blockType -> blockType.equals(thisBlockType));
     }
 
 }

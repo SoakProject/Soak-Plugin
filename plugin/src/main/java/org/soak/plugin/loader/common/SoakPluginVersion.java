@@ -2,6 +2,7 @@ package org.soak.plugin.loader.common;
 
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.jetbrains.annotations.NotNull;
+import org.soak.plugin.SoakPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,17 +58,27 @@ public class SoakPluginVersion implements ArtifactVersion {
                 current.append(charAt);
                 continue;
             }
-            if (charAt == '.' || charAt == ' ') {
+            if ((!Character.isLetterOrDigit(charAt))) {
                 String built = current.toString();
                 if (!built.isEmpty()) {
-                    numbers.add(Integer.parseInt(built));
+                    try {
+                        numbers.add(Integer.parseInt(built));
+                    } catch (NumberFormatException e) {
+                        SoakPlugin.plugin().logger().error("Could not read part of version: '" + built + "'. Using 0 instead");
+                        numbers.add(0);
+                    }
                 }
                 current = new StringBuilder();
             }
         }
         String built = current.toString();
         if (!built.isEmpty()) {
-            numbers.add(Integer.parseInt(built));
+            try {
+                numbers.add(Integer.parseInt(built));
+            } catch (NumberFormatException e) {
+                SoakPlugin.plugin().logger().error("Could not read part of version: '" + built + "'. Using 0 instead");
+                numbers.add(0);
+            }
         }
         this.pluginVersion = version;
         if (numbers.size() >= 4) {

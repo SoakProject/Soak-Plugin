@@ -25,9 +25,8 @@ repositories {
 
 dependencies {
     api(project(":bukkit-api"))
-    api(project(":nms-bounce"))
-    implementation(project(":nms-replicate"))
-    implementation("com.github.mosemister:MoseStream:master-SNAPSHOT")
+    api(project(":MoseStream"))
+    api(project(":CollectionStream"))
 
     implementation("net.minecraftforge:fmlcore:1.19.4-45.2.8")
     implementation("net.minecraftforge:eventbus:6.0.3")
@@ -41,30 +40,23 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-tasks.jar {
+jar {
     dependsOn(":bukkit-api:jar")
-    dependsOn(":nms-bounce:jar")
-    dependsOn(":plugin-bounce:jar")
+    dependsOn(":MoseStream:jar")
     dependsOn(":VanillaMaterials:jar");
-    val fat = configurations.runtimeClasspath.get().filter {
+    var fat = configurations.runtimeClasspath.filter {
         System.out.println("Name: " + it.name);
-        return@filter it.name.startsWith("bukkit-api")
-                || it.name.startsWith("nms-bounce")
+        return it.name.startsWith("bukkit-api")
                 || it.name.startsWith("MoseStream")
                 || it.name.startsWith("json-simple")
                 || it.name.startsWith("paperlib")
-    }.map {
-        return@map zipTree(it)
-    }.toMutableList()
+    }.collect { it.isDirectory() ? it : zipTree(it)}
 
-    val materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar")
+    var materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar")
     fat.add(zipTree(materialFile));
 
-    val pluginBounce = project.file("../plugin-bounce/build/libs/plugin-bounce-1.0.0.jar")
-    fat.add(zipTree(pluginBounce))
-
     from(fat).exclude {
-        return@exclude it.name == "Compatibility.class" && !it.file.absolutePath.contains("zip_");
+        return it.name == "Compatibility.class" && !it.file.absolutePath.contains("zip_");
     }
 }
 

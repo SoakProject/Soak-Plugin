@@ -4,6 +4,13 @@ plugins {
 
 group = "org.soak"
 
+java {
+    toolchain {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+}
+
 allprojects {
     version = "1.0.0"
     repositories {

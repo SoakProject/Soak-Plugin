@@ -35,8 +35,7 @@ public class SoakImmutablePersistentDataContainer<H extends SerializableDataHold
     @Override
     public boolean has(@NotNull NamespacedKey namespacedKey) {
         BukkitPersistentData data = this.holder.get(SoakPlugin.BUKKIT_DATA).orElseGet(BukkitPersistentData::new);
-return data.getValue(SoakResourceKeyMap.mapToSponge(namespacedKey)).isPresent();
-
+        return data.getValue(SoakResourceKeyMap.mapToSponge(namespacedKey)).isPresent();
     }
 
     @Override

@@ -88,7 +88,7 @@ public class AbstractSoakChunk implements SoakChunk {
     }
 
     private @NotNull Stream<BlockState> getBlockEntities(@NotNull Predicate<AbstractBlockState<?>> predicate, boolean useSnapshots) {
-        return this.chunk.blockEntities().stream().map(AbstractBlockState::wrap).filter(predicate).map(state -> {
+        return this.chunk.blockEntities().stream().map(blockEntity -> (AbstractBlockState<?>) AbstractBlockState.wrap(blockEntity, false)).filter(predicate).map(state -> {
             if (useSnapshots) {
                 return AbstractBlockSnapshotState.wrap(state.sponge().serverLocation().createSnapshot());
             }

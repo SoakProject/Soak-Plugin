@@ -20,8 +20,6 @@ import java.util.Optional;
 
 public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
 
-    private @Nullable com.mojang.authlib.GameProfile profile; //nms bounce
-
     public SoakSkullMeta(ItemStack stack) {
         super(stack);
     }
@@ -101,22 +99,10 @@ public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
         throw NotImplementedException.createByLazy(SkullMeta.class, "setOwner", String.class);
     }
 
-
     @Override
     public @NotNull SoakSkullMeta clone() {
         return new SoakSkullMeta(this.container);
     }
-
-    //for nms
-    public boolean setGameProfile(com.mojang.authlib.GameProfile profile) {
-        if (profile instanceof GameProfile) {
-            return setGameProfile((GameProfile) profile);
-        }
-        this.profile = profile;
-        //might make some plugins happy
-        return true;
-    }
-
 
     public boolean setGameProfile(GameProfile profile) {
         var properties = profile.properties();
@@ -127,9 +113,6 @@ public class SoakSkullMeta extends AbstractItemMeta implements SkullMeta {
             return false;
         }
         this.set(Keys.SKIN_PROFILE_PROPERTY, opTextureProperty.get());
-        if (profile instanceof com.mojang.authlib.GameProfile) {
-            this.profile = (com.mojang.authlib.GameProfile) profile;
-        }
         return true;
     }
 }

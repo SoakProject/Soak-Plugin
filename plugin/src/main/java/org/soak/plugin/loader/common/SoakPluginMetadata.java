@@ -1,5 +1,6 @@
 package org.soak.plugin.loader.common;
 
+import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.bukkit.plugin.Plugin;
@@ -16,6 +17,7 @@ import org.spongepowered.plugin.metadata.model.PluginLinks;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SoakPluginMetadata implements PluginMetadata {
@@ -31,8 +33,12 @@ public class SoakPluginMetadata implements PluginMetadata {
     }
 
     public static SoakPluginMetadata fromPlugin(Plugin plugin) {
-        ArtifactVersion version = new SoakPluginVersion(plugin.getDescription().getVersion());
+        ArtifactVersion version = new SoakPluginVersion(plugin.getPluginMeta().getVersion());
         return new SoakPluginMetadata(plugin, version);
+    }
+
+    private <C> C meta(Function<PluginMeta, C> function) {
+        return function.apply(this.plugin.getPluginMeta());
     }
 
     @Override
@@ -47,7 +53,7 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     @Override
     public String entrypoint() {
-        return this.plugin.getDescription().getMain();
+        return meta(PluginMeta::getMainClass);
     }
 
     @Override
@@ -57,7 +63,7 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     @Override
     public Optional<String> description() {
-        String description = this.plugin.getDescription().getDescription();
+        String description = meta(PluginMeta::getDescription);
         return Optional.ofNullable(description);
     }
 
@@ -87,7 +93,7 @@ public class SoakPluginMetadata implements PluginMetadata {
         return new PluginLinks() {
             @Override
             public Optional<URL> homepage() {
-                return Optional.ofNullable(plugin.getDescription().getWebsite()).flatMap(web -> {
+                return Optional.ofNullable(meta(PluginMeta::getWebsite)).flatMap(web -> {
                     try {
                         return Optional.of(new URL(web));
                     } catch (MalformedURLException e) {
@@ -110,7 +116,7 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     @Override
     public List<PluginContributor> contributors() {
-        return this.plugin.getDescription().getContributors().stream().map(name -> {
+        return meta(PluginMeta::getContributors).stream().map(name -> {
             return new PluginContributor() {
                 @Override
                 public String name() {
@@ -132,9 +138,9 @@ public class SoakPluginMetadata implements PluginMetadata {
 
     @Override
     public Set<PluginDependency> dependencies() {
-        Set<PluginDependency> hardDepends = this.plugin.getDescription().getDepend().stream().map(name -> new BukkitPluginDependency(name, true, false)).collect(Collectors.toSet());
-        Set<PluginDependency> softDepends = this.plugin.getDescription().getSoftDepend().stream().map(name -> new BukkitPluginDependency(name, false, false)).collect(Collectors.toSet());
-        Set<PluginDependency> beforeDepends = this.plugin.getDescription().getLoadBefore().stream().map(name -> new BukkitPluginDependency(name, false, true)).collect(Collectors.toSet());
+        Set<PluginDependency> hardDepends = meta(PluginMeta::getPluginDependencies).stream().map(name -> new BukkitPluginDependency(name, true, false)).collect(Collectors.toSet());
+        Set<PluginDependency> softDepends = meta(PluginMeta::getPluginSoftDependencies).stream().map(name -> new BukkitPluginDependency(name, false, false)).collect(Collectors.toSet());
+        Set<PluginDependency> beforeDepends = meta(PluginMeta::getLoadBeforePlugins).stream().map(name -> new BukkitPluginDependency(name, false, true)).collect(Collectors.toSet());
 
         Set<PluginDependency> ret = new HashSet<>();
         ret.addAll(hardDepends);

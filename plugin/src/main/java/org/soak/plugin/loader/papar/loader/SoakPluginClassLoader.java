@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.loader.papar.SoakPluginProviderContext;
+import org.soak.plugin.loader.papar.meta.SoakPluginMeta;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -54,8 +55,10 @@ public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredP
             applyValue("file", javaPlugin, this.context.getPluginSource().toFile());
             if (this.getConfiguration() instanceof PluginDescriptionFile pluginDescriptionFile) {
                 applyValue("description", javaPlugin, pluginDescriptionFile);
+            } else if (this.getConfiguration() instanceof SoakPluginMeta meta) {
+                applyValue("description", javaPlugin, meta.toDescription());
             } else {
-                //meta
+                throw new RuntimeException("Unknown meta class: " + this.getConfiguration().getClass().getName());
             }
             applyValue("pluginMeta", javaPlugin, this.getConfiguration());
             applyValue("dataFolder", javaPlugin, this.context.getDataDirectory().toFile());

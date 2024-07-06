@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
-import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.block.state.bed.SoakBedBlockEntity;
+import org.soak.wrapper.block.state.capture.CapturedAbstractBlockState;
 import org.soak.wrapper.block.state.sign.SoakSignBlockEntity;
 import org.spongepowered.api.block.entity.Bed;
 import org.spongepowered.api.block.entity.BlockEntity;
@@ -37,7 +37,7 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
         this.blockEntity = blockEntity;
     }
 
-    public static <T extends BlockEntity> AbstractBlockState<T> wrap(T blockEntity) {
+    private static <T extends BlockEntity> AbstractBlockState<T> wrap(T blockEntity) {
         if (blockEntity instanceof Sign sign) {
             return (AbstractBlockState<T>) new SoakSignBlockEntity(sign);
         }
@@ -47,9 +47,19 @@ public abstract class AbstractBlockState<TileEntity extends BlockEntity> impleme
         throw new RuntimeException("No mapping found for BlockEntity of " + blockEntity.getClass().getName());
     }
 
+    public static <T extends BlockEntity> BlockState wrap(T blockEntity, boolean snapshot) {
+        var live = wrap(blockEntity);
+        if (snapshot) {
+            return live.asSnapshot();
+        }
+        return live;
+    }
+
     public TileEntity sponge() {
         return this.blockEntity;
     }
+
+    public abstract CapturedAbstractBlockState<?> asSnapshot();
 
 
     @Override

@@ -1,0 +1,6 @@
+[submodule "CollectionStream"]
+	path = CollectionStream
+	url = https://github.com/SoakProject/CollectionStream
+[submodule "MoseStream"]
+	path = MoseStream
+	url = https://github.com/mosemister/MoseStream.git

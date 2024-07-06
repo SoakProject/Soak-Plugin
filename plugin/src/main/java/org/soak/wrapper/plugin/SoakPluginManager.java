@@ -13,6 +13,7 @@ import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.mosestream.MoseStream;
 import org.soak.impl.event.EventSingleListenerWrapper;
 import org.soak.map.event.EventClassMapping;
@@ -31,6 +32,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
@@ -304,16 +306,15 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
     @Override
     public @NotNull Set<Permissible> getPermissionSubscriptions(@NotNull String permission) {
         //TODO other
-        var ret = new HashSet<Permissible>();
+        Stream<Permissible> permissible = Stream.empty();
         if (Sponge.isServerAvailable()) {
             var players = Bukkit.getServer()
                     .getOnlinePlayers()
                     .stream()
-                    .filter(player -> player.hasPermission(permission))
-                    .toList();
-            ret.addAll(players);
+                    .filter(player -> player.hasPermission(permission));
+            permissible = Stream.concat(players, permissible);
         }
-        return ret;
+        return CollectionStreamBuilder.builder().stream(permissible).basicMap(t -> t).buildSet();
     }
 
     @Override

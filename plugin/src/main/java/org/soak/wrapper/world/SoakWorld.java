@@ -3,14 +3,12 @@ package org.soak.wrapper.world;
 import com.destroystokyo.paper.HeightmapType;
 import io.papermc.paper.world.MoonPhase;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.minecraft.server.level.WorldServer;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.DragonBattle;
-import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.generator.BiomeProvider;
@@ -26,17 +24,22 @@ import org.bukkit.util.Vector;
 import org.bukkit.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.soak.map.SoakBoundingBox;
 import org.soak.map.SoakLocationMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.SoakWorldTypeMap;
+import org.soak.plugin.SoakPlugin;
 import org.soak.plugin.exception.NotImplementedException;
+import org.soak.utils.ListMappingUtils;
 import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
+import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.world.chunk.AbstractSoakChunk;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.util.MinecraftDayTime;
 import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -51,7 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
-public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spongepowered.api.world.server.ServerWorld> {
+public class SoakWorld implements World, SoakSingleInstance<org.spongepowered.api.world.server.ServerWorld> {
 
     private final ResourceKey key;
     private final Map<Vector2i, Collection<Plugin>> chunkKeepLoadedTickets = new ConcurrentHashMap<>();
@@ -257,19 +260,28 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
 
     @Override
     public @NotNull Collection<Entity> getNearbyEntities(@NotNull BoundingBox boundingBox, @Nullable Predicate<Entity> filter) {
-        return this
-                .world
-                .entities(SoakBoundingBox.toSponge(boundingBox))
-                .stream()
-                .map(entity -> (Entity) AbstractEntity.wrap(entity))
-                .filter(Objects.requireNonNullElse(filter, (entity) -> true))
-                .toList();
-
+        return CollectionStreamBuilder
+                .builder()
+                .collection(this.world.entities(SoakBoundingBox.toSponge(boundingBox)))
+                .map(stream -> stream
+                        .map(entity -> (Entity) AbstractEntity.wrap(entity))
+                        .filter(Objects.requireNonNullElse(filter, entity -> true))
+                ).buildSet();
     }
 
     @Override
     public @NotNull List<Player> getPlayers() {
-        throw NotImplementedException.createByLazy(World.class, "getPlayers");
+        var builder = CollectionStreamBuilder
+                .builder()
+                .collection(this.world.players())
+                .basicMap(player -> (Player) SoakPlugin.plugin().getMemoryStore().get(player));
+        return ListMappingUtils
+                .fromStream(
+                        builder,
+                        () -> this.world.players().stream(),
+                        (spongePlayer, soakPlayer) -> ((SoakPlayer) soakPlayer).spongeEntity().equals(spongePlayer),
+                        Comparator.comparing(spongePlayer -> spongePlayer.get(Keys.LAST_DATE_JOINED).orElseThrow(() -> new RuntimeException("No value found for last joined on a online player"))))
+                .buildList();
     }
 
     @Override
@@ -1853,11 +1865,6 @@ public class SoakWorld implements World, CraftWorld, SoakSingleInstance<org.spon
     @Override
     public @NotNull Set<String> getListeningPluginChannels() {
         throw NotImplementedException.createByLazy(SoakWorld.class, "getListeningPluginChannels");
-    }
-
-    @Override
-    public WorldServer getHandle() {
-        return (WorldServer) this.sponge();
     }
 
     @Override

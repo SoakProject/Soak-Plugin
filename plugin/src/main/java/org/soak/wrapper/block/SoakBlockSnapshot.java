@@ -1,7 +1,10 @@
 package org.soak.wrapper.block;
 
 import com.destroystokyo.paper.block.BlockSoundGroup;
-import org.bukkit.*;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.SoundGroup;
 import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
@@ -75,11 +78,6 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     }
 
     @Override
-    public Chunk getChunk() {
-        throw NotImplementedException.createByLazy(Block.class, "getChunk");
-    }
-
-    @Override
     public void setBlockData(BlockData arg0, boolean arg1) {
         throw NotImplementedException.createByLazy(Block.class, "setBlockData", BlockData.class, boolean.class);
     }
@@ -105,16 +103,6 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     }
 
     @Override
-    public boolean isBlockPowered() {
-        throw NotImplementedException.createByLazy(Block.class, "isBlockPowered");
-    }
-
-    @Override
-    public boolean isBlockIndirectlyPowered() {
-        throw NotImplementedException.createByLazy(Block.class, "isBlockIndirectlyPowered");
-    }
-
-    @Override
     public boolean isBlockFacePowered(BlockFace arg0) {
         throw NotImplementedException.createByLazy(Block.class, "isBlockFacePowered", BlockFace.class);
     }
@@ -127,11 +115,6 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     @Override
     public int getBlockPower(BlockFace arg0) {
         throw NotImplementedException.createByLazy(Block.class, "getBlockPower", BlockFace.class);
-    }
-
-    @Override
-    public int getBlockPower() {
-        throw NotImplementedException.createByLazy(Block.class, "getBlockPower");
     }
 
     @Override
@@ -152,11 +135,6 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     @Override
     public boolean isReplaceable() {
         throw NotImplementedException.createByLazy(Block.class, "isReplaceable");
-    }
-
-    @Override
-    public boolean isSolid() {
-        throw NotImplementedException.createByLazy(Block.class, "isSolid");
     }
 
     @Override
@@ -207,11 +185,6 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     @Override
     public Collection getDrops(ItemStack arg0) {
         throw NotImplementedException.createByLazy(Block.class, "getDrops", ItemStack.class);
-    }
-
-    @Override
-    public boolean isPreferredTool(ItemStack arg0) {
-        throw NotImplementedException.createByLazy(Block.class, "isPreferredTool", ItemStack.class);
     }
 
     @Override

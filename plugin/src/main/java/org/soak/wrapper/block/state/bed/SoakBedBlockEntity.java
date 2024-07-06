@@ -6,12 +6,18 @@ import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakColourMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.state.AbstractBlockState;
+import org.soak.wrapper.block.state.capture.CapturedAbstractBlockState;
 import org.spongepowered.api.block.entity.Bed;
 import org.spongepowered.api.data.Keys;
 
 public class SoakBedBlockEntity extends AbstractBlockState<Bed> implements org.bukkit.block.Bed {
     public SoakBedBlockEntity(Bed blockEntity) {
         super(blockEntity);
+    }
+
+    @Override
+    public CapturedAbstractBlockState<?> asSnapshot() {
+        throw NotImplementedException.createByLazy(org.bukkit.block.Bed.class, "asSnapshot");
     }
 
     @Override

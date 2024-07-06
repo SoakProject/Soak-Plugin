@@ -16,6 +16,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.soak.impl.data.sponge.SoakKeys;
 import org.soak.map.SoakDirectionMap;
 import org.soak.map.SoakMessageMap;
@@ -58,18 +59,22 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
         this.entity = entity;
     }
 
+    public static AbstractEntity<? extends org.spongepowered.api.entity.Entity> wrapEntity(org.spongepowered.api.entity.Entity entity) {
+        if (entity instanceof ServerPlayer) {
+            return SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) entity);
+        }
+        if (entity instanceof FireworkRocket) {
+            return new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), (FireworkRocket) entity);
+        }
+        return new SoakEntity<>(Sponge.systemSubject(), Sponge.systemSubject(), entity);
+    }
+
     public static <E extends Living> AbstractLivingEntity<E> wrap(E living) {
         return (AbstractLivingEntity<E>) (Object) wrap((org.spongepowered.api.entity.Entity) living);
     }
 
     public static <E extends org.spongepowered.api.entity.Entity> AbstractEntity<E> wrap(E entity) {
-        if (entity instanceof ServerPlayer) {
-            return (AbstractEntity<E>) (Object) SoakPlugin.plugin().getMemoryStore().get((ServerPlayer) entity);
-        }
-        if (entity instanceof FireworkRocket) {
-            return (AbstractEntity<E>) new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), (FireworkRocket) entity);
-        }
-        return new SoakEntity<>(Sponge.systemSubject(), Sponge.systemSubject(), entity);
+        return (AbstractEntity<E>) wrapEntity(entity);
     }
 
     public E spongeEntity() {
@@ -272,12 +277,12 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public boolean isSneaking() {
-        throw NotImplementedException.createByLazy(Entity.class, "isSneaking");
+        return this.entity.get(Keys.IS_SNEAKING).orElse(false);
     }
 
     @Override
     public void setSneaking(boolean b) {
-        throw NotImplementedException.createByLazy(Entity.class, "setSneaking", boolean.class);
+        this.entity.offer(Keys.IS_SNEAKING, b);
     }
 
     @Override
@@ -378,7 +383,8 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull List<Entity> getNearbyEntities(double x, double y, double z) {
-        return new LinkedList<>(this.getWorld().getNearbyEntities(getLocation(), x, y, z));
+        var near = this.getWorld().getNearbyEntities(getLocation(), x, y, z);
+        return CollectionStreamBuilder.builder().<Entity, Entity>collection(near, t -> t).basicMap(t -> t).buildList();
     }
 
     @Override
@@ -434,7 +440,13 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
 
     @Override
     public @NotNull List<Entity> getPassengers() {
-        return this.entity.get(Keys.PASSENGERS).stream().flatMap(Collection::stream).map(AbstractEntity::wrap).collect(Collectors.toList());
+        List<org.spongepowered.api.entity.Entity> spongeEntities = this.entity.get(Keys.PASSENGERS).orElse(List.of());
+        return CollectionStreamBuilder
+                .builder()
+                .collection(spongeEntities)
+                .basicMap(spongeEntity -> (Entity)AbstractEntity.wrap(spongeEntity))
+                .withFirstIndexOf(soakEntity -> spongeEntities.indexOf(((AbstractEntity<?>) soakEntity).entity))
+                .buildList();
     }
 
     @Override

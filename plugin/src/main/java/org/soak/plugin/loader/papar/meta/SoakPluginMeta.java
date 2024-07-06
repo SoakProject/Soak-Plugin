@@ -3,14 +3,18 @@ package org.soak.plugin.loader.papar.meta;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
+import org.bukkit.plugin.PluginAwareness;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoadOrder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.plugin.SoakPlugin;
+import org.spongepowered.plugin.PluginContainer;
+import org.spongepowered.plugin.metadata.model.PluginContributor;
+import org.spongepowered.plugin.metadata.model.PluginDependency;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.net.URL;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SoakPluginMeta implements PluginMeta {
@@ -121,5 +125,32 @@ public class SoakPluginMeta implements PluginMeta {
     @Override
     public @Nullable String getAPIVersion() {
         return this.apiVersion;
+    }
+
+    public PluginDescriptionFile toDescription(){
+            String id = this.getName().toLowerCase().replaceAll(" ", "_");
+            String name = this.getName();
+            List<String> providers = new LinkedList<>();
+            String main = this.getMainClass();
+            String classLoaderOf = "";
+            List<String> depends = this.getPluginDependencies();
+            List<String> softDepends = this.getPluginSoftDependencies();
+            List<String> loadBefore = this.getLoadBeforePlugins();
+            String version = this.getVersion();
+            Map<String, Map<String, Object>> commands = new HashMap<>();
+            String description = this.getDescription();
+            List<String> authors = this.getAuthors();;
+            List<String> contributors = this.getContributors();
+            String website = this.getWebsite();
+            String prefix = id;
+            PluginLoadOrder order = PluginLoadOrder.STARTUP;
+            List<Permission> permissions = new LinkedList<>();
+            PermissionDefault permissionDefault = PermissionDefault.OP;
+            Set<PluginAwareness> awareness = new HashSet<>();
+            String apiVersion = SoakPlugin.server().getMinecraftVersion();
+            List<String> libraries = new LinkedList<>();
+
+            return new PluginDescriptionFile(id, name, providers, main, classLoaderOf, depends, softDepends, loadBefore, version, commands, description, authors, contributors, website, prefix, order, permissions, permissionDefault, awareness, apiVersion, libraries);
+
     }
 }

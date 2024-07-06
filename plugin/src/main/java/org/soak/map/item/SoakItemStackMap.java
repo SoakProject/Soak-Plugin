@@ -12,6 +12,7 @@ import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.api.tag.ItemTypeTags;
 
 import java.util.function.Function;
 
@@ -100,6 +101,9 @@ public class SoakItemStackMap {
         }
         if (type.equals(ItemTypes.PLAYER_HEAD.get()) || container.supports(Keys.SKIN_PROFILE_PROPERTY)) {
             return new SoakSkullMeta(container);
+        }
+        if(type.equals(ItemTypes.LEATHER_BOOTS) || type.equals(ItemTypes.LEATHER_CHESTPLATE) || type.equals(ItemTypes.LEATHER_HELMET) || type.equals(ItemTypes.LEATHER_LEGGINGS)){
+            return new SoakLeatherArmorMeta(container);
         }
         return new SoakItemMeta(container);
     }

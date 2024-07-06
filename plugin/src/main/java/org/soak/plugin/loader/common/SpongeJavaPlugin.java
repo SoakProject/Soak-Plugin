@@ -32,20 +32,13 @@ public class SpongeJavaPlugin implements Plugin {
         this.container = container;
     }
 
-    @Override
-    public @NotNull File getDataFolder() {
-        return Sponge.configManager().pluginConfig(this.container).directory().toFile();
-    }
-
-    @Override
-    public @NotNull PluginDescriptionFile getDescription() {
-        String id = this.container.metadata().id();
-        String name = this.container.metadata().name().orElse(id);
+    public static PluginDescriptionFile createDescription(PluginContainer container) {
+        String id = container.metadata().id();
+        String name = container.metadata().name().orElse(id);
         List<String> providers = new LinkedList<>();
-        String main = this.container.metadata().entrypoint();
+        String main = container.metadata().entrypoint();
         String classLoaderOf = "";
-        List<String> depends = this
-                .container
+        List<String> depends = container
                 .metadata()
                 .dependencies()
                 .stream()
@@ -53,8 +46,7 @@ public class SpongeJavaPlugin implements Plugin {
                 .filter(pluginDependency -> pluginDependency.loadOrder() == PluginDependency.LoadOrder.AFTER)
                 .map(PluginDependency::id)
                 .toList();
-        List<String> softDepends = this
-                .container
+        List<String> softDepends = container
                 .metadata()
                 .dependencies()
                 .stream()
@@ -62,20 +54,19 @@ public class SpongeJavaPlugin implements Plugin {
                 .filter(pluginDependency -> pluginDependency.loadOrder() == PluginDependency.LoadOrder.AFTER)
                 .map(PluginDependency::id)
                 .toList();
-        List<String> loadBefore = this
-                .container
+        List<String> loadBefore = container
                 .metadata()
                 .dependencies()
                 .stream()
                 .filter(pluginDependency -> pluginDependency.loadOrder() == PluginDependency.LoadOrder.BEFORE)
                 .map(PluginDependency::id)
                 .toList();
-        String version = this.container.metadata().version().toString();
+        String version = container.metadata().version().toString();
         Map<String, Map<String, Object>> commands = new HashMap<>();
-        String description = this.container.metadata().description().orElse(null);
-        List<String> authors = this.container.metadata().contributors().stream().filter(pc -> pc.description().isPresent()).map(PluginContributor::name).toList();
-        List<String> contributors = this.container.metadata().contributors().stream().filter(pc -> pc.description().isEmpty()).map(PluginContributor::name).toList();
-        String website = this.container.metadata().links().homepage().map(URL::toString).orElse(null);
+        String description = container.metadata().description().orElse(null);
+        List<String> authors = container.metadata().contributors().stream().filter(pc -> pc.description().isPresent()).map(PluginContributor::name).toList();
+        List<String> contributors = container.metadata().contributors().stream().filter(pc -> pc.description().isEmpty()).map(PluginContributor::name).toList();
+        String website = container.metadata().links().homepage().map(URL::toString).orElse(null);
         String prefix = id;
         PluginLoadOrder order = PluginLoadOrder.STARTUP;
         List<Permission> permissions = new LinkedList<>();
@@ -85,6 +76,16 @@ public class SpongeJavaPlugin implements Plugin {
         List<String> libraries = new LinkedList<>();
 
         return new PluginDescriptionFile(id, name, providers, main, classLoaderOf, depends, softDepends, loadBefore, version, commands, description, authors, contributors, website, prefix, order, permissions, permissionDefault, awareness, apiVersion, libraries);
+    }
+
+    @Override
+    public @NotNull File getDataFolder() {
+        return Sponge.configManager().pluginConfig(this.container).directory().toFile();
+    }
+
+    @Override
+    public @NotNull PluginDescriptionFile getDescription() {
+        return createDescription(this.container);
     }
 
     @Override

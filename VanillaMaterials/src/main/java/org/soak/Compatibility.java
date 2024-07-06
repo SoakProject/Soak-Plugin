@@ -14,6 +14,6 @@ public class Compatibility {
     }
 
     public ArtifactVersion getTargetMinecraftVersion() {
-        return new DefaultArtifactVersion("1.16.5");
+        return new DefaultArtifactVersion("1.19.4");
     }
 }

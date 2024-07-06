@@ -5,6 +5,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.chat.BaseComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -17,6 +19,7 @@ import org.bukkit.inventory.meta.tags.CustomItemTagContainer;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.item.SoakEnchantmentTypeMap;
 import org.soak.map.item.SoakItemFlagMap;
@@ -28,6 +31,7 @@ import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Key;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.ListValue;
+import org.spongepowered.api.data.value.SetValue;
 import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.data.value.ValueContainer;
 import org.spongepowered.api.entity.Entity;
@@ -125,6 +129,20 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     }
 
     protected <T> void setList(@NotNull Key<ListValue<T>> key, @Nullable List<T> value) {
+        if (value == null) {
+            remove(key);
+            return;
+        }
+        if (this.container instanceof DataHolder.Mutable) {
+            ((DataHolder.Mutable) this.container).offer(key, value);
+            return;
+        }
+        this.container = ((DataHolder.Immutable<?>) this.container).with(key, value)
+                .orElseThrow(() -> new RuntimeException("Key of " + key.key()
+                        .formatted() + " is not supported with ItemStackSnapshot"));
+    }
+
+    protected <T> void setSet(@NotNull Key<SetValue<T>> key, @Nullable Set<T> value) {
         if (value == null) {
             remove(key);
             return;
@@ -241,7 +259,11 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
         if (list == null) {
             return null;
         }
-        return list.stream().map(SoakMessageMap::mapToBukkit).collect(Collectors.toList());
+        return CollectionStreamBuilder
+                .builder()
+                .<Component, String>collection(list, SoakMessageMap::toComponent)
+                .basicMap(SoakMessageMap::mapToBukkit)
+                .buildList();
     }
 
     @Override
@@ -476,22 +498,22 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public Set<Material> getCanDestroy() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getCanDestroy");
+        return this.container.get(Keys.BREAKABLE_BLOCK_TYPES).orElse(Set.of()).stream().map(Material::getBlockMaterial).collect(Collectors.toSet());
     }
 
     @Override
     public void setCanDestroy(Set<Material> canDestroy) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "setCanDestroy", Set.class);
+        setSet(Keys.BREAKABLE_BLOCK_TYPES, canDestroy.stream().map(mat -> mat.asBlock()).filter(op -> op.isPresent()).map(op -> op.get()).collect(Collectors.toSet()));
     }
 
     @Override
     public Set<Material> getCanPlaceOn() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "getCanPlaceOn");
+        return this.container.get(Keys.PLACEABLE_BLOCK_TYPES).orElse(Set.of()).stream().map(Material::getBlockMaterial).collect(Collectors.toSet());
     }
 
     @Override
     public void setCanPlaceOn(Set<Material> canPlaceOn) {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "setCanPlaceOn", Set.class);
+        setSet(Keys.PLACEABLE_BLOCK_TYPES, canPlaceOn.stream().map(mat -> mat.asBlock()).filter(op -> op.isPresent()).map(op -> op.get()).collect(Collectors.toSet()));
     }
 
     @Override
@@ -517,17 +539,23 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public boolean hasPlaceableKeys() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "hasPlaceableKeys");
+        return this.container.get(Keys.PLACEABLE_BLOCK_TYPES).isPresent();
     }
 
     @Override
     public boolean hasDestroyableKeys() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "hasDestroyableKeys");
+        return this.container.get(Keys.BREAKABLE_BLOCK_TYPES).isPresent();
     }
 
     @Override
     public @NotNull Map<String, Object> serialize() {
-        throw NotImplementedException.createByLazy(ItemMeta.class, "serialize");
+        var container = this.asSnapshot().orElseGet(() -> this.asStack().map(ItemStack::createSnapshot).orElseThrow(() -> new IllegalStateException("Unknown mapping"))).toContainer();
+        return container
+                .values(true)
+                .entrySet()
+                .stream()
+                .map(entry -> Map.entry(entry.getKey().asString('.'), entry.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override

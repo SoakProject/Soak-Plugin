@@ -11,6 +11,7 @@ import org.soak.map.SoakColourMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.block.state.AbstractBlockState;
+import org.soak.wrapper.block.state.capture.CapturedAbstractBlockState;
 import org.spongepowered.api.block.entity.Sign;
 import org.spongepowered.api.data.Keys;
 
@@ -20,6 +21,11 @@ public class SoakSignBlockEntity extends AbstractBlockState<Sign> implements org
 
     public SoakSignBlockEntity(Sign blockEntity) {
         super(blockEntity);
+    }
+
+    @Override
+    public CapturedAbstractBlockState<?> asSnapshot() {
+        return new SoakSignBlockEntityCapture(this);
     }
 
     @Override
