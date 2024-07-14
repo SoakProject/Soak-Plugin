@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.soak.map.item.SoakItemStackMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.inventory.meta.AbstractItemMeta;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.inventory.ItemStackComparators;

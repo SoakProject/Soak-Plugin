@@ -23,7 +23,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.Constants;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
 import org.soak.wrapper.entity.SoakAttributable;

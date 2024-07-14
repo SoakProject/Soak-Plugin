@@ -9,7 +9,7 @@ import org.bukkit.inventory.InventoryView;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakMessageMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.item.inventory.Container;
 import org.spongepowered.api.item.inventory.menu.InventoryMenu;
 

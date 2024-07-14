@@ -1,4 +1,4 @@
-package org.soak.plugin.exception.loading;
+package org.soak.exception.loading;
 
 public class InvalidEntrypointException extends IllegalStateException {
 

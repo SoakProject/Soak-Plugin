@@ -14,8 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import org.soak.Constants;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
-import org.soak.wrapper.block.data.AbstractBlockData;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
@@ -30,7 +29,6 @@ import org.spongepowered.api.tag.ItemTypeTags;
 import org.spongepowered.api.tag.Tag;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -1446,7 +1444,7 @@ public enum Material implements Keyed {
     public static @Nullable Material getMaterial(@NotNull String name) {
         try {
             return valueOf(name);
-        } catch (NoSuchElementException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -1682,4 +1680,4 @@ public enum Material implements Keyed {
                 .orElse(false);
     }
 
-    }
+}

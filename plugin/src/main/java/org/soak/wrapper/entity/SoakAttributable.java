@@ -5,7 +5,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 
 public interface SoakAttributable extends Attributable {
 

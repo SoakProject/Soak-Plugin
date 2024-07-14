@@ -19,7 +19,7 @@ import org.bukkit.util.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockState;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;

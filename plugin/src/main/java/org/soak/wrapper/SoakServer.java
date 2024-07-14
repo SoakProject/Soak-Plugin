@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.SpawnCategory;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.generator.structure.Structure;
 import org.bukkit.help.HelpMap;
 import org.bukkit.inventory.*;
 import org.bukkit.loot.LootTable;
@@ -37,23 +38,23 @@ import org.bukkit.util.CachedServerIcon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mose.collection.stream.builder.CollectionStreamBuilder;
+import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakGameModeMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.item.SoakRecipeMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
-import org.soak.plugin.utils.Singleton;
-import org.soak.plugin.utils.Unfinal;
-import org.soak.plugin.utils.log.CustomLoggerFormat;
 import org.soak.utils.*;
+import org.soak.utils.log.CustomLoggerFormat;
+import org.soak.wrapper.command.SoakCommandMap;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.entity.living.human.user.SoakLoadingUser;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
+import org.soak.wrapper.plugin.messaging.SoakMessenger;
 import org.soak.wrapper.profile.SoakPlayerProfile;
 import org.soak.wrapper.scheduler.SoakBukkitScheduler;
 import org.soak.wrapper.world.SoakWorld;
@@ -74,35 +75,62 @@ import org.spongepowered.api.tag.EntityTypeTags;
 import org.spongepowered.api.tag.FluidTypeTags;
 import org.spongepowered.api.tag.ItemTypeTags;
 import org.spongepowered.api.world.DefaultWorldKeys;
-import org.spongepowered.api.world.SerializationBehavior;
 import org.spongepowered.api.world.server.ServerWorld;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class SoakServer implements SimpServer {
+public abstract class SoakServer implements SimpServer {
 
     private final Supplier<org.spongepowered.api.Server> serverSupplier;
+    private final Singleton<SoakMessenger> messenger = new Singleton<>(() -> new SoakMessenger(Sponge.channelManager()));
     private final Singleton<SoakPluginManager> pluginManager = new Singleton<>(() -> new SoakPluginManager(Sponge::pluginManager));
     private final Singleton<SoakUnsafeValues> unsafeValues = new Singleton<>(SoakUnsafeValues::new);
     private final Singleton<SoakItemFactory> itemFactory = new Singleton<>(SoakItemFactory::new);
     private final Singleton<SoakBukkitScheduler> scheduler = new Singleton<>(SoakBukkitScheduler::new);
     private final Singleton<SimpleServicesManager> servicesManager = new Singleton<>(SimpleServicesManager::new);
+    private final Singleton<SoakCommandMap> commandMap = new Singleton<>(SoakCommandMap::new);
+    private final Singleton<SoakRegistry<org.spongepowered.api.world.generation.structure.Structure, Structure>> structureReg = new Singleton<>(() -> new SoakRegistry<>(RegistryTypes.STRUCTURE, Structure.class, t -> null));
+    private final Singleton<SoakRegistry<org.spongepowered.api.world.generation.structure.StructureType, org.bukkit.generator.structure.StructureType>> structureTypeReg = new Singleton<>(() -> new SoakRegistry<>(RegistryTypes.STRUCTURE_TYPE, org.bukkit.generator.structure.StructureType.class, t -> null));
+    private final Singleton<Map<Class<?>, Registry<?>>> registries = new Singleton<>(() -> Arrays
+            .stream(Registry.class.getDeclaredFields())
+            .filter(field -> Modifier.isFinal(field.getModifiers()))
+            .filter(field -> Modifier.isPublic(field.getModifiers()))
+            .filter(field -> Modifier.isStatic(field.getModifiers()))
+            .filter(field -> Registry.class.isAssignableFrom(field.getType()))
+            .map(field -> {
+                try {
+                    var reg = (Registry<?>) field.get(null);
+                    return reg;
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .filter(Objects::nonNull)
+            .filter(reg -> !(reg instanceof SoakRegistry<?, ?>))
+            .collect(Collectors.toMap(reg -> {
+                if (reg instanceof Registry.SimpleRegistry simpleReg) {
+                    var first = simpleReg.iterator().next();
+                    return first.getClass();
+                }
+                var generic = (ParameterizedType) reg.getClass().getGenericInterfaces()[0];
+                return (Class<?>) generic.getActualTypeArguments()[0];
+            }, reg -> reg)));
 
-    private final Collection<Recipe> recipes = new LinkedTransferQueue<>();
     private final java.util.logging.Logger logger;
 
     public SoakServer(Supplier<org.spongepowered.api.Server> serverSupplier) {
@@ -206,6 +234,12 @@ public class SoakServer implements SimpServer {
         return null;
     }
 
+    public void syncCommands() {
+        //Craftbukkit public method to reregister all commands and apply to all players
+        var commandManager = this.spongeServer().commandManager();
+        this.spongeServer().streamOnlinePlayers().forEach(player -> commandManager.updateCommandTreeForPlayer(player));
+    }
+
     @Override
     public @NotNull Spigot spigot() {
         throw NotImplementedException.createByLazy(Server.class, "spigot");
@@ -287,7 +321,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull String getIp() {
-       return this.spongeServer().boundAddress().map(ip -> ip.getAddress().toString()).orElseThrow(() -> new IllegalStateException("Cannot get ip"));
+        return this.spongeServer().boundAddress().map(ip -> ip.getAddress().toString()).orElseThrow(() -> new IllegalStateException("Cannot get ip"));
     }
 
     @Override
@@ -377,14 +411,14 @@ public class SoakServer implements SimpServer {
                             .stream(futures)
                             .map(future -> {
                                 try {
-                                    return (Optional<User>)future.get();
+                                    return (Optional<User>) future.get();
                                 } catch (InterruptedException | ExecutionException e) {
-                                     throw new RuntimeException(e);
+                                    throw new RuntimeException(e);
                                 }
                             })
                             .filter(Optional::isPresent)
                             .map(Optional::get)
-                            .map(user -> (OfflinePlayer)new SoakOfflinePlayer(user)).collect(Collectors.toSet()));
+                            .map(user -> (OfflinePlayer) new SoakOfflinePlayer(user)).collect(Collectors.toSet()));
         });
         try {
             return futurePlayers.get();
@@ -511,8 +545,8 @@ public class SoakServer implements SimpServer {
 
     @Override
     public boolean unloadWorld(@NotNull World world, boolean save) {
-        var spongeWorld = ((SoakWorld)world).sponge();
-        if(save){
+        var spongeWorld = ((SoakWorld) world).sponge();
+        if (save) {
             try {
                 spongeWorld.save();
             } catch (IOException e) {
@@ -660,7 +694,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public boolean removeRecipe(@NotNull NamespacedKey key) {
-        throw NotImplementedException.createByLazy(SoakServer.class, "removeRecipe", NamespacedKey.class);
+        throw NotImplementedException.createByLazy(Server.class, "removeRecipe", NamespacedKey.class);
     }
 
     @Override
@@ -863,7 +897,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull Messenger getMessenger() {
-        throw NotImplementedException.createByLazy(Server.class, "getMessenger");
+        return this.messenger.get();
     }
 
     @Override
@@ -1116,7 +1150,7 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @NotNull CommandMap getCommandMap() {
-        throw NotImplementedException.createByLazy(Server.class, "getCommandMap");
+        return this.commandMap.get();
     }
 
     @Override
@@ -1172,7 +1206,14 @@ public class SoakServer implements SimpServer {
 
     @Override
     public @Nullable <T extends Keyed> Registry<T> getRegistry(@NotNull Class<T> aClass) {
-        throw NotImplementedException.createByLazy(Server.class, "getRegistry", Class.class);
+        if (aClass.isAssignableFrom(Structure.class)) {
+            return (Registry<T>) structureReg.get();
+        }
+        if (aClass.isAssignableFrom(org.bukkit.generator.structure.StructureType.class)) {
+            return (Registry<T>) structureTypeReg.get();
+        }
+        return (Registry<T>) this.registries.get().get(aClass);
+
     }
 
     @Override

@@ -7,7 +7,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.SoakOfflinePlayer;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.data.value.ValueContainer;

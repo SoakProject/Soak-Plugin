@@ -9,18 +9,13 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.soak.map.SoakLocationMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.profile.SoakPlayerProfile;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.profile.GameProfile;
-import org.spongepowered.api.util.RespawnLocation;
 
-import java.time.Instant;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 

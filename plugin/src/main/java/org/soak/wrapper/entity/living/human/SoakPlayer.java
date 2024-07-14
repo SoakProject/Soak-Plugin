@@ -30,12 +30,12 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scoreboard.Scoreboard;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakLocationMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.SoakSoundMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
 import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakInventoryView;
@@ -65,6 +65,16 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     public SoakPlayer(ServerPlayer entity) {
         super(entity, entity, entity);
         id = entity.uniqueId();
+    }
+
+    @Override
+    public boolean discoverRecipe(@NotNull NamespacedKey key) {
+        var opRecipe = Sponge.server().recipeManager().byKey(SoakResourceKeyMap.mapToSponge(key));
+        if(opRecipe.isEmpty()){
+            return false;
+        }
+        var recipe = opRecipe.get();
+        throw NotImplementedException.createByLazy(Player.class, "discoverRecipe", NamespacedKey.class);
     }
 
     @Override
@@ -402,12 +412,12 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public boolean isFlying() {
-        throw NotImplementedException.createByLazy(Player.class, "isFlying");
+        return this.spongeEntity().get(Keys.IS_FLYING).orElse(false);
     }
 
     @Override
     public void setFlying(boolean arg0) {
-        throw NotImplementedException.createByLazy(Player.class, "setFlying", boolean.class);
+        this.spongeEntity().offer(Keys.IS_FLYING, arg0);
     }
 
     @Override
@@ -1040,27 +1050,28 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public boolean isConversing() {
-        return false;
+        throw NotImplementedException.createByLazy(Player.class, "isConversing");
+
     }
 
     @Override
     public void acceptConversationInput(@NotNull String input) {
-
+        throw NotImplementedException.createByLazy(Player.class, "acceptConversationInput", String.class);
     }
 
     @Override
     public boolean beginConversation(@NotNull Conversation conversation) {
-        return false;
+        throw NotImplementedException.createByLazy(Player.class, "beginConversation", Conversation.class);
     }
 
     @Override
     public void abandonConversation(@NotNull Conversation conversation) {
-
+        throw NotImplementedException.createByLazy(Player.class, "abandonConversation", Conversation.class);
     }
 
     @Override
     public void abandonConversation(@NotNull Conversation conversation, @NotNull ConversationAbandonedEvent details) {
-
+        throw NotImplementedException.createByLazy(Player.class, "abandonConversation", Conversation.class, ConversationAbandonedEvent.class);
     }
 
     @Override
@@ -1070,17 +1081,19 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void sendRawMessage(@Nullable UUID sender, @NotNull String message) {
+        throw NotImplementedException.createByLazy(Player.class, "sendRawMessage", UUID.class, String.class);
 
     }
 
     @Override
     public void kick(Component arg0) {
-        throw NotImplementedException.createByLazy(Player.class, "kick", Component.class);
+        this.spongeEntity().kick(arg0);
     }
 
     @Override
     public void kick(Component arg0, @NotNull PlayerKickEvent.Cause arg1) {
-        throw NotImplementedException.createByLazy(Player.class, "kick", Component.class, Cause.class);
+        //what does the cause do?
+        kick(arg0);
     }
 
     @Override
@@ -1206,22 +1219,24 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void playSound(@NotNull Entity entity, @NotNull Sound sound, float v, float v1) {
-
+        throw NotImplementedException.createByLazy(Player.class, "playSound", Entity.class, Sound.class, float.class, float.class);
     }
 
     @Override
     public void playSound(@NotNull Entity entity, @NotNull String s, float v, float v1) {
+        throw NotImplementedException.createByLazy(Player.class, "playSound", Entity.class, String.class, float.class, float.class);
 
     }
 
     @Override
     public void playSound(@NotNull Entity entity, @NotNull Sound sound, @NotNull SoundCategory soundCategory, float v, float v1) {
+        throw NotImplementedException.createByLazy(Player.class, "playSound", Entity.class, Sound.class, SoundCategory.class, float.class, float.class);
 
     }
 
     @Override
     public void playSound(@NotNull Entity entity, @NotNull String s, @NotNull SoundCategory soundCategory, float v, float v1) {
-
+        throw NotImplementedException.createByLazy(Player.class, "playSound", Entity.class, String.class, SoundCategory.class, float.class, float.class);
     }
 
     @Override
@@ -1267,12 +1282,12 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void stopSound(@NotNull SoundCategory soundCategory) {
-
+        throw NotImplementedException.createByLazy(Player.class, "stopSound", SoundCategory.class);
     }
 
     @Override
     public void stopAllSounds() {
-
+        throw NotImplementedException.createByLazy(Player.class, "stopAllSounds");
     }
 
     @Deprecated
@@ -1283,7 +1298,8 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public boolean breakBlock(@NotNull Block block) {
-        return false;
+        throw NotImplementedException.createByLazy(Player.class, "breakBlock", Block.class);
+
     }
 
     @Override
@@ -1302,7 +1318,7 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void sendBlockChanges(@NotNull Collection<BlockState> collection, boolean b) {
-
+        throw NotImplementedException.createByLazy(Player.class, "sendBlockChange", Collection.class, boolean.class);
     }
 
     @Deprecated
@@ -1322,32 +1338,36 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void sendMultiBlockChange(@NotNull Map<? extends Position, BlockData> map, boolean b) {
+        throw NotImplementedException.createByLazy(Player.class, "sendMultiBlockChange", Map.class, boolean.class);
 
     }
 
     @Override
     public void sendBlockDamage(@NotNull Location location, float v, @NotNull Entity entity) {
+        throw NotImplementedException.createByLazy(Player.class, "sendBlockDamage", Location.class, float.class, Entity.class);
 
     }
 
     @Override
     public void sendBlockDamage(@NotNull Location location, float v, int i) {
-
+        throw NotImplementedException.createByLazy(Player.class, "sendBlockDamage", float.class, int.class);
     }
 
     @Override
     public void sendEquipmentChange(@NotNull LivingEntity livingEntity, @NotNull EquipmentSlot equipmentSlot, @Nullable ItemStack itemStack) {
+        throw NotImplementedException.createByLazy(Player.class, "sendEquipmentChange", LivingEntity.class, EquipmentSlot.class, ItemStack.class);
 
     }
 
     @Override
     public void sendEquipmentChange(@NotNull LivingEntity livingEntity, @NotNull Map<EquipmentSlot, ItemStack> map) {
+        throw NotImplementedException.createByLazy(Player.class, "sendEquipmentChange", Map.class);
 
     }
 
     @Override
     public void sendSignChange(@NotNull Location location, @Nullable List<? extends Component> list, @NotNull DyeColor dyeColor, boolean b) throws IllegalArgumentException {
-
+        throw NotImplementedException.createByLazy(Player.class, "sendSignChange", Location.class, List.class, DyeColor.class, boolean.class);
     }
 
     @Deprecated
@@ -1382,7 +1402,7 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void sendSignChange(@NotNull Location location, @Nullable String[] strings, @NotNull DyeColor dyeColor, boolean b) throws IllegalArgumentException {
-
+        throw NotImplementedException.createByLazy(Player.class, "sendSignChange", Location.class, String[].class, DyeColor.class, boolean.class);
     }
 
     @Deprecated
@@ -1403,17 +1423,17 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void showWinScreen() {
-
+        throw NotImplementedException.createByLazy(Player.class, "showWinScreen");
     }
 
     @Override
     public boolean hasSeenWinScreen() {
-        return false;
+        throw NotImplementedException.createByLazy(Player.class, "hasSeenWinScreen");
     }
 
     @Override
     public void setHasSeenWinScreen(boolean b) {
-
+        throw NotImplementedException.createByLazy(Player.class, "setHasSeenWinScreen", boolean.class);
     }
 
     @Deprecated
@@ -1525,22 +1545,22 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void sendHurtAnimation(float v) {
-
+        throw NotImplementedException.createByLazy(Player.class, "sendHurtAnimation", float.class);
     }
 
     @Override
     public void addCustomChatCompletions(@NotNull Collection<String> collection) {
-
+        throw NotImplementedException.createByLazy(Player.class, "addCustomChatCompletions", Collection.class);
     }
 
     @Override
     public void removeCustomChatCompletions(@NotNull Collection<String> collection) {
-
+        throw NotImplementedException.createByLazy(Player.class, "removeCustomChatCompletions", Collection.class);
     }
 
     @Override
     public void setCustomChatCompletions(@NotNull Collection<String> collection) {
-
+        throw NotImplementedException.createByLazy(Player.class, "setCustomChatCompletions", Collection.class);
     }
 
     @Override
@@ -1550,7 +1570,7 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public @Nullable GameMode getPreviousGameMode() {
-        return null;
+        throw NotImplementedException.createByLazy(Player.class, "getPreviousGameMode");
     }
 
     @Override
@@ -1595,12 +1615,12 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public int getExpCooldown() {
-        return 0;
+        throw NotImplementedException.createByLazy(Player.class, "getExpCooldown");
     }
 
     @Override
     public void setExpCooldown(int i) {
-
+        throw NotImplementedException.createByLazy(Player.class, "setExpCooldown", int.class);
     }
 
     @Override
@@ -1635,22 +1655,23 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public boolean getAllowFlight() {
-        throw NotImplementedException.createByLazy(Player.class, "getAllowFlight");
+        return this.spongeEntity().get(Keys.CAN_FLY).orElse(false);
     }
 
     @Override
     public void setAllowFlight(boolean arg0) {
-        throw NotImplementedException.createByLazy(Player.class, "setAllowFlight", boolean.class);
+        this.spongeEntity().offer(Keys.CAN_FLY, arg0);
     }
 
     @Override
     public void setFlyingFallDamage(@NotNull TriState triState) {
+        throw NotImplementedException.createByLazy(Player.class, "setFlyingFallDamage", TriState.class);
 
     }
 
     @Override
     public @NotNull TriState hasFlyingFallDamage() {
-        return null;
+        throw NotImplementedException.createByLazy(Player.class, "hasFlyingFallDamage");
     }
 
     @Deprecated

@@ -49,6 +49,7 @@ public class SoakPluginWrapper {
 
     @Listener
     public void onPluginLoad(StartingEngineEvent<Server> event) {
+        this.pluginContainer.logger().warn("On Engine starting");
         Plugin plugin = this.pluginContainer.plugin();
         try {
             plugin.onLoad();
@@ -63,6 +64,7 @@ public class SoakPluginWrapper {
     //using StartedEngineEvent despite the timing known to be incorrect
     @Listener
     public void onPluginEnable(StartedEngineEvent<Server> event) {
+        this.pluginContainer.logger().warn("On Engine started");
         Plugin plugin = this.pluginContainer.plugin();
         try {
             plugin.onEnable();

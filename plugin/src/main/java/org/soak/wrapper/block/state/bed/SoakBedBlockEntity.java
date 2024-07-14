@@ -4,7 +4,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakColourMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.state.AbstractBlockState;
 import org.soak.wrapper.block.state.capture.CapturedAbstractBlockState;
 import org.spongepowered.api.block.entity.Bed;

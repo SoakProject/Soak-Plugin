@@ -1,4 +1,4 @@
-package org.soak.plugin.utils;
+package org.soak.utils;
 
 public class Unfinal<T> {
 

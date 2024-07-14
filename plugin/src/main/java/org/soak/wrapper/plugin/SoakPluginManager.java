@@ -15,16 +15,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.mosestream.MoseStream;
+import org.soak.exception.NotImplementedException;
 import org.soak.impl.event.EventSingleListenerWrapper;
+import org.soak.map.SoakMessageMap;
+import org.soak.map.SoakPermissionMap;
 import org.soak.map.event.EventClassMapping;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.loader.common.SpongeJavaPlugin;
 import org.soak.plugin.loader.papar.SoakPluginProviderContext;
+import org.soak.utils.GenericHelper;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.service.permission.PermissionService;
+import org.spongepowered.api.util.Tristate;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +36,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
@@ -123,7 +128,7 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
     }
 
     public @Nullable JavaPlugin getPlugin(PluginMeta meta) {
-        return this.loaders.get(meta);
+        return this.loaders.entrySet().stream().filter(entry -> entry.getValue().getName().equals(meta.getName())).findAny().map(Map.Entry::getValue).orElse(null);
     }
 
     @Override
@@ -163,7 +168,18 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
     @SuppressWarnings("unchecked")
     public <T extends Event> void callEvent(EventSingleListenerWrapper<?> wrapper, T event, EventPriority priority) {
-        ((EventSingleListenerWrapper<T>) wrapper).invoke(event, priority);
+        try {
+            ((EventSingleListenerWrapper<T>) wrapper).invoke(event, priority);
+        } catch (Exception e) {
+            SoakPlugin
+                    .plugin()
+                    .displayError(e,
+                            wrapper.plugin(),
+                            Map.entry("Event", wrapper.event().getSimpleName()),
+                            Map.entry("PluginListener", wrapper.listener().getClass().getSimpleName()),
+                            Map.entry("Priority", wrapper.priority().name()),
+                            Map.entry("Ignore if cancelled", wrapper.ignoreCancelled() + ""));
+        }
     }
 
     @Override
@@ -240,7 +256,20 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
     @Override
     public void addPermission(@NotNull Permission perm) {
-        throw NotImplementedException.createByLazy(SoakPluginManager.class, "addPermission", Permission.class);
+        permissionService().ifPresent(service -> {
+            var pluginContainer = GenericHelper.fromStackTrace();
+            Tristate permissionDefault = switch (perm.getDefault()) {
+                case TRUE -> Tristate.TRUE;
+                case FALSE -> Tristate.FALSE;
+                case OP -> Tristate.TRUE;
+                case NOT_OP -> Tristate.UNDEFINED;
+            };
+            service
+                    .newDescriptionBuilder(pluginContainer)
+                    .id(perm.getName())
+                    .description(SoakMessageMap.toComponent(perm.getDescription()))
+                    .defaultValue(permissionDefault).register();
+        });
     }
 
     @Override
@@ -342,12 +371,12 @@ public class SoakPluginManager implements org.bukkit.plugin.PluginManager {
 
     @Override
     public @NotNull Set<Permission> getPermissions() {
-        throw NotImplementedException.createByLazy(SoakPluginManager.class, "getPermissions", Set.class);
+        return this.permissionService().stream().flatMap(service -> service.descriptions().stream()).map(description -> SoakPermissionMap.toBukkit(description)).collect(Collectors.toSet());
     }
 
     @Override
     public void addPermissions(@NotNull List<Permission> list) {
-        throw NotImplementedException.createByLazy(PluginManager.class, "addPermissions");
+        list.forEach(permission -> addPermission(permission));
     }
 
     @Override

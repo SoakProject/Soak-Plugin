@@ -11,7 +11,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.data.SoakBlockData;
 import org.soak.wrapper.block.state.AbstractBlockSnapshotState;
 import org.soak.wrapper.block.state.AbstractBlockState;

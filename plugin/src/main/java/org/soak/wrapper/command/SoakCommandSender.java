@@ -18,7 +18,7 @@ import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakMessageMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.permissions.SoakPermissible;
 import org.spongepowered.api.service.permission.Subject;
 

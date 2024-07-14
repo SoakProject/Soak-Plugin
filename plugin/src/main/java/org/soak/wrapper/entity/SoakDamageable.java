@@ -2,11 +2,8 @@ package org.soak.wrapper.entity;
 
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.data.Keys;
-import org.spongepowered.api.event.cause.entity.damage.DamageType;
-import org.spongepowered.api.event.cause.entity.damage.DamageTypes;
-import org.spongepowered.api.event.cause.entity.damage.source.DamageSource;
 import org.spongepowered.api.event.cause.entity.damage.source.DamageSources;
 
 public interface SoakDamageable extends Damageable {

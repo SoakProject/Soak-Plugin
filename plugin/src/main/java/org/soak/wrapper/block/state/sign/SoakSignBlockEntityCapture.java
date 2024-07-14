@@ -8,7 +8,7 @@ import org.bukkit.block.sign.SignSide;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakMessageMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.state.capture.CapturedAbstractBlockState;
 import org.soak.wrapper.block.state.capture.CapturedBlockStateData;
 

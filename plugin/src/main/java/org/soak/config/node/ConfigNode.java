@@ -1,4 +1,4 @@
-package org.soak.plugin.config.node;
+package org.soak.config.node;
 
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;

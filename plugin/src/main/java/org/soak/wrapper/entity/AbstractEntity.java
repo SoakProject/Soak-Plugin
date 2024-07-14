@@ -17,12 +17,12 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.mose.collection.stream.builder.CollectionStreamBuilder;
+import org.soak.exception.NotImplementedException;
 import org.soak.impl.data.sponge.SoakKeys;
 import org.soak.map.SoakDirectionMap;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakVectorMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
 import org.soak.wrapper.command.SoakCommandSender;
 import org.soak.wrapper.entity.living.AbstractLivingEntity;
 import org.soak.wrapper.entity.projectile.SoakFirework;
@@ -36,6 +36,7 @@ import org.spongepowered.api.data.value.Value;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.entity.projectile.explosive.FireworkRocket;
+import org.spongepowered.api.entity.weather.LightningBolt;
 import org.spongepowered.api.service.permission.Subject;
 import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.util.Direction;
@@ -47,7 +48,6 @@ import org.spongepowered.math.vector.Vector3d;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Entity> extends SoakCommandSender implements Entity {
 
@@ -65,6 +65,9 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
         }
         if (entity instanceof FireworkRocket) {
             return new SoakFirework(Sponge.systemSubject(), Sponge.systemSubject(), (FireworkRocket) entity);
+        }
+        if (entity instanceof LightningBolt bolt) {
+            return new SoakLightningStrike(bolt);
         }
         return new SoakEntity<>(Sponge.systemSubject(), Sponge.systemSubject(), entity);
     }
@@ -444,7 +447,7 @@ public abstract class AbstractEntity<E extends org.spongepowered.api.entity.Enti
         return CollectionStreamBuilder
                 .builder()
                 .collection(spongeEntities)
-                .basicMap(spongeEntity -> (Entity)AbstractEntity.wrap(spongeEntity))
+                .basicMap(spongeEntity -> (Entity) AbstractEntity.wrap(spongeEntity))
                 .withFirstIndexOf(soakEntity -> spongeEntities.indexOf(((AbstractEntity<?>) soakEntity).entity))
                 .buildList();
     }

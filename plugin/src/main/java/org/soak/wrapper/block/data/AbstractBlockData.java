@@ -15,7 +15,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakMirrorMap;
 import org.soak.map.SoakRotationMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.data.type.BlockDataTypes;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.Keys;

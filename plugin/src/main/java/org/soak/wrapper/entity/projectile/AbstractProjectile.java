@@ -7,7 +7,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakProjectileSourceMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.entity.AbstractEntity;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.Entity;

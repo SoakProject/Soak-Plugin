@@ -1,6 +1,6 @@
 package org.soak.impl.data.type;
 
-import org.soak.plugin.utils.Singleton;
+import org.soak.utils.Singleton;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;

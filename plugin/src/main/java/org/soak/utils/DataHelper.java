@@ -1,4 +1,4 @@
-package org.soak.plugin.utils;
+package org.soak.utils;
 
 import org.spongepowered.api.data.DataHolder;
 import org.spongepowered.api.data.Key;

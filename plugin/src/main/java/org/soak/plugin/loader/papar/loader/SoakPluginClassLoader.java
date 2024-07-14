@@ -15,9 +15,12 @@ import org.soak.plugin.loader.papar.SoakPluginProviderContext;
 import org.soak.plugin.loader.papar.meta.SoakPluginMeta;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.zip.ZipFile;
 
 public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredPluginClassLoader {
 
@@ -47,12 +50,18 @@ public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredP
         logger.setUseParentHandlers(false);
         logger.addHandler(SoakPlugin.plugin().getConsole());
         try {
+            File pluginFile = this.context.getPluginSource().toFile();
             File configFile = new File(this.context.getDataDirectory().toFile(), "config.yml");
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configFile);
+            try {
+                copyYaml(configuration, pluginFile);
+            } catch (IOException e) {
+                //no default config
+            }
             applyValue("isEnabled", javaPlugin, true);
             //applyValue("loader", javaPlugin, this);
             applyValue("server", javaPlugin, Bukkit.getServer());
-            applyValue("file", javaPlugin, this.context.getPluginSource().toFile());
+            applyValue("file", javaPlugin, pluginFile);
             if (this.getConfiguration() instanceof PluginDescriptionFile pluginDescriptionFile) {
                 applyValue("description", javaPlugin, pluginDescriptionFile);
             } else if (this.getConfiguration() instanceof SoakPluginMeta meta) {
@@ -81,6 +90,22 @@ public class SoakPluginClassLoader extends URLClassLoader implements ConfiguredP
     @Override
     public @Nullable JavaPlugin getPlugin() {
         return SoakPlugin.server().getPluginManager().getPlugin(this.getConfiguration());
+    }
+
+    private void copyYaml(YamlConfiguration configuration, File file) throws IOException {
+        ZipFile zip = new ZipFile(file);
+        var configEntry = zip.getEntry("config.yml");
+        if (configEntry == null) {
+            return;
+        }
+        var configIS = zip.getInputStream(configEntry);
+        var isReader = new InputStreamReader(configIS);
+
+        YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(isReader);
+        isReader.close();
+        configIS.close();
+        zip.close();
+        configuration.addDefaults(defaultConfig);
     }
 
     @Override

@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakLocationMap;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.inventory.Container;

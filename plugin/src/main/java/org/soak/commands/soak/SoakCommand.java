@@ -21,15 +21,18 @@ import java.util.stream.Collectors;
 public class SoakCommand {
 
     private static Command.Parameterized createCommandsForCommand() {
-        Parameter.Value<SoakPluginContainer> pluginParameter = SoakArguments.soakPlugins(((context, pluginContainer) -> pluginContainer.plugin() instanceof JavaPlugin && !pluginContainer.plugin()
-                        .getDescription()
-                        .getCommands()
-                        .isEmpty()))
+        Parameter.Value<SoakPluginContainer> pluginParameter = SoakArguments.soakPlugins(((context, pluginContainer) -> {
+                    pluginContainer.plugin();
+                    return !pluginContainer.plugin()
+                                            .getDescription()
+                                            .getCommands()
+                                            .isEmpty();
+                }))
                 .key("plugin")
                 .build();
         return Command.builder().addParameter(pluginParameter).executor(context -> {
             SoakPluginContainer pluginContainer = context.requireOne(pluginParameter);
-            JavaPlugin plugin = (JavaPlugin) pluginContainer.plugin();
+            JavaPlugin plugin = pluginContainer.plugin();
             pluginContainer.plugin().getDescription().getCommands().keySet().forEach(cmdName -> {
                 PluginCommand pluginCommand = plugin.getCommand(cmdName);
                 if (pluginCommand == null) {

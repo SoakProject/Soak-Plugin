@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitWorker;
 import org.jetbrains.annotations.NotNull;
 import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.utils.ListMappingUtils;
 import org.spongepowered.api.Sponge;
@@ -26,7 +26,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SoakBukkitScheduler implements BukkitScheduler {

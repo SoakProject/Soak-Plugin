@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.item.SoakEnchantmentTypeMap;
 import org.soak.map.item.SoakItemStackMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.registry.RegistryTypes;
 

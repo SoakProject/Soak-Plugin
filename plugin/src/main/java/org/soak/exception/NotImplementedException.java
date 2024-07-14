@@ -1,4 +1,4 @@
-package org.soak.plugin.exception;
+package org.soak.exception;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;

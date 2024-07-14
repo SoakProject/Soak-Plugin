@@ -25,21 +25,25 @@ import org.bukkit.util.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mose.collection.stream.builder.CollectionStreamBuilder;
+import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakBoundingBox;
 import org.soak.map.SoakLocationMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.map.SoakWorldTypeMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
 import org.soak.utils.ListMappingUtils;
 import org.soak.utils.single.SoakSingleInstance;
+import org.soak.wrapper.SoakWorldBorder;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.entity.AbstractEntity;
+import org.soak.wrapper.entity.SoakLightningStrike;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.world.chunk.AbstractSoakChunk;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.entity.EntityTypes;
+import org.spongepowered.api.entity.weather.LightningBolt;
 import org.spongepowered.api.util.MinecraftDayTime;
 import org.spongepowered.api.util.Ticks;
 import org.spongepowered.api.world.server.ServerWorld;
@@ -805,12 +809,20 @@ public class SoakWorld implements World, SoakSingleInstance<org.spongepowered.ap
 
     @Override
     public @NotNull LightningStrike strikeLightning(@NotNull Location arg0) {
-        throw NotImplementedException.createByLazy(World.class, "strikeLightning", Location.class);
+        return strikeLightning(arg0, bolt -> {
+        });
     }
 
     @Override
     public @NotNull LightningStrike strikeLightningEffect(@NotNull Location arg0) {
-        throw NotImplementedException.createByLazy(World.class, "strikeLightningEffect", Location.class);
+        return strikeLightning(arg0, LightningBolt::effectOnly);
+    }
+
+    private LightningStrike strikeLightning(Location location, Consumer<LightningBolt> beforeSpawn) {
+        var spongeEntity = this.sponge().createEntity(EntityTypes.LIGHTNING_BOLT, new Vector3d(location.x(), location.getY(), location.z()));
+        beforeSpawn.accept(spongeEntity);
+        this.sponge().spawnEntity(spongeEntity);
+        return new SoakLightningStrike(spongeEntity);
     }
 
     @Override
@@ -1618,7 +1630,7 @@ public class SoakWorld implements World, SoakSingleInstance<org.spongepowered.ap
 
     @Override
     public @NotNull WorldBorder getWorldBorder() {
-        throw NotImplementedException.createByLazy(World.class, "getWorldBorder");
+        return new SoakWorldBorder(this.sponge().border(), this);
     }
 
     @Override

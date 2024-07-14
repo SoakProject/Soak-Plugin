@@ -1,4 +1,4 @@
-package org.soak.plugin.config.node;
+package org.soak.config.node;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;

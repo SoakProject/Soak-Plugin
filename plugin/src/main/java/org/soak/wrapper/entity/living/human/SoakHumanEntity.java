@@ -7,7 +7,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.entity.living.Human;
 import org.spongepowered.api.service.permission.Subject;
 

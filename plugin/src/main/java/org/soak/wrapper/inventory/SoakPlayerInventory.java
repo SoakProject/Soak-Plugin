@@ -8,7 +8,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.map.item.inventory.SoakEquipmentMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.item.inventory.Inventory;
 
 public class SoakPlayerInventory extends SoakInventory<org.spongepowered.api.item.inventory.entity.PlayerInventory> implements PlayerInventory {

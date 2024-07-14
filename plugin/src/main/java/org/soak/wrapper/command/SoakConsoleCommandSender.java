@@ -6,7 +6,7 @@ import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.jetbrains.annotations.NotNull;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.SystemSubject;
 

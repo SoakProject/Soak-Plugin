@@ -1,7 +1,7 @@
 package org.soak.plugin.loader;
 
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.config.SoakConfiguration;
+import org.soak.config.SoakConfiguration;
 
 import java.io.File;
 import java.io.IOException;

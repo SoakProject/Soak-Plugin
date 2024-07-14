@@ -18,7 +18,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.util.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.data.CommonBlockData;
 import org.soak.wrapper.block.state.AbstractBlockSnapshotState;
 import org.soak.wrapper.world.SoakWorld;
@@ -307,4 +307,5 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
     public void removeMetadata(@NotNull String metadataKey, @NotNull Plugin owningPlugin) {
         throw NotImplementedException.createByLazy(Block.class, "removeMetadata", String.class, Plugin.class);
     }
+
 }

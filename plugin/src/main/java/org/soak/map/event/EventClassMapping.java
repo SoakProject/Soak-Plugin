@@ -5,13 +5,11 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.*;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.entity.*;
-import org.bukkit.event.inventory.FurnaceBurnEvent;
-import org.bukkit.event.inventory.FurnaceSmeltEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
+import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.WorldLoadEvent;
@@ -35,6 +33,7 @@ import org.soak.impl.event.entity.player.connection.SoakPreJoinEvent;
 import org.soak.impl.event.entity.player.data.*;
 import org.soak.impl.event.entity.player.interact.SoakPlayerInteractAirEvent;
 import org.soak.impl.event.entity.player.interact.SoakPlayerInteractBlockEvent;
+import org.soak.impl.event.entity.player.interact.SoakPlayerInteractEntityEvent;
 import org.soak.impl.event.entity.player.interact.move.SoakPlayerChangedWorldEvent;
 import org.soak.impl.event.entity.player.interact.move.SoakPlayerMoveEvent;
 import org.soak.impl.event.entity.player.interact.move.SoakPlayerRotateEvent;
@@ -42,9 +41,11 @@ import org.soak.impl.event.entity.player.interact.move.SoakPlayerTeleportEvent;
 import org.soak.impl.event.inventory.action.SoakEnchantEvent;
 import org.soak.impl.event.inventory.action.SoakInventoryCloseEvent;
 import org.soak.impl.event.inventory.action.click.SoakInventoryClickEvent;
+import org.soak.impl.event.inventory.action.craft.SoakCraftItemEvent;
 import org.soak.impl.event.inventory.action.furnance.SoakBurnItemEvent;
 import org.soak.impl.event.inventory.action.furnance.SoakSmeltItemEvent;
 import org.soak.impl.event.inventory.hand.action.SoakItemUseEvent;
+import org.soak.impl.event.server.SoakServerListPingEvent;
 import org.soak.impl.event.world.SoakWorldLoadEvent;
 import org.soak.impl.event.world.SoakWorldUnloadEvent;
 
@@ -73,6 +74,12 @@ public class EventClassMapping {
         }
         if (name.equals(PlayerInteractEvent.class.getName())) {
             return array(SoakPlayerInteractBlockEvent.class, SoakPlayerInteractAirEvent.class);
+        }
+        if (name.equals(PlayerInteractEntityEvent.class.getName())) {
+            return array(SoakPlayerInteractEntityEvent.class);
+        }
+        if (name.equals(CraftItemEvent.class.getName())) {
+            return array(SoakCraftItemEvent.class);
         }
         if (name.equals(WorldUnloadEvent.class.getName())) {
             return array(SoakWorldUnloadEvent.class);
@@ -175,6 +182,9 @@ public class EventClassMapping {
         }
         if (name.equals(PortalCreateEvent.class.getName())) {
             return array(SoakNetherPortalCreateEvent.class, SoakEndPortalCreateEvent.class);
+        }
+        if (name.equals(ServerListPingEvent.class.getName())) {
+            return array(SoakServerListPingEvent.class);
         }
         throw new RuntimeException("No mapping found for Bukkit Event: " + bukkitClass.getName());
     }

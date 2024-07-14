@@ -1,25 +1,20 @@
 package org.soak.impl.event.block;
 
-import org.bukkit.block.Block;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
-import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.soak.impl.event.EventSingleListenerWrapper;
-import org.soak.map.SoakDirectionMap;
 import org.soak.plugin.SoakPlugin;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.block.SoakBlockSnapshot;
-import org.spongepowered.api.block.entity.Piston;
 import org.spongepowered.api.block.transaction.Operations;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
-import org.spongepowered.api.event.block.NotifyNeighborBlockEvent;
+import org.spongepowered.api.util.Direction;
 
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SoakBlockFlowExpandEvent {
 
@@ -55,10 +50,22 @@ public class SoakBlockFlowExpandEvent {
     }
 
     private void fireEvent(ChangeBlockEvent.All spongeEvent, EventPriority priority) {
-        Block source = null;
         spongeEvent.transactions(Operations.LIQUID_SPREAD.get()).forEach(transaction -> { //used modify .... may not be correct
-            var newBlock = new SoakBlockSnapshot(transaction.custom().orElseGet(transaction::finalReplacement));
-            var bukkitEvent = new BlockFromToEvent(source, newBlock); //todo get source block
+            var updatingBlock = transaction.custom().orElseGet(transaction::finalReplacement);
+            var newLevel = updatingBlock.getInt(Keys.FLUID_LEVEL).orElseThrow(() -> new IllegalStateException("Fluid update happened but no fluid level could be found"));
+            if(newLevel >= 8){ //max level
+                return;
+            }
+            var spongeSourceBlock = Stream.of(Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST, Direction.UP)
+                    .map(direction -> updatingBlock.location().orElseThrow().relativeToBlock(direction))
+                    .filter(loc -> loc.get(Keys.FLUID_LEVEL)
+                            .map(level -> level > newLevel)
+                            .orElse(false))
+                    .findAny().orElseThrow(() -> new IllegalStateException("Cannot find the fluid source of the updating block"));
+
+            var newBlock = new SoakBlockSnapshot(updatingBlock);
+            var sourceBlock = new SoakBlock(spongeSourceBlock);
+            var bukkitEvent = new BlockFromToEvent(sourceBlock, newBlock); //todo get source block
             SoakPlugin.server().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
             if (bukkitEvent.isCancelled()) {

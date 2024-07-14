@@ -43,14 +43,16 @@ dependencies {
 jar {
     dependsOn(":bukkit-api:jar")
     dependsOn(":MoseStream:jar")
-    dependsOn(":VanillaMaterials:jar");
+    dependsOn(":CollectionStream:jar")
+    dependsOn(":VanillaMaterials:jar")
     var fat = configurations.runtimeClasspath.filter {
         System.out.println("Name: " + it.name);
         return it.name.startsWith("bukkit-api")
                 || it.name.startsWith("MoseStream")
+                || it.name.startsWith("CollectionStream")
                 || it.name.startsWith("json-simple")
                 || it.name.startsWith("paperlib")
-    }.collect { it.isDirectory() ? it : zipTree(it)}
+    }.collect { it.isDirectory() ? it : zipTree(it) }
 
     var materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar")
     fat.add(zipTree(materialFile));

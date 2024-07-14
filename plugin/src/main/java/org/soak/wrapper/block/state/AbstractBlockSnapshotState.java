@@ -1,5 +1,7 @@
 package org.soak.wrapper.block.state;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -15,38 +17,58 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.soak.exception.NotImplementedException;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.utils.ReflectionHelper;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.block.SoakBlockSnapshot;
-import org.soak.wrapper.block.data.AbstractBlockData;
 import org.soak.wrapper.block.state.generic.GenericBlockSnapshotState;
+import org.soak.wrapper.block.state.sign.SoakSignBlockEntitySnapshot;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
-import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.world.BlockChangeFlags;
 import org.spongepowered.math.vector.Vector3i;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class AbstractBlockSnapshotState implements BlockState {
 
-    private final BlockSnapshot snapshot;
+    protected BlockSnapshot snapshot;
 
     public AbstractBlockSnapshotState(BlockSnapshot snapshot) {
         this.snapshot = snapshot;
     }
 
     public static @NotNull BlockState wrap(BlockSnapshot snapshot) {
-        var opSign = snapshot.get(Keys.SIGN_LINES);
-        if (opSign.isPresent()) {
-            SoakPlugin.plugin()
-                    .logger()
-                    .warn("BlockSnapshot BlockState wrap found SIGN_LINES but no mapping found for Bukkit");
+        var opSign = wrapSign(snapshot);
+        if (opSign != null) {
+            return opSign;
         }
         return new GenericBlockSnapshotState(snapshot);
+    }
+
+    /*
+    Dont normally need to do this, it seems Keys.SIGN_LINES no longer works
+     */
+    private static @Nullable SoakSignBlockEntitySnapshot wrapSign(BlockSnapshot snapshot) {
+        try {
+            Object compoundTag = ReflectionHelper.getField(snapshot, "compound");
+            Map<String, ?> tags = ReflectionHelper.getField(compoundTag, "tags");
+            if (!(tags.containsKey("Text1") || tags.containsKey("Text2") || tags.containsKey("Text3") || tags.containsKey("Text4"))) {
+                return null;
+            }
+            Component line1 = GsonComponentSerializer.gson().deserialize(ReflectionHelper.getValueFromTagType(tags.get("Text1")));
+            Component line2 = GsonComponentSerializer.gson().deserialize(ReflectionHelper.getValueFromTagType(tags.get("Text2")));
+            Component line3 = GsonComponentSerializer.gson().deserialize(ReflectionHelper.getValueFromTagType(tags.get("Text3")));
+            Component line4 = GsonComponentSerializer.gson().deserialize(ReflectionHelper.getValueFromTagType(tags.get("Text4")));
+            byte glowingTextByte = ReflectionHelper.getValueFromTagType(tags.get("GlowingText"));
+            return new SoakSignBlockEntitySnapshot(snapshot, glowingTextByte != 0, line1, line2, line3, line4);
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {
+        }
+        return null;
     }
 
     @Override

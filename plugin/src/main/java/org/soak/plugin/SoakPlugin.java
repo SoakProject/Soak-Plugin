@@ -14,23 +14,25 @@ import org.jetbrains.annotations.NotNull;
 import org.mosestream.MoseStream;
 import org.soak.Compatibility;
 import org.soak.commands.soak.SoakCommand;
+import org.soak.config.SoakConfiguration;
 import org.soak.config.SoakServerProperties;
+import org.soak.exception.NMSUsageException;
 import org.soak.fix.forge.ForgeFixCommons;
 import org.soak.impl.data.BukkitPersistentData;
 import org.soak.impl.data.sponge.PortalCooldownCustomData;
 import org.soak.impl.data.sponge.SoakKeys;
 import org.soak.map.SoakResourceKeyMap;
-import org.soak.plugin.config.SoakConfiguration;
 import org.soak.plugin.loader.Locator;
 import org.soak.plugin.loader.common.AbstractSoakPluginContainer;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.loader.common.SoakPluginInjector;
-import org.soak.plugin.utils.log.CustomLoggerFormat;
 import org.soak.utils.SoakMemoryStore;
+import org.soak.utils.log.CustomLoggerFormat;
 import org.soak.wrapper.SoakServer;
 import org.soak.wrapper.enchantment.SoakEnchantment;
 import org.soak.wrapper.plugin.SoakPluginManager;
 import org.soak.wrapper.potion.SoakPotionEffectType;
+import org.soak.wrapper.v1_19_R4.NMSBounceSoakServer;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.Server;
@@ -304,7 +306,7 @@ public class SoakPlugin {
 
         this.consoleHandler.setFormatter(new CustomLoggerFormat());
 
-        SoakServer server = new SoakServer(Sponge::server);
+        SoakServer server = new NMSBounceSoakServer(Sponge::server);
         SoakPluginManager pluginManager = server.getPluginManager();
         pluginManager.loadPlugins(configuration.file());
         //noinspection deprecation
@@ -363,9 +365,29 @@ public class SoakPlugin {
     }
 
     private void displayError(Throwable e, Map<String, String> pluginData) {
-        if (e instanceof InvocationTargetException) {
+        while (e instanceof InvocationTargetException) {
             e = ((InvocationTargetException) e).getTargetException();
         }
+        Throwable readEx = e;
+        while(true){
+            if(readEx instanceof InvocationTargetException ex){
+                readEx = ex.getTargetException();
+                continue;
+            }
+            if(readEx instanceof ExceptionInInitializerError ex){
+                readEx = ex.getException();
+            }
+            if(readEx instanceof RuntimeException runtime){
+                var cause = runtime.getCause();
+                if(cause instanceof InvocationTargetException || cause instanceof ExceptionInInitializerError){
+                    readEx = cause;
+                    continue;
+                }
+            }
+            break;
+        }
+
+
         this.logger.error("|------------------------|");
         pluginData.forEach((key, value) -> {
             this.logger.error("|- " + key + ": " + value);
@@ -380,10 +402,22 @@ public class SoakPlugin {
                 .metadata()
                 .version());
 
-        if (e instanceof ClassCastException) {
-            if (e.getMessage().contains("org.bukkit.plugin.SimplePluginManager")) {
+        if (readEx instanceof ClassCastException) {
+            if (readEx.getMessage().contains("org.bukkit.plugin.SimplePluginManager")) {
                 this.logger.error(
                         "|- Common Error Note: Starting on Paper hardfork 1.19.4, SimplePluginManager is being disconnected. This will not be added to soak");
+            }
+        }
+        if (readEx instanceof NMSUsageException nmsUsage) {
+            this.logger.error("|- Common Error Note: A plugin attempted to use NMS which is not supported by soak. This can only be fixed by the plugin developer");
+            nmsUsage.getDeveloperNotes().ifPresent(message -> {
+                this.logger.error("|- For Plugin Developer: " + message);
+            });
+        }
+        if (readEx instanceof NoClassDefFoundError || readEx instanceof ClassCastException || readEx instanceof ClassNotFoundException) {
+            if (e.getMessage().contains("net/minecraft/") || e.getMessage().contains("net.minecraft.")) {
+                this.logger.error("|- Common Error Note: Error is caused due to " + this.container.metadata().id() + " using NMS. This is something Soak does not prioritise on fixing.");
+                this.logger.error("   It is up to plugin devs to use the Spigot/Paper API to create a work around for when NMS cannot be used.");
             }
         }
 
@@ -401,6 +435,15 @@ public class SoakPlugin {
 
     public Logger logger() {
         return this.logger;
+    }
+
+    public boolean isNMSBounceIncluded() {
+        try {
+            Class.forName("net.minecraft.network.chat.IChatBaseComponent");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
 }

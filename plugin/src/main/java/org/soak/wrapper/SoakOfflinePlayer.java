@@ -10,7 +10,7 @@ import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.User;

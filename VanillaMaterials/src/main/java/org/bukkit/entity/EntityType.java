@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.map.SoakResourceKeyMap;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.entity.EntityCategories;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.registry.DefaultedRegistryReference;

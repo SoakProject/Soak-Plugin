@@ -1,4 +1,4 @@
-package org.soak.plugin.utils;
+package org.soak.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -6,6 +6,14 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class ReflectionHelper {
+
+    public static <T> T getValueFromTagType(Object object) {
+        try {
+            return getField(object, "data");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static <T> T getField(Object obj, String fieldName) throws NoSuchFieldException, IllegalAccessException {
         return getField(obj.getClass(), obj, fieldName);

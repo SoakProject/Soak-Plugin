@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.soak.wrapper.block.SoakBlock;
 import org.soak.wrapper.block.state.bed.SoakBedBlockEntity;
 import org.soak.wrapper.block.state.capture.CapturedAbstractBlockState;

@@ -12,11 +12,11 @@ public class SoakComplexRecipe implements ComplexRecipe {
 
     private final SpecialCraftingRecipe recipe;
 
-    public SoakComplexRecipe(SpecialCraftingRecipe recipe){
+    public SoakComplexRecipe(SpecialCraftingRecipe recipe) {
         this.recipe = recipe;
     }
 
-    public SpecialCraftingRecipe spongeRecipe(){
+    public SpecialCraftingRecipe spongeRecipe() {
         return this.recipe;
     }
 

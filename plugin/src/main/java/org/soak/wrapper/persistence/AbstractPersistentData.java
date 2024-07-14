@@ -9,7 +9,7 @@ import org.soak.impl.data.BukkitPersistentData;
 import org.soak.map.SoakPersistentDataMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.SoakPlugin;
-import org.soak.plugin.exception.NotImplementedException;
+import org.soak.exception.NotImplementedException;
 import org.spongepowered.api.data.DataHolder;
 
 import java.util.Optional;

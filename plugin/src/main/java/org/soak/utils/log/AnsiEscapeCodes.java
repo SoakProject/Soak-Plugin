@@ -1,4 +1,4 @@
-package org.soak.plugin.utils.log;
+package org.soak.utils.log;
 
 public interface AnsiEscapeCodes {
 

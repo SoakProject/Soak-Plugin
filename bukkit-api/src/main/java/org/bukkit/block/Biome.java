@@ -1,10 +1,11 @@
 package org.bukkit.block;
 
+import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 
 //template class
-public enum Biome {
+public enum Biome implements Keyed {
 
     ;
 

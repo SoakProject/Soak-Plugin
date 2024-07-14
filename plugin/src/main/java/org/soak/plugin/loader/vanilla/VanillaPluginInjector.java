@@ -3,7 +3,7 @@ package org.soak.plugin.loader.vanilla;
 import org.jetbrains.annotations.NotNull;
 import org.soak.plugin.loader.common.SoakPluginContainer;
 import org.soak.plugin.loader.common.SoakPluginInjector;
-import org.soak.plugin.utils.ReflectionHelper;
+import org.soak.utils.ReflectionHelper;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.plugin.PluginContainer;
