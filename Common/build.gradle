@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.soak'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+implementation project(":bukkit-api")
+    implementation project(":CollectionStream")
+    implementation project(":MoseStream")
+    implementation 'org.spongepowered:spongeapi:10.0.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}

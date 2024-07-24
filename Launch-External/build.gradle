@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.soak'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':bukkit-api')
+    implementation project(':Wrapper')
+    implementation project(':Common')
+    implementation project(':MoseStream')
+    implementation project(':Launch-Common')
+
+    implementation 'org.spongepowered:spongeapi:10.0.0'
+
+    implementation 'net.minecraftforge:fmlcore:1.19.4-45.2.8'
+    implementation 'net.minecraftforge:forgespi:6.0.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+
+    dependsOn(":bukkit-api:jar")
+    dependsOn(":MoseStream:jar")
+    dependsOn(":CollectionStream:jar")
+    dependsOn(":VanillaMaterials:jar")
+
+    var fat = configurations.runtimeClasspath.filter {
+        System.out.println("Name: " + it.name);
+        return it.name.startsWith("bukkit-api")
+                || it.name.startsWith("Launch-Common")
+                || it.name.startsWith("Common-")
+                || it.name.startsWith("Wrapper-")
+                || it.name.startsWith("MoseStream")
+                || it.name.startsWith("CollectionStream")
+                || it.name.startsWith("json-simple")
+                || it.name.startsWith("paperlib")
+    }.collect { it.isDirectory() ? it : zipTree(it) }
+
+    var materialFile = project.file("../VanillaMaterials/build/libs/VanillaMaterials-1.0.0.jar")
+    fat.add(zipTree(materialFile));
+
+    from(fat).exclude {
+        return it.name == "Compatibility.class" && !it.file.absolutePath.contains("zip_");
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

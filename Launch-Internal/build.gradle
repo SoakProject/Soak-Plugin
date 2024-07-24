@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+group = 'org.soak'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation project(":Launch-Common")
+    implementation project(":Common")
+    implementation project(":Wrapper")
+    implementation project(":bukkit-api")
+
+    implementation 'org.spongepowered:spongeapi:10.0.0'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
