@@ -13,4 +13,10 @@ include("bukkit-api")
 include("VanillaMaterials")
 include("CollectionStream")
 include("MoseStream")
+include 'Wrapper'
+include 'Launch-Common'
+include 'Launch-Internal'
+include 'Launch-External'
+include 'Gradle-Annotations'
+include 'Common'
 

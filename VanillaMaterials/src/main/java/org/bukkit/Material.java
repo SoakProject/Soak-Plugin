@@ -12,9 +12,10 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.Constants;
-import org.soak.map.SoakResourceKeyMap;
-import org.soak.plugin.SoakPlugin;
+import org.soak.WrapperManager;
 import org.soak.exception.NotImplementedException;
+import org.soak.map.SoakResourceKeyMap;
+import org.soak.plugin.SoakManager;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
@@ -1486,8 +1487,7 @@ public enum Material implements Keyed {
             if (this.itemType != null) {
                 var opBlock = this.itemType.get().block();
                 if (opBlock.isPresent()) {
-                    SoakPlugin.plugin()
-                            .logger()
+                    SoakManager.getManager().getLogger()
                             .error("Material." + this.name() + " is missing BlockType of " + opBlock.get()
                                     .key(RegistryTypes.BLOCK_TYPE)
                                     .formatted());
@@ -1504,8 +1504,7 @@ public enum Material implements Keyed {
             if (this.blockType != null) {
                 var opItem = this.blockType.get().item();
                 if (opItem.isPresent()) {
-                    SoakPlugin.plugin()
-                            .logger()
+                    SoakManager.getManager().getLogger()
                             .error("Material." + this.name() + " is missing ItemType of " + opItem.get()
                                     .key(RegistryTypes.ITEM_TYPE)
                                     .formatted());
@@ -1535,12 +1534,12 @@ public enum Material implements Keyed {
         var spongeBlockState = this.asBlock()
                 .map(StateContainer::defaultState)
                 .orElseThrow(() -> new IllegalStateException("Cannot create BlockData from a item"));
-        return SoakPlugin.plugin().getMemoryStore().get(spongeBlockState);
+        return SoakManager.<WrapperManager>getManager().getMemoryStore().get(spongeBlockState);
     }
 
     public BlockData createBlockData(@Nullable String data) {
         BlockState state = BlockState.fromString(this.getKey().asString() + (data == null ? "" : "[" + data + "]"));
-        return SoakPlugin.plugin().getMemoryStore().get(state);
+        return SoakManager.<WrapperManager>getManager().getMemoryStore().get(state);
     }
 
     public BlockData createBlockData(@Nullable Consumer<BlockData> consumer) {

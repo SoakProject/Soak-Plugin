@@ -83,7 +83,7 @@ public enum InventoryType {
         if (!(inventory instanceof BlockEntityInventory<?>)) {
             return false;
         }
-        return ((BlockEntityInventory<?>)inventory).blockEntity()
+        return ((BlockEntityInventory<?>) inventory).blockEntity()
                 .map(entity -> Arrays.stream(anyBlockTypes)
                         .map(Supplier::get)
                         .anyMatch(blockType -> entity.block().type().equals(blockType)))
@@ -94,7 +94,7 @@ public enum InventoryType {
         if (!(inventory instanceof BlockEntityInventory<?>)) {
             return false;
         }
-        return ((BlockEntityInventory<?>)inventory).blockEntity()
+        return ((BlockEntityInventory<?>) inventory).blockEntity()
                 .map(blockEntityType::isInstance)
                 .orElse(false);
     }
