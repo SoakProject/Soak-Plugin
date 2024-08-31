@@ -50,7 +50,7 @@ public class SoakSignChangeEvent {
         var bukkitPlayer = SoakManager.<WrapperManager>getManager().getMemoryStore().get(player);
 
         var bukkitEvent = new SignChangeEvent(bukkitBlock, bukkitPlayer, event.text().all());
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

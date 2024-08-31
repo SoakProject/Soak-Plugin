@@ -57,7 +57,7 @@ public class SoakPlayerInteractEntityEvent {
         var hand = SoakActionMap.toBukkit(spongeHand);
 
         var bukkitEvent = new PlayerInteractEntityEvent(player, entity, hand);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
         if (bukkitEvent.isCancelled()) {
             spongeEvent.setCancelled(true);
         }

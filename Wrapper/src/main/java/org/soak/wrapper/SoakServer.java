@@ -13,7 +13,10 @@ import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.*;
-import org.bukkit.command.*;
+import org.bukkit.command.CommandException;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -21,13 +24,13 @@ import org.bukkit.entity.SpawnCategory;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.structure.Structure;
-import org.bukkit.help.HelpMap;
 import org.bukkit.inventory.*;
 import org.bukkit.loot.LootTable;
 import org.bukkit.map.MapView;
 import org.bukkit.packs.DataPackManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicesManager;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.SimpleServicesManager;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.potion.PotionBrewer;
@@ -49,10 +52,12 @@ import org.soak.plugin.SoakExternalManager;
 import org.soak.plugin.SoakManager;
 import org.soak.utils.*;
 import org.soak.utils.log.CustomLoggerFormat;
+import org.soak.wrapper.block.data.SoakBlockData;
 import org.soak.wrapper.command.SoakCommandMap;
 import org.soak.wrapper.command.SoakConsoleCommandSender;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.entity.living.human.user.SoakLoadingUser;
+import org.soak.wrapper.help.SoakHelpMap;
 import org.soak.wrapper.inventory.SoakInventory;
 import org.soak.wrapper.inventory.SoakItemFactory;
 import org.soak.wrapper.plugin.SoakPluginManager;
@@ -106,8 +111,14 @@ public abstract class SoakServer implements SimpServer {
     private final Singleton<SoakBukkitScheduler> scheduler = new Singleton<>(SoakBukkitScheduler::new);
     private final Singleton<SimpleServicesManager> servicesManager = new Singleton<>(SimpleServicesManager::new);
     private final Singleton<SoakCommandMap> commandMap = new Singleton<>(SoakCommandMap::new);
+    private final Singleton<SoakHelpMap> helpMap = new Singleton<>(SoakHelpMap::new);
     private final Singleton<SoakRegistry<org.spongepowered.api.world.generation.structure.Structure, Structure>> structureReg = new Singleton<>(() -> new SoakRegistry<>(RegistryTypes.STRUCTURE, Structure.class, t -> null));
     private final Singleton<SoakRegistry<org.spongepowered.api.world.generation.structure.StructureType, org.bukkit.generator.structure.StructureType>> structureTypeReg = new Singleton<>(() -> new SoakRegistry<>(RegistryTypes.STRUCTURE_TYPE, org.bukkit.generator.structure.StructureType.class, t -> null));
+    private final Singleton<SimplePluginManager> simplePluginManagerWrapper = new Singleton<>(() -> {
+        var pm = new SimplePluginManager(this, commandMap.get());
+        pm.paperPluginManager = pluginManager.get();
+        return pm;
+    });
     private final Singleton<Map<Class<?>, Registry<?>>> registries = new Singleton<>(() -> Arrays
             .stream(Registry.class.getDeclaredFields())
             .filter(field -> Modifier.isFinal(field.getModifiers()))
@@ -231,13 +242,12 @@ public abstract class SoakServer implements SimpServer {
                     .collect(Collectors.toSet());
             return (Tag<T>) (Object) new MaterialSetTag(tag, items);
         }
-
-        System.err.println("No tag found of registry: '" + registry + "' Type: " + clazz.getSimpleName() + " id: " + tag.asString());
+        SoakManager.getManager().getLogger().warn("No tag found of registry: '" + registry + "' Type: " + clazz.getSimpleName() + " id: " + tag.asString());
         return null;
     }
 
     public void syncCommands() {
-        //Craftbukkit public method to reregister all commands and apply to all players
+        //Craftbukkit public method to reregister all commands and apply to all players as well as register to brig
         var commandManager = this.spongeServer().commandManager();
         this.spongeServer().streamOnlinePlayers().forEach(commandManager::updateCommandTreeForPlayer);
     }
@@ -280,6 +290,9 @@ public abstract class SoakServer implements SimpServer {
 
     @Override
     public @NotNull Collection<? extends Player> getOnlinePlayers() {
+        if (!Sponge.isServerAvailable()) {
+            return Collections.emptySet();
+        }
         var builder = CollectionStreamBuilder
                 .builder()
                 .collection(Sponge.server().onlinePlayers())
@@ -507,9 +520,13 @@ public abstract class SoakServer implements SimpServer {
         return player.getUniqueId();
     }
 
-    @Override
-    public @NotNull SoakPluginManager getPluginManager() {
+    public @NotNull SoakPluginManager getSoakPluginManager() {
         return this.pluginManager.get();
+    }
+
+    @Override
+    public @NotNull SimplePluginManager getPluginManager() {
+        return this.simplePluginManagerWrapper.get();
     }
 
     @Override
@@ -894,8 +911,8 @@ public abstract class SoakServer implements SimpServer {
     }
 
     @Override
-    public @NotNull HelpMap getHelpMap() {
-        throw NotImplementedException.createByLazy(Server.class, "getHelpMap");
+    public @NotNull SoakHelpMap getHelpMap() {
+        return this.helpMap.get();
     }
 
     @Override
@@ -1142,7 +1159,7 @@ public abstract class SoakServer implements SimpServer {
     }
 
     @Override
-    public @NotNull CommandMap getCommandMap() {
+    public @NotNull SoakCommandMap getCommandMap() {
         return this.commandMap.get();
     }
 
@@ -1174,7 +1191,20 @@ public abstract class SoakServer implements SimpServer {
 
     @Override
     public @NotNull BlockData createBlockData(@Nullable Material material, @Nullable String s) throws IllegalArgumentException {
-        throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, String.class);
+        if (material == null && s == null) {
+            throw new IllegalArgumentException("Both material and string cannot be null");
+        }
+        if (material == null && s.startsWith("[")) {
+            throw new IllegalArgumentException("Cannot find material from '" + s + "'");
+        }
+        if (material != null && (s == null || s.startsWith("["))) {
+            return createBlockData(material);
+        }
+        if (s.startsWith("[")) {
+            s = material.asBlock().orElseThrow(() -> new IllegalStateException("Item cannot be converted to BlockState")).key(RegistryTypes.BLOCK_TYPE).formatted() + s;
+        }
+        var blockState = BlockState.fromString(s);
+        return new SoakBlockData(blockState);
     }
 
     @Override

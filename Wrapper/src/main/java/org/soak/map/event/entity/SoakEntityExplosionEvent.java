@@ -60,7 +60,7 @@ public class SoakEntityExplosionEvent {
         var blocks = event.affectedLocations().stream().map(loc -> (Block)new SoakBlock(loc)).collect(Collectors.toList());
 
         var bukkitEvent = new EntityExplodeEvent(bukkitEntity, bukkitLocation, blocks, 0);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
 
     }
 

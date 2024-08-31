@@ -37,7 +37,7 @@ public class SoakToggleGlideEvent extends AbstractDataEvent<Boolean> {
         var living = AbstractEntity.wrap((Living) spongeHolder);
         var event = new EntityToggleGlideEvent(living, changedTo);
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, event, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, event, priority);
 
         if (event.isCancelled()) {
             spongeEvent.setCancelled(event.isCancelled());

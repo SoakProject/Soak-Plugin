@@ -64,7 +64,7 @@ public class SoakVehicleRotateEvent {
 
 
         var bukkitEvent = new VehicleMoveEvent(bukkitPlayer, originalPosition, newPosition);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         var to = bukkitEvent.getTo();
         var pitch = to.getPitch();

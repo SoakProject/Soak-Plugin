@@ -70,7 +70,7 @@ public class SoakPlayerInteractBlockEvent {
         var block = new SoakBlockSnapshot(spongeEvent.block());
 
         var bukkitEvent = new PlayerInteractEvent(player, action, item, block, clickedFace, hand, interactionPoint);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (spongeEvent instanceof Cancellable) {
             if (bukkitEvent.useInteractedBlock() == Event.Result.DENY) {

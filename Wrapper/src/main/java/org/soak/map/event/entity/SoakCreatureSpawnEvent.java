@@ -58,7 +58,7 @@ public class SoakCreatureSpawnEvent {
             Creature bukkitEntity = (Creature) AbstractEntity.wrap(entity);
             var bukkitEvent = new CreatureSpawnEvent(bukkitEntity, reason);
 
-            SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+            SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
             return !bukkitEvent.isCancelled();
         });
     }

@@ -61,7 +61,7 @@ public class SoakCraftItemEvent {
         var action = InventoryAction.DROP_ONE_SLOT; //TODO
 
         var bEvent = new org.bukkit.event.inventory.CraftItemEvent(bukkitRecipe, inventoryView, slotType, slotIndex, clickType, action);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bEvent, priority);
     }
 
 }

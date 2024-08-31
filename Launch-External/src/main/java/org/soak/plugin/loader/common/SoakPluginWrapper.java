@@ -27,6 +27,31 @@ public class SoakPluginWrapper {
 
     public SoakPluginWrapper(SoakPluginContainer pluginContainer) {
         this.pluginContainer = pluginContainer;
+
+        Plugin plugin = this.pluginContainer.getBukkitInstance();
+        this.commands.addAll(PluginCommandYamlParser.parse(plugin));
+
+        var earlyPlugins = SoakPlugin.plugin().config().getLoadingEarlyPlugins();
+        if (earlyPlugins.contains(this.pluginContainer.getBukkitInstance().getName())) {
+            try {
+                plugin.onLoad();
+            } catch (Throwable e) {
+                SoakManager.getManager().displayError(e, plugin);
+            }
+        }
+    }
+
+    public void onPluginsConstructed() {
+        var earlyPlugins = SoakPlugin.plugin().config().getLoadingEarlyPlugins();
+        if (!earlyPlugins.contains(this.pluginContainer.getBukkitInstance().getName())) {
+            return;
+        }
+        Plugin plugin = this.pluginContainer.getBukkitInstance();
+        try {
+            plugin.onEnable();
+        } catch (Throwable e) {
+            SoakManager.getManager().displayError(e, plugin);
+        }
     }
 
     public SoakPluginContainer container() {
@@ -39,19 +64,18 @@ public class SoakPluginWrapper {
 
     @Listener
     public void onCommandRegister(RegisterCommandEvent<Command.Raw> event) {
-        Plugin plugin = this.pluginContainer.getBukkitInstance();
-        this.commands.addAll(PluginCommandYamlParser.parse(plugin));
-        this.commands.forEach(cmd -> {
-            event.register(this.pluginContainer,
-                    new BukkitRawCommand(this.pluginContainer, cmd),
-                    cmd.getName(),
-                    cmd.getAliases().toArray(String[]::new));
-        });
+        this.commands.forEach(cmd -> event.register(this.pluginContainer,
+                new BukkitRawCommand(this.pluginContainer, cmd),
+                cmd.getName(),
+                cmd.getAliases().toArray(String[]::new)));
     }
 
     @Listener
     public void onPluginLoad(StartingEngineEvent<Server> event) {
-        this.pluginContainer.logger().warn("On Engine starting");
+        var earlyPlugins = SoakPlugin.plugin().config().getLoadingEarlyPlugins();
+        if (earlyPlugins.contains(this.pluginContainer.getBukkitInstance().getName())) {
+            return;
+        }
         Plugin plugin = this.pluginContainer.getBukkitInstance();
         try {
             plugin.onLoad();
@@ -60,13 +84,15 @@ public class SoakPluginWrapper {
         }
     }
 
-
     //issue
     //Bukkit plugins assume everything is loaded when onEnable is run, this is because Craftbukkit loads everything before onEnable is used ....
     //using StartedEngineEvent despite the timing known to be incorrect
     @Listener
     public void onPluginEnable(StartedEngineEvent<Server> event) {
-        this.pluginContainer.logger().warn("On Engine started");
+        var earlyPlugins = SoakPlugin.plugin().config().getLoadingEarlyPlugins();
+        if (earlyPlugins.contains(this.pluginContainer.getBukkitInstance().getName())) {
+            return;
+        }
         Plugin plugin = this.pluginContainer.getBukkitInstance();
         try {
             plugin.onEnable();

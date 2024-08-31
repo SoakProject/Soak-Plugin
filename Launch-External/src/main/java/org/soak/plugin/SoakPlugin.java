@@ -1,14 +1,9 @@
 package org.soak.plugin;
 
 import com.google.inject.Inject;
-import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.apache.logging.log4j.Logger;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.NamespacedKey;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mosestream.MoseStream;
@@ -19,8 +14,10 @@ import org.soak.config.SoakConfiguration;
 import org.soak.data.sponge.PortalCooldownCustomData;
 import org.soak.data.sponge.SoakKeys;
 import org.soak.fix.forge.ForgeFixCommons;
+import org.soak.hook.command.DynamicCommandListener;
+import org.soak.hook.command.SpongeDynamicCommand;
+import org.soak.hook.event.HelpMapListener;
 import org.soak.io.SoakServerProperties;
-import org.soak.map.SoakResourceKeyMap;
 import org.soak.plugin.external.SoakConfig;
 import org.soak.plugin.loader.Locator;
 import org.soak.plugin.loader.common.AbstractSoakPluginContainer;
@@ -28,9 +25,7 @@ import org.soak.plugin.loader.common.SoakPluginInjector;
 import org.soak.utils.SoakMemoryStore;
 import org.soak.utils.log.CustomLoggerFormat;
 import org.soak.wrapper.SoakServer;
-import org.soak.wrapper.enchantment.SoakEnchantment;
 import org.soak.wrapper.plugin.SoakPluginManager;
-import org.soak.wrapper.potion.SoakPotionEffectType;
 import org.soak.wrapper.v1_19_R4.NMSBounceSoakServer;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -38,29 +33,20 @@ import org.spongepowered.api.command.Command;
 import org.spongepowered.api.data.DataRegistration;
 import org.spongepowered.api.data.persistence.DataQuery;
 import org.spongepowered.api.data.persistence.DataStore;
-import org.spongepowered.api.effect.potion.PotionEffectType;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 import org.spongepowered.api.event.lifecycle.*;
-import org.spongepowered.api.item.enchantment.EnchantmentType;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
-import org.spongepowered.api.registry.Registry;
-import org.spongepowered.api.registry.RegistryTypes;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.ConsoleHandler;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @org.spongepowered.plugin.builtin.jvm.Plugin("soak")
@@ -86,9 +72,8 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
         try {
             Path path = Sponge.configManager().pluginConfig(this.container).configPath();
             this.configuration = new SoakConfiguration(path.toFile());
-            if (!this.configuration.file().exists()) {
-                this.configuration.save();
-            }
+            this.configuration.setDefaults(false);
+            this.configuration.save();
         } catch (ConfigurateException e) {
             throw new RuntimeException(e);
         }
@@ -138,7 +123,7 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
     @Override
     public Collection<org.bukkit.command.Command> getBukkitCommands(Plugin plugin) {
         var pluginContainer = getContainer(plugin);
-        if(!(pluginContainer instanceof AbstractSoakPluginContainer aspc)){
+        if (!(pluginContainer instanceof AbstractSoakPluginContainer aspc)) {
             throw new IllegalStateException("Plugin expended to be extending AbstractSoakPluginContainer");
         }
         return aspc.instance().commands();
@@ -147,6 +132,11 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
     @Listener
     public void registerCommands(RegisterCommandEvent<Command.Parameterized> event) {
         event.register(this.container, SoakCommand.createSoakCommand(), "soak");
+    }
+
+    @Listener
+    public void registerFakeCommandLauncher(RegisterCommandEvent<Command.Raw> event) {
+        event.register(this.container, new SpongeDynamicCommand(), "soakdynamic");
     }
 
     @Listener
@@ -190,7 +180,7 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
         MoseStream.stream(plugins)
                 .map(plugin -> SoakPlugin
                         .server()
-                        .getPluginManager()
+                        .getSoakPluginManager()
                         .getContext(plugin.getBukkitInstance()))
                 .forEach(context -> {
                     var loader = context.loader();
@@ -239,8 +229,7 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
         this.consoleHandler.setFormatter(new CustomLoggerFormat());
 
         SoakServer server = new NMSBounceSoakServer(Sponge::server);
-        SoakPluginManager pluginManager = server.getPluginManager();
-        pluginManager.loadPlugins(configuration.file());
+        SoakPluginManager pluginManager = server.getSoakPluginManager();
         //noinspection deprecation
         Bukkit.setServer(server);
 
@@ -263,6 +252,9 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
             SoakPluginInjector.injectPlugin(container);
             Sponge.eventManager().registerListeners(container, container.instance(), MethodHandles.lookup());
         }
+        this.getPlugins().forEach(container -> ((AbstractSoakPluginContainer) container).instance().onPluginsConstructed());
+        Sponge.eventManager().registerListeners(this.container, new HelpMapListener());
+        Sponge.eventManager().registerListeners(this.container, new DynamicCommandListener());
     }
 
     public Stream<SoakPluginContainer> getPlugins() {

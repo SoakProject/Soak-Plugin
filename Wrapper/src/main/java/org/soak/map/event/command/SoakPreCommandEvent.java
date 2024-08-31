@@ -58,7 +58,7 @@ public class SoakPreCommandEvent {
         var player = SoakManager.<WrapperManager>getManager().getMemoryStore().get(serverPlayer);
 
         var bukkitEvent = new PlayerCommandPreprocessEvent(player, command);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

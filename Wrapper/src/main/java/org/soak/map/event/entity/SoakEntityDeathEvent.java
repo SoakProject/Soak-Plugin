@@ -69,7 +69,7 @@ public class SoakEntityDeathEvent {
                 .collect(Collectors.toList());
         //TODO -> find exp
         var bukkitEvent = new EntityDeathEvent(entity, items);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
 
         //TODO -> spawn the entity back in if event is cancelled
         //TODO -> cancel death sounds .... that sounds like a hassle

@@ -72,7 +72,7 @@ public class SoakNetherPortalCreateEvent {
                 .orElse(PortalCreateEvent.CreateReason.NETHER_PAIR);
 
         var event = new PortalCreateEvent(blocks, world, entity, cause);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, event, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, event, priority);
 
         if (event.isCancelled()) {
             spongeEvent.setCancelled(true);

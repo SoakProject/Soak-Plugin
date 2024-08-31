@@ -38,6 +38,6 @@ public class SoakExpChangeEvent extends AbstractDataEvent<Integer> {
         //TODO get entity that caused exp
         var event = new PlayerExpChangeEvent(human, changedTo);
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, event, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, event, priority);
     }
 }

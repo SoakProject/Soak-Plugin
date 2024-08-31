@@ -1,26 +1,24 @@
 package org.soak.config.node;
 
-import org.spongepowered.configurate.ConfigurationNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Optional;
 
-public class BooleanConfigNode implements ConfigNode<Boolean> {
+public class BooleanConfigNode extends AbstractConfigNode<Boolean> {
 
-    private Object[] node;
+    public BooleanConfigNode(@NotNull Object... node) {
+        this(null, node);
+    }
 
-    public BooleanConfigNode(Object... node) {
-        this.node = node;
+    public BooleanConfigNode(@Nullable ConfigNodeMeta meta, @NotNull Object... node) {
+        super(meta, node);
     }
 
     @Override
-    public Object[] node() {
-        return this.node;
-    }
-
-    @Override
-    public Optional<Boolean> parse(ConfigurationNode node) {
-        var targetNode = node.node(node());
+    public Optional<Boolean> getValue(CommentedConfigurationNode targetNode) {
         if (targetNode.empty()) {
             return Optional.empty();
         }
@@ -28,7 +26,12 @@ public class BooleanConfigNode implements ConfigNode<Boolean> {
     }
 
     @Override
-    public void set(ConfigurationNode node, Boolean value) throws SerializationException {
-        node.node(node()).set(value);
+    public void setValue(CommentedConfigurationNode node, Boolean value) throws SerializationException {
+        node.set(value);
+    }
+
+    @Override
+    public Optional<Boolean> failSafeDefault() {
+        return Optional.of(false);
     }
 }

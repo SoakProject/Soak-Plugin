@@ -52,7 +52,7 @@ public class SoakBlockBreakEvent {
         spongeEvent.transactions(Operations.BREAK.get()).forEach(transaction -> {
             var block = new SoakBlockSnapshot(transaction.original());
             var bukkitEvent = new BlockBreakEvent(block, player);
-            SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+            SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
             if (bukkitEvent.isCancelled()) {
                 transaction.invalidate();

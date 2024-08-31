@@ -27,8 +27,20 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.exception.NotImplementedException;
+import org.soak.map.item.SoakItemStackMap;
+import org.soak.plugin.SoakManager;
+import org.spongepowered.api.ResourceKey;
+import org.spongepowered.api.data.Key;
+import org.spongepowered.api.data.Keys;
+import org.spongepowered.api.data.type.InstrumentTypes;
+import org.spongepowered.api.data.value.Value;
+import org.spongepowered.api.item.potion.PotionTypes;
+import org.spongepowered.api.util.Ticks;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 public class SoakUnsafeValues implements UnsafeValues {
@@ -98,8 +110,61 @@ public class SoakUnsafeValues implements UnsafeValues {
     }
 
     @Override
-    public ItemStack modifyItemStack(ItemStack arg0, String arg1) {
-        throw NotImplementedException.createByLazy(UnsafeValues.class, "modifyItemStack", ItemStack.class, String.class);
+    public ItemStack modifyItemStack(ItemStack itemStack, String jsonString) {
+        try {
+            var jsonRoot = GsonConfigurationLoader.builder().buildAndLoadString(jsonString);
+            var spongeItemStack = SoakItemStackMap.toSponge(itemStack);
+            jsonRoot.childrenMap().entrySet().stream().map(entry -> {
+                        var keyName = entry.getKey().toString();
+                        var valueNode = entry.getValue();
+
+                        return switch (keyName) {
+                            case "Potion" -> {
+                                var potionTypeId = Objects.requireNonNull(valueNode.getString());
+                                var potionType = PotionTypes.registry().findEntry(ResourceKey.resolve(potionTypeId));
+                                if (potionType.isEmpty()) {
+                                    SoakManager.getManager().getLogger().warn("Could not get value of '{}' for key 'PotionType'", potionTypeId);
+                                    yield null;
+                                }
+                                yield Map.entry(Keys.POTION_TYPE, potionType.get());
+                            }
+                            case "Fireworks" -> {
+                                //this is probably wrong
+                                var flightSeconds = valueNode.node("Flight").getDouble();
+                                var flightTicks = (long) (flightSeconds * 20);
+                                yield Map.entry(Keys.FIREWORK_FLIGHT_MODIFIER, Ticks.of(flightTicks));
+                            }
+                            case "instrument" -> {
+                                var instrumentId = Objects.requireNonNull(valueNode.getString());
+                                var instrumentType = InstrumentTypes.registry().findEntry(ResourceKey.resolve(instrumentId));
+                                if (instrumentType.isEmpty()) {
+                                    SoakManager.getManager().getLogger().warn("Could not get value of '{}' for key 'InstrumentType'", instrumentId);
+                                    yield null;
+                                }
+                                yield Map.entry(Keys.INSTRUMENT_TYPE, instrumentType.get());
+                            }
+                            case "Levels" -> {
+                                //beacon levels
+                                var beaconLevel = valueNode.getDouble();
+                                SoakManager.getManager().getLogger().warn("Could not get value of '{}' for key 'Beacon level'", beaconLevel);
+                                yield null;
+                            }
+                            default -> throw new IllegalStateException("Unknown Item Key of: " + keyName);
+                        };
+                    })
+                    .filter(Objects::nonNull)
+                    .forEach(entry -> offer(spongeItemStack, entry.getKey(), entry.getValue()));
+
+            return SoakItemStackMap.toBukkit(spongeItemStack);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+        return itemStack;
+    }
+
+    private <T> void offer(org.spongepowered.api.item.inventory.ItemStack stack, Key<?> key, Object object) {
+        var genericKey = (Key<? extends Value<T>>) key;
+        stack.offer(genericKey, (T) object);
     }
 
     @Override

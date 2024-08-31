@@ -93,7 +93,7 @@ public class SoakPlayerTeleportEvent {
                 spongeNewPosition.z());
 
         var bukkitEvent = new PlayerMoveEvent(bukkitPlayer, originalPosition, newPosition);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

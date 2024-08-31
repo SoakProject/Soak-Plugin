@@ -1421,7 +1421,9 @@ public enum Material implements Keyed {
 
     //uses minecraft namespace
     public static @Nullable Material matchMaterial(@NotNull String name) {
-        ResourceKey key = ResourceKey.resolve(name.toLowerCase());
+        name = name.toLowerCase();
+        name = name.replaceAll(" ", "_");
+        ResourceKey key = ResourceKey.resolve(name);
         try {
             return getMaterial(key);
         } catch (RuntimeException e) {

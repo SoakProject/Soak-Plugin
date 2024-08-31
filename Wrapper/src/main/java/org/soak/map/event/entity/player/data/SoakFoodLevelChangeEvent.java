@@ -40,7 +40,7 @@ public class SoakFoodLevelChangeEvent extends AbstractDataEvent<Integer> {
         var stack = spongeEvent.context().get(EventContextKeys.USED_ITEM).map(SoakItemStackMap::toBukkit);
         var event = new FoodLevelChangeEvent(human, changedTo, stack.orElse(null));
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, event, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, event, priority);
 
         if (event.isCancelled()) {
             spongeEvent.setCancelled(event.isCancelled());

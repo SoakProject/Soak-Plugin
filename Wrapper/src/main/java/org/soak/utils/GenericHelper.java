@@ -26,7 +26,7 @@ public class GenericHelper {
                 .filter(className -> !className.startsWith("io.papermc"))
                 .filter(className -> !className.startsWith("java.lang"))
                 .map(className -> SoakManager.getManager().getBukkitContainers().map(soakPluginContainer -> {
-                                    var context = soakManager.getServer().getPluginManager().getContext(soakPluginContainer.getBukkitInstance());
+                                    var context = soakManager.getServer().getSoakPluginManager().getContext(soakPluginContainer.getBukkitInstance());
                                     var classLoader = context.loader();
                                     try {
                                         Class.forName(className, false, classLoader);

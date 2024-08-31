@@ -87,7 +87,7 @@ public class SoakBlockPlaceEvent {
                     player,
                     canBuild,
                     usedHand);
-            SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+            SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
             if (bukkitEvent.isCancelled()) {
                 transaction.invalidate();

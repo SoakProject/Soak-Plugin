@@ -49,7 +49,7 @@ public class SoakBlockPhysicsEvent {
             var original = new SoakBlockSnapshot(transaction.original());
             var newBlock = new SoakBlockSnapshot(transaction.custom().orElseGet(transaction::finalReplacement));
             var bukkitEvent = new BlockPhysicsEvent(original, newBlock.getBlockData()); //todo get source block
-            SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+            SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
             if (bukkitEvent.isCancelled()) {
                 transaction.invalidate();

@@ -1,7 +1,7 @@
 package org.soak.plugin.loader;
 
-import org.soak.plugin.SoakPlugin;
 import org.soak.config.SoakConfiguration;
+import org.soak.plugin.SoakPlugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,8 +18,9 @@ public class Locator {
         File pluginFolder = config.pluginFolder();
         SoakPlugin.plugin().logger().info("Looking for bukkit plugins in '" + pluginFolder.getAbsolutePath() + "'");
         File[] files = pluginFolder.listFiles((file, s) -> s.endsWith(".jar"));
-        if (files == null) {
+        if (files == null || files.length == 0) {
             pluginFolder.mkdirs();
+            SoakPlugin.plugin().logger().warn("Could not find any bukkit plugins");
             return Collections.emptySet();
         }
         return Arrays.stream(files).filter(file -> {

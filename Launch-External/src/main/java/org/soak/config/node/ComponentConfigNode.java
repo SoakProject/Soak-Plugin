@@ -2,27 +2,26 @@ package org.soak.config.node;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.spongepowered.configurate.ConfigurationNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Optional;
 
-public class ComponentConfigNode implements ConfigNode<Component> {
+public class ComponentConfigNode extends AbstractConfigNode<Component> {
 
-    private final Object[] nodes;
+    public ComponentConfigNode(@NotNull Object... node) {
+        this(null, node);
+    }
 
-    public ComponentConfigNode(Object... nodes) {
-        this.nodes = nodes;
+    public ComponentConfigNode(@Nullable ConfigNodeMeta meta, @NotNull Object... node) {
+        super(meta, node);
     }
 
     @Override
-    public Object[] node() {
-        return this.nodes;
-    }
-
-    @Override
-    public Optional<Component> parse(ConfigurationNode node) {
-        String gson = node.node(this.node()).getString();
+    public Optional<Component> getValue(CommentedConfigurationNode node) {
+        String gson = node.getString();
         if (gson == null) {
             return Optional.empty();
         }
@@ -31,7 +30,12 @@ public class ComponentConfigNode implements ConfigNode<Component> {
     }
 
     @Override
-    public void set(ConfigurationNode node, Component value) throws SerializationException {
+    public void setValue(CommentedConfigurationNode node, Component value) throws SerializationException {
         node.set(GsonComponentSerializer.gson().serialize(value));
+    }
+
+    @Override
+    public Optional<Component> failSafeDefault() {
+        return Optional.empty();
     }
 }

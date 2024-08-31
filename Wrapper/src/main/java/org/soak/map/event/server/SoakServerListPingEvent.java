@@ -61,7 +61,7 @@ public class SoakServerListPingEvent {
                         .map(StatusResponse.Players::max)
                         .orElse(0));
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bEvent, priority);
     }
 
 }

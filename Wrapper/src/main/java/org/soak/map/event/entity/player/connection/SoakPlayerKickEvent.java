@@ -48,7 +48,7 @@ public class SoakPlayerKickEvent {
         var message = event.message();
 
         var bukkitEvent = new PlayerKickEvent(player, message, message); //TODO -> PlayerKickEvent.Cause
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

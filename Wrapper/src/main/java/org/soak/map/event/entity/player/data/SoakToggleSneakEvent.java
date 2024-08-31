@@ -36,7 +36,7 @@ public class SoakToggleSneakEvent extends AbstractDataEvent<Boolean> {
         var player = SoakManager.<WrapperManager>getManager().getMemoryStore().get((ServerPlayer) spongePlayer);
         var event = new PlayerToggleSneakEvent(player, changedTo);
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, event, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, event, priority);
 
         if (event.isCancelled()) {
             spongeEvent.setCancelled(event.isCancelled());

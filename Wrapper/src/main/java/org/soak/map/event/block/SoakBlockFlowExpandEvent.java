@@ -67,7 +67,7 @@ public class SoakBlockFlowExpandEvent {
             var newBlock = new SoakBlockSnapshot(updatingBlock);
             var sourceBlock = new SoakBlock(spongeSourceBlock);
             var bukkitEvent = new BlockFromToEvent(sourceBlock, newBlock); //todo get source block
-            SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+            SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
             if (bukkitEvent.isCancelled()) {
                 transaction.invalidate();

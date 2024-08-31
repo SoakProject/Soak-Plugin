@@ -74,7 +74,7 @@ public class SoakEnchantEvent {
                 event.levelRequirement(),
                 enchantments,
                 event.option());
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

@@ -66,7 +66,7 @@ public class SoakEndPortalCreateEvent {
         var world = blocks.get(0).getWorld();
 
         var event = new PortalCreateEvent(blocks, world, entity, PortalCreateEvent.CreateReason.END_PLATFORM);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, event, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, event, priority);
 
         if (event.isCancelled()) {
             spongeEvent.setCancelled(true);

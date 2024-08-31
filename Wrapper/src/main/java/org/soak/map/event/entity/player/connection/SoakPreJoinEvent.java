@@ -52,6 +52,6 @@ public class SoakPreJoinEvent {
         InetAddress address = event.connection().address().getAddress();
 
         AsyncPlayerPreLoginEvent bukkitEvent = new AsyncPlayerPreLoginEvent(profileName, address, uuid);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
     }
 }

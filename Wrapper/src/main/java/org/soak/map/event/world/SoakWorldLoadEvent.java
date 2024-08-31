@@ -46,7 +46,7 @@ public class SoakWorldLoadEvent {
     private void fireEvent(LoadWorldEvent spongeEvent, EventPriority priority) {
         var bukkitWorld = SoakManager.<WrapperManager>getManager().getMemoryStore().get(spongeEvent.world());
         var bukkitEvent = new WorldLoadEvent(bukkitWorld);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         //TODO -> Bukkit event is able to be cancelled, sponge is not
     }

@@ -53,7 +53,7 @@ public class SoakPortalTeleportEntityEvent {
         var bukkitToLocation = SoakLocationMap.toBukkit(spongeToLocation);
 
         var bukkitEvent = new EntityPortalEvent(bukkitEntity, bukkitFromLocation, bukkitToLocation);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.getTo() != null && !bukkitEvent.getTo().equals(bukkitToLocation)) {
             spongeToLocation = SoakLocationMap.toSponge(bukkitEvent.getTo());

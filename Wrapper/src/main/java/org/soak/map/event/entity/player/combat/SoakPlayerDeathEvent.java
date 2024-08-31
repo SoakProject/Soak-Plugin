@@ -70,7 +70,7 @@ public class SoakPlayerDeathEvent {
                 .collect(Collectors.toList());
         //TODO -> find exp
         var bukkitEvent = new PlayerDeathEvent(entity, items, 0, this.deathMessage);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
 
         //TODO -> spawn the player back in if event is cancelled
         //TODO -> cancel/change the message

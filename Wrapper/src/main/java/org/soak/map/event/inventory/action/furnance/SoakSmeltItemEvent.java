@@ -67,7 +67,7 @@ public class SoakSmeltItemEvent {
         var result = SoakItemStackMap.toBukkit(event.cookedItems().get(0));
         var bukkitEvent = new FurnaceSmeltEvent(furnace, original, result, recipe);
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         /*if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

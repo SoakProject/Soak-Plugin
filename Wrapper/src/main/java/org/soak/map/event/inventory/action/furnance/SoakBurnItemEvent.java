@@ -60,7 +60,7 @@ public class SoakBurnItemEvent {
         var burnTime = event.fuel().get().get(Keys.BURN_TIME); //probably not right
         var bukkitEvent = new FurnaceBurnEvent(furnace, consumedItem, burnTime.orElse(0));
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);

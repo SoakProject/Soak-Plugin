@@ -80,7 +80,7 @@ public class SoakVehicleMoveEvent {
         newPosition.setYaw(originalPosition.getYaw());
 
         var bukkitEvent = new VehicleMoveEvent(bukkitVehicle, originalPosition, newPosition);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
         var to = bukkitEvent.getTo();
         event.setDestinationPosition(new Vector3d(to.getX(), to.getY(), to.getZ()));
         Vector3d newRotation = originalRotation;

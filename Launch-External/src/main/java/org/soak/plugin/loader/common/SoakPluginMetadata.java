@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class SoakPluginMetadata implements PluginMetadata {
 
     private final ArtifactVersion artifactVersion;
-    private Plugin plugin;
+    private final Plugin plugin;
 
     private SoakPluginMetadata(Plugin plugin,
                                ArtifactVersion artifactVersion

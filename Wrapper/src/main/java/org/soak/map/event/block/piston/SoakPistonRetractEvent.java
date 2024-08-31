@@ -81,7 +81,7 @@ public class SoakPistonRetractEvent {
         var movedBlocks = event.tickets().stream().map(ticket -> (Block) new SoakBlockSnapshot(ticket.target())).collect(Collectors.toList());
 
         var bukkitEvent = new BlockPistonRetractEvent(bukkitPiston, movedBlocks, bukkitDirection);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
     }
 
 }

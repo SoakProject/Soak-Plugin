@@ -1,26 +1,30 @@
 package org.soak.config.node;
 
-import org.spongepowered.configurate.ConfigurationNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
 import java.util.Optional;
 
-public class FileConfigNode implements ConfigNode<File> {
+public class FileConfigNode extends AbstractConfigNode<File> {
 
-    private final Object[] nodes;
+    public FileConfigNode(@NotNull Object... node) {
+        this(null, node);
+    }
 
-    public FileConfigNode(Object... nodes) {
-        this.nodes = nodes;
+    public FileConfigNode(@Nullable ConfigNodeMeta meta, @NotNull Object... node) {
+        super(meta, node);
     }
 
     @Override
-    public Object[] node() {
-        return this.nodes;
+    protected void setValue(CommentedConfigurationNode node, File value) throws SerializationException {
+        node.set(value.getPath());
     }
 
     @Override
-    public Optional<File> parse(ConfigurationNode node) {
+    protected Optional<File> getValue(CommentedConfigurationNode node) {
         String path = node.node(this.node()).getString();
         if (path == null) {
             return Optional.empty();
@@ -29,7 +33,7 @@ public class FileConfigNode implements ConfigNode<File> {
     }
 
     @Override
-    public void set(ConfigurationNode node, File value) throws SerializationException {
-        node.set(value.getPath());
+    public Optional<File> failSafeDefault() {
+        return Optional.empty();
     }
 }

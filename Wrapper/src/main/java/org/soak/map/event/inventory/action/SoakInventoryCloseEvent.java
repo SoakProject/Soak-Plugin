@@ -48,6 +48,6 @@ public class SoakInventoryCloseEvent {
         var inventoryView = new SoakInventoryView(spongeEvent.container());
         InventoryCloseEvent bukkitEvent = new InventoryCloseEvent(inventoryView);
 
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
     }
 }

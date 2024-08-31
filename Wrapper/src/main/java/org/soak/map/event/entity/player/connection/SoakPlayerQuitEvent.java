@@ -48,7 +48,7 @@ public class SoakPlayerQuitEvent {
         var message = event.message();
 
         var bukkitEvent = new PlayerQuitEvent(player, message); //TODO PlayerQuitEvent.QuitReason
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
 
         var newQuitMessage = bukkitEvent.quitMessage();
 

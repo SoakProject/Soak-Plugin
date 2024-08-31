@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.exception.NotImplementedException;
+import org.soak.plugin.SoakManager;
 import org.spongepowered.api.ResourceKey;
 import org.spongepowered.api.block.BlockType;
 import org.spongepowered.api.block.BlockTypes;
@@ -17,6 +18,7 @@ import org.spongepowered.api.item.inventory.slot.EquipmentSlot;
 import org.spongepowered.api.item.inventory.slot.FuelSlot;
 import org.spongepowered.api.item.inventory.slot.OutputSlot;
 import org.spongepowered.api.item.inventory.type.BlockEntityInventory;
+import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.item.merchant.Merchant;
 import org.spongepowered.api.registry.RegistryTypes;
 
@@ -141,6 +143,22 @@ public enum InventoryType {
 
     public boolean isCraftable() {
         throw NotImplementedException.createByLazy(InventoryType.class, "isCraftable");
+    }
+
+    public int getDefaultSize() {
+        //this is horrible .... but works
+        return this
+                .sponge()
+                .stream()
+                .mapToInt(ct -> ViewableInventory
+                        .builder()
+                        .type(ct)
+                        .completeStructure()
+                        .plugin(SoakManager.getManager().getOwnContainer())
+                        .build()
+                        .capacity())
+                .max()
+                .orElseThrow(() -> new IllegalStateException("Shouldnt be possible: type: " + name()));
     }
 
     public static enum SlotType {

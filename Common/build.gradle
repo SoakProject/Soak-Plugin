@@ -5,12 +5,19 @@ plugins {
 group = 'org.soak'
 version = '1.0.0'
 
+java {
+    toolchain {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-implementation project(":bukkit-api")
+    implementation project(":bukkit-api")
     implementation project(":CollectionStream")
     implementation project(":MoseStream")
     implementation 'org.spongepowered:spongeapi:10.0.0'

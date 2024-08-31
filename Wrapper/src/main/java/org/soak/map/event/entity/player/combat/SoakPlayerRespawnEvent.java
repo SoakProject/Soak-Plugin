@@ -55,7 +55,7 @@ public class SoakPlayerRespawnEvent {
                 event.destinationPosition().z());
 
         var bukkitEvent = new PlayerRespawnEvent(player, newLocation, event.isBedSpawn());
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleListenerWrapper, bukkitEvent, priority);
 
         var newSetLocation = bukkitEvent.getRespawnLocation();
         if (!newLocation.equals(newSetLocation)) {

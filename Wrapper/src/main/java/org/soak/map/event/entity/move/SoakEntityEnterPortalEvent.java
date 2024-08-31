@@ -70,6 +70,6 @@ public class SoakEntityEnterPortalEvent {
         var bukkitLocation = SoakLocationMap.toBukkit(spongeLocation);
 
         var bukkitEvent = new EntityPortalEnterEvent(bukkitEntity, bukkitLocation);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
     }
 }

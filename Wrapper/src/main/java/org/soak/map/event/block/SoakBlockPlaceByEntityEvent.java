@@ -61,7 +61,7 @@ public class SoakBlockPlaceByEntityEvent {
 
             var bukkitEvent = new EntityBlockFormEvent(entity, originalBlock,
                     newBlock.getState());
-            SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+            SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
             if (bukkitEvent.isCancelled()) {
                 transaction.invalidate();

@@ -51,7 +51,7 @@ public class SoakItemUseEvent {
         var item = SoakItemStackMap.toBukkit(event.itemStackInUse());
 
         var bukkitEvent = new PlayerItemConsumeEvent(player, item);
-        SoakManager.<WrapperManager>getManager().getServer().getPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
+        SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 
         if (bukkitEvent.isCancelled()) {
             event.setCancelled(true);
