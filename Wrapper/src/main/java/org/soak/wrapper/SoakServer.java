@@ -1376,8 +1376,9 @@ public abstract class SoakServer implements SimpServer {
     }
 
     @Override
-    public int broadcast(@NotNull Component arg0, @NotNull String arg1) {
-        throw NotImplementedException.createByLazy(Server.class, "broadcast", Component.class, String.class);
+    public int broadcast(@NotNull Component message, @NotNull String from) {
+        var newComponent = Component.text("[" + from + "] ").color(NamedTextColor.GOLD).append(message);
+        return broadcast(newComponent);
     }
 
     @Override

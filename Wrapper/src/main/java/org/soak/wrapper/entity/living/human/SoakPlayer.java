@@ -87,6 +87,17 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     }
 
     @Override
+    public @NotNull InventoryView getOpenInventory() {
+        var opOpenInventory = this.spongeEntity().openInventory();
+        if(opOpenInventory.isEmpty()){
+            SoakManager.getManager().getLogger().error("A plugin requested the players open inventory, but the players inventory is not open");
+            throw NotImplementedException.createByLazy(HumanEntity.class, "getOpenInventory");
+        }
+        var openInventory = opOpenInventory.get();
+        return new SoakInventoryView(openInventory);
+    }
+
+    @Override
     public @Nullable InventoryView openInventory(@NotNull Inventory inventory) {
         SoakInventory<?> soakInv = (SoakInventory<?>) inventory;
         try {
@@ -1564,7 +1575,9 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
 
     @Override
     public void updateInventory() {
-        throw NotImplementedException.createByLazy(Player.class, "updateInventory");
+        //inventory is updated on the go -> if compatibility needs it then we can store the updates and then apply them here
+
+        //throw NotImplementedException.createByLazy(Player.class, "updateInventory");
     }
 
     @Override

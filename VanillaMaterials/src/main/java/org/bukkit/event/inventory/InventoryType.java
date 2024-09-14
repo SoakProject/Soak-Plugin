@@ -118,6 +118,7 @@ public enum InventoryType {
         //failsafe -> find a none NMS way to do this please
         var className = container.getClass().getName();
         return Arrays.stream(values())
+                .filter(type -> !type.nmsClassNames.isBlank())
                 .filter(type -> className.endsWith(type.nmsClassNames))
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("Cannot find container for " + container.getClass().getName()));

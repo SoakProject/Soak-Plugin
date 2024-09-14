@@ -10,19 +10,26 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.mose.collection.stream.builder.CollectionStreamBuilder;
 import org.soak.WrapperManager;
 import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakLocationMap;
 import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakManager;
+import org.soak.utils.ListMappingUtils;
+import org.soak.utils.ReflectionHelper;
+import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.spongepowered.api.data.Keys;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 import org.spongepowered.api.item.inventory.Container;
 import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.entity.PlayerInventory;
 import org.spongepowered.api.item.inventory.query.QueryTypes;
+import org.spongepowered.api.item.inventory.type.BlockEntityInventory;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
+import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.registry.RegistryTypes;
+import org.spongepowered.api.util.Nameable;
 import org.spongepowered.api.world.Locatable;
 
 import java.util.*;
@@ -205,6 +212,12 @@ public class SoakInventory<Inv extends org.spongepowered.api.item.inventory.Inve
 
     private Optional<ServerPlayer> playerOwner() {
         var sponge = sponge();
+        if (sponge instanceof Container container) {
+            return Optional.of(container.viewer());
+        }
+        if (sponge instanceof ViewableInventory customInventory && customInventory.hasViewers() && customInventory.viewers().size() == 1) {
+            return Optional.of(customInventory.viewers().iterator().next());
+        }
         if (!(sponge instanceof PlayerInventory playerInventory)) {
             return Optional.empty();
         }
@@ -320,6 +333,35 @@ public class SoakInventory<Inv extends org.spongepowered.api.item.inventory.Inve
 
     @Override
     public @NotNull List<HumanEntity> getViewers() {
+        var sponge = sponge();
+        var isMenu = sponge instanceof org.spongepowered.api.item.inventory.menu.InventoryMenu;
+        var isViewableInventory = sponge instanceof ViewableInventory;
+        var isCarried = sponge instanceof CarriedInventory;
+        var isBlockEntity = sponge instanceof BlockEntityInventory;
+        var isContainer = sponge instanceof Container;
+        var opViewable = sponge.asViewable();
+        if (opViewable.isPresent()) {
+            var viewers = opViewable.get().viewers();
+            if (viewers.isEmpty()) {
+                //above fails for some reason -> here is a hacky way to override above
+                try {
+                    viewers = ReflectionHelper.getField(opViewable.get(), "viewers");
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if (!viewers.isEmpty()) {
+                return ListMappingUtils.fromStream(CollectionStreamBuilder
+                                        .builder()
+                                        .collection(viewers, human -> ((SoakPlayer) human).spongeEntity())
+                                        .basicMap(serverPlayer -> (HumanEntity) SoakManager.<WrapperManager>getManager().getMemoryStore().get(serverPlayer)),
+                                viewers::stream,
+                                (spongePlayer, bukkitPlayer) -> spongePlayer.uniqueId().equals(bukkitPlayer.getUniqueId()), Comparator.comparing(Nameable::name))
+                        .buildList();
+            }
+
+        }
+
         return playerOwner().stream().map(player -> (HumanEntity) SoakManager.<WrapperManager>getManager().getMemoryStore().get(player)).toList();
     }
 
@@ -333,4 +375,36 @@ public class SoakInventory<Inv extends org.spongepowered.api.item.inventory.Inve
         throw NotImplementedException.createByLazy(Inventory.class, "getHolder", boolean.class);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SoakInventory<?> soakInventory)) {
+            return false;
+        }
+        //title
+        if (!Objects.equals(soakInventory.requestedTitle, this.requestedTitle)) {
+            return false;
+        }
+        //viewers
+        var thisViewers = this.getViewers();
+        var soakViewers = soakInventory.getViewers();
+        if (!new HashSet<>(soakViewers).containsAll(thisViewers)) {
+            return false;
+        }
+        //items
+        return this.sponge().slots().stream().map(slot -> {
+            Optional<Slot> opSlot = slot.get(Keys.SLOT_INDEX).flatMap(index -> soakInventory.sponge().slot(index));
+            return Map.entry(slot, opSlot);
+        }).allMatch(entry -> {
+            var slot = entry.getKey();
+            var opCompare = entry.getValue();
+            return opCompare.filter(value -> slot.peek().equalTo(value.peek())).isPresent();
+        });
+    }
+
+    @Override
+    public int hashCode() {
+        int title = this.requestedTitle == null ? 0 : this.requestedTitle.hashCode();
+        int content = Integer.parseInt(this.sponge().slots().stream().map(slot -> slot.peek().hashCode() + "").collect(Collectors.joining("")));
+        return title + content;
+    }
 }

@@ -1,11 +1,13 @@
 package org.soak.map.event;
 
 import org.bukkit.event.*;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.soak.plugin.SoakManager;
 import org.soak.utils.BasicEntry;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -60,6 +62,25 @@ public class EventSingleListenerWrapper<T extends Event> {
         if (event instanceof Cancellable && ((Cancellable) event).isCancelled() && !this.ignoreCancelled) {
             return;
         }
+
+        var eventExecutors = Arrays
+                .stream(this.listener.getClass().getDeclaredFields())
+                .filter(field -> EventExecutor.class.isAssignableFrom(field.getType()))
+                .filter(field -> Modifier.isPublic(field.getModifiers())).toList();
+        for (var field : eventExecutors) {
+            if (event instanceof Cancellable && ((Cancellable) event).isCancelled() && !this.ignoreCancelled) {
+                break;
+            }
+            try {
+                field.setAccessible(true);
+                var executor = (EventExecutor) field.get(this.listener);
+                executor.execute(this.listener, event);
+            } catch (Throwable e) {
+                SoakManager.getManager().displayError(e, this.plugin, new BasicEntry<>("event", event.getEventName()));
+            }
+            field.setAccessible(false);
+        }
+
         List<Method> methods = Arrays.
                 stream(this.listener.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(EventHandler.class))

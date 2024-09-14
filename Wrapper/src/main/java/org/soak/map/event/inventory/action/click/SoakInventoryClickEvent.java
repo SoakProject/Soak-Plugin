@@ -75,6 +75,41 @@ public class SoakInventoryClickEvent {
 
     private InventoryAction mapAction(ClickContainerEvent event) {
         //TODO
+        //this is horrible -> i understand why .... but still
+        if (event instanceof ClickContainerEvent.Shift) {
+            return InventoryAction.MOVE_TO_OTHER_INVENTORY;
+        }
+        if (event instanceof ClickContainerEvent.Drop.Full) {
+            return InventoryAction.DROP_ALL_SLOT;
+        }
+        if (event instanceof ClickContainerEvent.Drop.Single) {
+            return InventoryAction.DROP_ALL_SLOT;
+        }
+        if (event instanceof ClickContainerEvent.Primary) {
+            var curserTransaction = event.cursorTransaction();
+            var cursorAfter = curserTransaction.finalReplacement();
+            var cursorBefore = curserTransaction.original();
+            if(cursorBefore.isEmpty() && cursorAfter.isEmpty()){
+                return InventoryAction.NOTHING;
+            }
+            if(!event.transactions().isEmpty()) {
+                var slotAfter = event.transactions().get(0).finalReplacement();
+                if (cursorBefore.isEmpty()) {
+                    if(slotAfter.equals(cursorBefore)){
+                        return InventoryAction.PICKUP_ALL;
+                    }
+                    if((slotAfter.quantity() / 2) == cursorAfter.quantity()){
+                        return InventoryAction.PICKUP_HALF;
+                    }
+                    if(cursorAfter.quantity() == 1){
+                        return InventoryAction.PICKUP_ONE;
+                    }
+                    return InventoryAction.PICKUP_SOME;
+                }
+
+            }
+        }
+
         return InventoryAction.UNKNOWN;
     }
 

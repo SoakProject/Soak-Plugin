@@ -11,8 +11,8 @@ import org.soak.WrapperManager;
 import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakMessageMap;
 import org.soak.plugin.SoakManager;
+import org.soak.utils.ReflectionHelper;
 import org.spongepowered.api.item.inventory.Container;
-import org.spongepowered.api.item.inventory.menu.InventoryMenu;
 
 public class SoakInventoryView extends InventoryView {
 
@@ -28,7 +28,9 @@ public class SoakInventoryView extends InventoryView {
 
     @Override
     public @NotNull Inventory getTopInventory() {
-        return SoakInventory.wrap(this.spongeContainer);
+        var inventory = SoakInventory.wrap(this.spongeContainer);
+        inventory.setRequestedTitle(this.title());
+        return inventory;
     }
 
     @Override
@@ -48,8 +50,20 @@ public class SoakInventoryView extends InventoryView {
 
     @Override
     public @NotNull Component title() {
-        return this.spongeContainer.currentMenu()
-                .flatMap(InventoryMenu::title)
+        var currentMenu = this.spongeContainer.currentMenu();
+        if (currentMenu.isEmpty()) {
+            //if remapped inventory -> it may return null here -> this forces it out
+            var player = this.spongeContainer.viewer();
+            try {
+                var menuProvider = ReflectionHelper.getField(player, "inventory$menuProvider");
+                var spongeWrappedComponent = ReflectionHelper.getField(menuProvider, "title");
+                return ReflectionHelper.getField(spongeWrappedComponent, "wrapped");
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        var opTitle = currentMenu.get().title();
+        return opTitle
                 .orElseGet(() -> this.getType().defaultTitle());
 
     }
