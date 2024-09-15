@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public class InternalSoakPluginContainer implements SoakPluginContainer {
 
-    private AbstractSpongePluginMain main;
+    private final AbstractSpongePluginMain main;
 
     InternalSoakPluginContainer(AbstractSpongePluginMain main) {
         this.main = main;

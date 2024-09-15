@@ -1,60 +1,90 @@
 package org.soak.plugin;
 
+import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.apache.logging.log4j.Logger;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.PluginCommandYamlParser;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.soak.Compatibility;
 import org.soak.WrapperManager;
-import org.soak.command.BukkitRawCommand;
-import org.soak.data.sponge.PortalCooldownCustomData;
-import org.soak.data.sponge.SoakKeys;
 import org.soak.io.SoakServerProperties;
+import org.soak.plugin.paper.loader.SoakPluginClassLoader;
+import org.soak.plugin.paper.meta.SoakPluginMetaBuilder;
+import org.soak.utils.Singleton;
 import org.soak.utils.SoakMemoryStore;
-import org.spongepowered.api.Server;
+import org.soak.wrapper.v1_19_R4.NMSBounceSoakServer;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.DataRegistration;
-import org.spongepowered.api.data.persistence.DataQuery;
-import org.spongepowered.api.data.persistence.DataStore;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.Order;
-import org.spongepowered.api.event.lifecycle.*;
-import org.spongepowered.api.item.inventory.ItemStack;
-import org.spongepowered.api.item.inventory.ItemStackSnapshot;
+import org.spongepowered.plugin.PluginCandidate;
 import org.spongepowered.plugin.PluginContainer;
+import org.spongepowered.plugin.PluginResource;
+import org.spongepowered.plugin.builtin.jvm.JVMPluginContainer;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.LinkedTransferQueue;
+import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
 import java.util.stream.Stream;
 
 public class AbstractSpongePluginMain implements SoakInternalManager, WrapperManager {
 
     private static final ArtifactVersion soakVersion = new DefaultArtifactVersion("0.0.1");
-    private final JavaPlugin plugin;
-    private final Collection<Command> commands = new LinkedTransferQueue<>();
-    private final InternalSoakPluginContainer soakPluginContainer = new InternalSoakPluginContainer(this);
+    final Collection<Command> commands = new LinkedTransferQueue<>();
+    final InternalSoakPluginContainer soakPluginContainer = new InternalSoakPluginContainer(this);
+    final PluginContainer container;
+    private final Singleton<JavaPlugin> pluginCreator;
     private final Logger logger;
-    private final PluginContainer container;
     private final Compatibility compatibility;
     private final SoakServerProperties serverProperties = new SoakServerProperties();
     private final ConsoleHandler consoleHandler = new ConsoleHandler();
     private final SoakMemoryStore memoryStore = new SoakMemoryStore();
 
-    public AbstractSpongePluginMain(JavaPlugin plugin, Logger logger, PluginContainer container) {
-        this.plugin = plugin;
+    public AbstractSpongePluginMain(Supplier<JavaPlugin> plugin, Logger logger, PluginContainer container) {
+        this.pluginCreator = new Singleton(plugin);
         this.logger = logger;
         this.container = container;
         this.compatibility = new Compatibility();
+        GlobalSoakData.MANAGER_INSTANCE = this;
+        Bukkit.setServer(new NMSBounceSoakServer(Sponge::server));
+        Sponge.eventManager().registerListeners(container, new SoakWrapperListener(this));
+    }
 
+    void loadPlugin() {
+        JavaPlugin javaPlugin = getPlugin();
+        SoakPluginClassLoader.setupPlugin(javaPlugin, this.container.metadata().id(), getPluginFile(), new File(getPluginFolder(), "config.yml"), getPluginFolder(), this::getPluginMeta, () -> this.getClass().getClassLoader());
+    }
+
+    private File getPluginFile() {
+        if (this.container instanceof JVMPluginContainer jvmPlugin) {
+            try {
+                var field = JVMPluginContainer.class.getDeclaredField("candidate");
+                field.setAccessible(true);
+                PluginCandidate<? extends PluginResource> candidate = (PluginCandidate<? extends PluginResource>) field.get(jvmPlugin);
+                field.setAccessible(false);
+
+                return candidate.resource().path().toFile();
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+        //todo - forge
+        throw new RuntimeException("Not implemented: " + this.container.getClass().getName());
+    }
+
+    private PluginMeta getPluginMeta() {
+        return new SoakPluginMetaBuilder().from(this.container).setMain(getPlugin().getClass().getTypeName()).build();
+    }
+
+    private File getPluginFolder() {
+        return Sponge.configManager().pluginConfig(this.container).configPath().toFile();
     }
 
     public JavaPlugin getPlugin() {
-        return this.plugin;
+        return this.pluginCreator.get();
     }
 
     @Override
@@ -89,7 +119,7 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
 
     @Override
     public Collection<Command> getBukkitCommands(Plugin plugin) {
-        if (plugin.equals(this.plugin)) {
+        if (plugin.equals(this.getPlugin())) {
             return Collections.emptyList();
         }
         return Collections.unmodifiableCollection(this.commands);
@@ -108,102 +138,5 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
     @Override
     public Compatibility getCompatibility() {
         return compatibility;
-    }
-
-    @Listener
-    public void onPluginCommandRegister(RegisterCommandEvent<org.spongepowered.api.command.Command.Raw> event) {
-        var bukkitCommands = PluginCommandYamlParser.parse(plugin);
-        this.commands.addAll(bukkitCommands);
-        bukkitCommands.forEach(cmd -> event.register(container, new BukkitRawCommand(soakPluginContainer, cmd), cmd.getName(), cmd.getAliases().toArray(String[]::new)));
-    }
-
-    @Listener
-    public void onPluginLoad(StartingEngineEvent<Server> event) {
-        logger.warn("On Engine starting");
-        try {
-            plugin.onLoad();
-        } catch (Throwable e) {
-            SoakManager.getManager().displayError(e, plugin);
-        }
-    }
-
-    //issue
-    //Bukkit plugins assume everything is loaded when onEnable is run, this is because Craftbukkit loads everything before onEnable is used ....
-    //using StartedEngineEvent despite the timing known to be incorrect
-    @Listener
-    public void onPluginEnable(StartedEngineEvent<Server> event) {
-        logger.warn("On Engine started");
-        try {
-            plugin.onEnable();
-        } catch (Throwable e) {
-            SoakManager.getManager().displayError(e, plugin);
-        }
-    }
-
-
-    @Listener
-    public void dataRegister(RegisterDataEvent event) {
-        DataStore dataStore = DataStore.of(SoakKeys.BUKKIT_DATA,
-                DataQuery.of("soak"),
-                ItemStack.class,
-                ItemStackSnapshot.class); //TODO -> find more
-        DataRegistration registration = DataRegistration.builder()
-                .dataKey(SoakKeys.BUKKIT_DATA)
-                .store(dataStore)
-                .build();
-
-        event.register(registration);
-
-        SoakKeys.init(event);
-    }
-
-    @Listener(order = Order.FIRST)
-    public void startingPlugin(StartingEngineEvent<Server> event) {
-        SoakRegister.startEnchantmentTypes(this.logger);
-        SoakRegister.startPotionEffects(this.logger);
-        PortalCooldownCustomData.createTickScheduler();
-    }
-
-    @Listener
-    public void stoppingPlugin(StoppingEngineEvent<Server> event) {
-        plugin.onDisable();
-    }
-
-    @Listener(order = Order.LAST)
-    public void endingPlugin(StoppingEngineEvent<Server> event) {
-        Sponge.server().scheduler().executor(this.container).shutdown();
-        Sponge.asyncScheduler().executor(this.container).shutdown();
-        /*MoseStream.stream(plugins)
-                .map(plugin -> SoakPlugin
-                        .server()
-                        .getPluginManager()
-                        .getContext(plugin.getBukkitInstance()))
-                .forEach(context -> {
-                    var loader = context.loader();
-                    try {
-                        logger.debug("Closing: " + context.getConfiguration().getName());
-                        loader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-        plugins.forEach(SoakPluginInjector::removePluginFromPlatform);*/
-
-        var thread = new Thread(() -> {
-            while (Thread.getAllStackTraces().keySet().stream().anyMatch(mainThread -> mainThread.getName().equals("server thread"))) {
-                try {
-                    Thread.currentThread().wait(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            //for some reason threads get blocked when soak loads plugins. this forces the shutoff.
-            //TODO -> figure out why threads get blocked
-            logger.debug("Using ublocking fix from Soak");
-            System.exit(0);
-        });
-        thread.setName("unblocker");
-        thread.start();
     }
 }
