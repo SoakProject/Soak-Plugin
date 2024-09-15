@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 import org.soak.Compatibility;
 import org.soak.WrapperManager;
 import org.soak.io.SoakServerProperties;
@@ -23,8 +24,11 @@ import org.spongepowered.plugin.PluginResource;
 import org.spongepowered.plugin.builtin.jvm.JVMPluginContainer;
 
 import java.io.File;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
@@ -43,8 +47,11 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
     private final ConsoleHandler consoleHandler = new ConsoleHandler();
     private final SoakMemoryStore memoryStore = new SoakMemoryStore();
 
+    @Nullable
+    private FileSystem fileSystem;
+
     public AbstractSpongePluginMain(Supplier<JavaPlugin> plugin, Logger logger, PluginContainer container) {
-        this.pluginCreator = new Singleton(plugin);
+        this.pluginCreator = new Singleton<>(plugin);
         this.logger = logger;
         this.container = container;
         this.compatibility = new Compatibility();
@@ -66,7 +73,14 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
                 PluginCandidate<? extends PluginResource> candidate = (PluginCandidate<? extends PluginResource>) field.get(jvmPlugin);
                 field.setAccessible(false);
 
-                return candidate.resource().path().toFile();
+                var file = candidate.resource().path().toFile();
+
+                var javaPluginClass = getPlugin().getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
+                var env = new HashMap<String, String>();
+                env.put("create", "true");
+                fileSystem = FileSystems.newFileSystem(javaPluginClass, env);
+
+                return file;
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
