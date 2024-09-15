@@ -9,6 +9,13 @@ repositories {
     mavenCentral()
 }
 
+java {
+    toolchain {
+        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+    }
+}
+
 dependencies {
 
     implementation project(":Launch-Common")
