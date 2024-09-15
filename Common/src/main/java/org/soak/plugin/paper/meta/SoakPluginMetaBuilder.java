@@ -4,6 +4,8 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.PluginLoadOrder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.plugin.PluginContainer;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +24,16 @@ public class SoakPluginMetaBuilder {
     private String website;
     private Map<String, DependType> pluginDepends = new ConcurrentHashMap<>();
     private List<Permission> permissions = new ArrayList<>();
+
+    public SoakPluginMetaBuilder from(PluginContainer container) {
+        this.name = container.metadata().name().orElseGet(() -> container.metadata().id());
+        this.description = container.metadata().description().orElse("");
+        this.version = container.metadata().version().toString();
+        this.prefix = container.metadata().id();
+        this.website = container.metadata().links().homepage().map(url -> url.toString()).orElse(null);
+        this.apiVersion = Sponge.platform().minecraftVersion().name();
+        return this;
+    }
 
     public SoakPluginMeta build() {
         return new SoakPluginMeta(this);
