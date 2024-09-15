@@ -11,6 +11,16 @@ java {
     }
 }
 
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
+    maven {
+        url = uri("https://repo.spongepowered.org/repository/maven-public/")
+    }
+}
+
 dependencies {
     api("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
     api("org.bstats:bstats-base:3.0.2")
