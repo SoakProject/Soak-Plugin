@@ -6,33 +6,39 @@ import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.PluginCommandYamlParser;
+import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.CheckReturnValue;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.soak.Compatibility;
 import org.soak.WrapperManager;
 import org.soak.io.SoakServerProperties;
 import org.soak.plugin.paper.loader.SoakPluginClassLoader;
 import org.soak.plugin.paper.meta.SoakPluginMetaBuilder;
-import org.soak.utils.Singleton;
 import org.soak.utils.SoakMemoryStore;
 import org.soak.wrapper.v1_19_R4.NMSBounceSoakServer;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.plugin.PluginCandidate;
 import org.spongepowered.plugin.PluginContainer;
-import org.spongepowered.plugin.PluginResource;
-import org.spongepowered.plugin.builtin.jvm.JVMPluginContainer;
 
 import java.io.File;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.LinkedTransferQueue;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.logging.ConsoleHandler;
 import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 public class AbstractSpongePluginMain implements SoakInternalManager, WrapperManager {
 
@@ -40,18 +46,30 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
     final Collection<Command> commands = new LinkedTransferQueue<>();
     final InternalSoakPluginContainer soakPluginContainer = new InternalSoakPluginContainer(this);
     final PluginContainer container;
-    private final Singleton<JavaPlugin> pluginCreator;
+    private final Function<ClassLoader, Class<? extends JavaPlugin>> loaderToMain;
+    private final String[] pathToPlugins;
     private final Logger logger;
     private final Compatibility compatibility;
     private final SoakServerProperties serverProperties = new SoakServerProperties();
     private final ConsoleHandler consoleHandler = new ConsoleHandler();
     private final SoakMemoryStore memoryStore = new SoakMemoryStore();
+    @Nullable
+    private URLClassLoader loader;
 
     @Nullable
-    private FileSystem fileSystem;
+    private JavaPlugin plugin;
 
-    public AbstractSpongePluginMain(Supplier<JavaPlugin> plugin, Logger logger, PluginContainer container) {
-        this.pluginCreator = new Singleton<>(plugin);
+    @Deprecated
+    public AbstractSpongePluginMain(Function<ClassLoader, Class<? extends JavaPlugin>> loaderToMain, Logger logger, PluginContainer container) {
+        this(loaderToMain, logger, container, new String[0]);
+    }
+
+    public AbstractSpongePluginMain(Function<ClassLoader, Class<? extends JavaPlugin>> loaderToMain, Logger logger, PluginContainer container, String... pathsToPlugins) {
+        if (pathsToPlugins.length == 0) {
+            throw new IllegalStateException("'PathsToPlugins' needs to be filled");
+        }
+        this.loaderToMain = loaderToMain;
+        this.pathToPlugins = pathsToPlugins;
         this.logger = logger;
         this.container = container;
         this.compatibility = new Compatibility();
@@ -60,45 +78,119 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
         Sponge.eventManager().registerListeners(container, new SoakWrapperListener(this));
     }
 
-    void loadPlugin() {
-        JavaPlugin javaPlugin = getPlugin();
-        SoakPluginClassLoader.setupPlugin(javaPlugin, this.container.metadata().id(), getPluginFile(), new File(getPluginFolder(), "config.yml"), getPluginFolder(), this::getPluginMeta, () -> this.getClass().getClassLoader());
+    @CheckReturnValue
+    public static Function<ClassLoader, Class<? extends JavaPlugin>> fromName(@NotNull String name) {
+        return (classLoader) -> {
+            try {
+                return (Class<? extends JavaPlugin>) Class.forName(name, true, classLoader);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
-    private File getPluginFile() {
-        if (this.container instanceof JVMPluginContainer jvmPlugin) {
+    void loadPlugin() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        List<File> copiedFiles = new LinkedList<>();
+        for (var path : this.pathToPlugins) {
             try {
-                var field = JVMPluginContainer.class.getDeclaredField("candidate");
-                field.setAccessible(true);
-                PluginCandidate<? extends PluginResource> candidate = (PluginCandidate<? extends PluginResource>) field.get(jvmPlugin);
-                field.setAccessible(false);
-
-                var file = candidate.resource().path().toFile();
-
-                var javaPluginClass = getPlugin().getClass().getProtectionDomain().getCodeSource().getLocation().toURI();
-                var env = new HashMap<String, String>();
-                env.put("create", "true");
-                fileSystem = FileSystems.newFileSystem(javaPluginClass, env);
-
-                return file;
-            } catch (Throwable e) {
+                var internalPath = new URI(path);
+                var inputStream = this.container.openResource(internalPath).orElseThrow(() -> new RuntimeException("Could not find '" + path + "'"));
+                var location = new File("temp/soak/" + path);
+                location.deleteOnExit();
+                location.getParentFile().mkdirs();
+                Files.copy(inputStream, location.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                copiedFiles.add(location);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        //todo - forge
-        throw new RuntimeException("Not implemented: " + this.container.getClass().getName());
+
+        loader = new URLClassLoader(copiedFiles.stream().map(file -> {
+            try {
+                var url = file.toURI().toURL();
+                this.container.logger().info("Loading Bukkit file of '" + url.toString() + "'");
+                return url;
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }).toArray(URL[]::new), AbstractSpongePluginMain.class.getClassLoader());
+
+        for (var file : copiedFiles) {
+            try (ZipFile zip = new ZipFile(file)) {
+                var entries = zip.entries();
+                while (entries.hasMoreElements()) {
+                    var entry = entries.nextElement();
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+                    if (!entry.getName().endsWith(".class")) {
+                        continue;
+                    }
+                    String name = entry.getName();
+                    name = name.substring(0, name.length() - 6);
+                    name = name.replaceAll("/", ".");
+                    try {
+                        loader.loadClass(name);
+                    } catch (Throwable e) {
+                        this.container.logger().warn("Could not load '" + name + "'", e);
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        Class<? extends JavaPlugin> javaPluginClass = this.loaderToMain.apply(loader);
+        plugin = javaPluginClass.getConstructor().newInstance();
+        SoakPluginClassLoader.setupPlugin(plugin, this.container.metadata().id(), getPluginFile(), new File(getPluginFolder(), "config.yml"), getPluginFolder(), this::getPluginMeta, () -> loader);
+        this.commands.addAll(PluginCommandYamlParser.parse(plugin));
+    }
+
+    private File getPluginFile() {
+        return new File("temp/soak/" + this.pathToPlugins[0]);
+
     }
 
     private PluginMeta getPluginMeta() {
+        if (this.pathToPlugins.length == 1) {
+            if (this.loader == null) {
+                throw new RuntimeException("getPluginMeta was called before the classloader");
+            }
+            var inputStream = this.loader.getResourceAsStream("plugin.yml");
+            if (inputStream == null) {
+                inputStream = this.loader.getResourceAsStream("paper-plugin.yml");
+            }
+            if (inputStream != null) {
+                try {
+                    return new PluginDescriptionFile(inputStream);
+                } catch (InvalidDescriptionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
         return new SoakPluginMetaBuilder().from(this.container).setMain(getPlugin().getClass().getTypeName()).build();
     }
 
     private File getPluginFolder() {
-        return Sponge.configManager().pluginConfig(this.container).configPath().toFile();
+        //correct path for sponge
+        //return Sponge.configManager().pluginConfig(this.container).directory().toFile();
+
+        //bukkits path -> plugins hard code this path
+        File folder = new File("plugins/" + container.metadata().name().orElseGet(() -> container.metadata().id()));
+
+        folder.mkdirs();
+
+        return folder;
     }
 
     public JavaPlugin getPlugin() {
-        return this.pluginCreator.get();
+        if (this.plugin == null) {
+            throw new IllegalStateException("getPlugin was called before the plugin was loaded");
+        }
+        return this.plugin;
     }
 
     @Override
@@ -133,7 +225,7 @@ public class AbstractSpongePluginMain implements SoakInternalManager, WrapperMan
 
     @Override
     public Collection<Command> getBukkitCommands(Plugin plugin) {
-        if (plugin.equals(this.getPlugin())) {
+        if (!plugin.equals(this.getPlugin())) {
             return Collections.emptyList();
         }
         return Collections.unmodifiableCollection(this.commands);

@@ -16,20 +16,28 @@ import org.spongepowered.api.event.lifecycle.*;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class SoakWrapperListener {
 
     private final AbstractSpongePluginMain pluginMain;
 
-    public SoakWrapperListener(AbstractSpongePluginMain pluginMain){
+    public SoakWrapperListener(AbstractSpongePluginMain pluginMain) {
         this.pluginMain = pluginMain;
     }
 
     @Listener
-    public void onConstruct(ConstructPluginEvent event){
+    public void onConstruct(ConstructPluginEvent event) {
         if (!event.plugin().equals(pluginMain.container)) { //just to ensure it
             return;
         }
-        pluginMain.loadPlugin();
+        try {
+            pluginMain.loadPlugin();
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            this.pluginMain.getLogger().error("The JavaPlugin instance must have a public empty argument constructor", e);
+        } catch (InvocationTargetException | InstantiationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Listener
