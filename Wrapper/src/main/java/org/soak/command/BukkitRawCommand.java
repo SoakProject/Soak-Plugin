@@ -68,7 +68,7 @@ public class BukkitRawCommand implements Command.Raw {
         if (!(this.command instanceof PluginCommand)) {
             return Collections.emptyList();
         }
-        var plCmd = (PluginCommand)this.command;
+        var plCmd = (PluginCommand) this.command;
         if (plCmd.getTabCompleter() == null) {
             return Collections.emptyList();
         }
