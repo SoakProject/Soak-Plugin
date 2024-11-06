@@ -160,6 +160,8 @@ public abstract class SoakServer implements SimpServer {
         return this.serverSupplier.get();
     }
 
+
+
     @Override
     public <T extends Keyed> Tag<T> getTag(@NotNull String registry, @NotNull NamespacedKey tag, @NotNull Class<T> clazz) {
         ResourceKey key = SoakResourceKeyMap.mapToSponge(tag);
@@ -1094,15 +1096,6 @@ public abstract class SoakServer implements SimpServer {
     }
 
     @Override
-    public ChunkGenerator.@NotNull ChunkData createVanillaChunkData(@NotNull World arg0, int arg1, int arg2) {
-        throw NotImplementedException.createByLazy(Server.class,
-                "createVanillaChunkData",
-                World.class,
-                int.class,
-                int.class);
-    }
-
-    @Override
     public @NotNull KeyedBossBar createBossBar(@NotNull NamespacedKey arg0, String arg1, @NotNull BarColor arg2, @NotNull BarStyle arg3, BarFlag[] arg4) {
         throw NotImplementedException.createByLazy(Server.class,
                 "createBossBar",
@@ -1182,11 +1175,6 @@ public abstract class SoakServer implements SimpServer {
     @Override
     public @NotNull BlockData createBlockData(@NotNull Material material) {
         return material.createBlockData();
-    }
-
-    @Override
-    public @NotNull BlockData createBlockData(@NotNull Material material, @Nullable Consumer<BlockData> consumer) {
-        throw NotImplementedException.createByLazy(Server.class, "createBlockData", Material.class, Consumer.class);
     }
 
     @Override

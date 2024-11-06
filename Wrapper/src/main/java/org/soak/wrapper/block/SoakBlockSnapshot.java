@@ -150,7 +150,12 @@ public class SoakBlockSnapshot extends AbstractBlock<BlockSnapshot> {
 
     @Override
     public void tick() {
-//cant be done on snapshot
+        //cant be done on snapshot
+    }
+
+    @Override
+    public void fluidTick() {
+        //cant be done on snapshot
     }
 
     @Override

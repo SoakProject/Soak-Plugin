@@ -178,11 +178,6 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
-    public <T extends Projectile> @NotNull T launchProjectile(@NotNull Class<? extends T> aClass, @Nullable Vector vector, @Nullable Consumer<T> consumer) {
-        throw NotImplementedException.createByLazy(LivingEntity.class, "launchProjectile", Class.class, Vector.class, Consumer.class);
-    }
-
-    @Override
     public RayTraceResult rayTraceBlocks(double arg0) {
         throw NotImplementedException.createByLazy(LivingEntity.class, "rayTraceBlocks", double.class);
     }
@@ -196,6 +191,7 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
+    @Deprecated
     public TargetEntityInfo getTargetEntityInfo(int arg0, boolean arg1) {
         throw NotImplementedException.createByLazy(LivingEntity.class, "getTargetEntityInfo", int.class, boolean.class);
     }
@@ -262,6 +258,7 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
+    @Deprecated
     public @Nullable Block getTargetBlock(int maxDistance, TargetBlockInfo.FluidMode fluidMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
                 "getTargetBlockExact",
@@ -270,6 +267,7 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
+    @Deprecated
     public @Nullable BlockFace getTargetBlockFace(int maxDistance, @NotNull TargetBlockInfo.FluidMode fluidMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
                 "getTargetBlockFace",
@@ -278,6 +276,7 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
+    @Deprecated
     public @Nullable TargetBlockInfo getTargetBlockInfo(int maxDistance, @NotNull TargetBlockInfo.FluidMode fluidMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
                 "getTargetBlockInfo",
@@ -553,6 +552,7 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     }
 
     @Override
+    @Deprecated
     public @NotNull EntityCategory getCategory() {
         throw NotImplementedException.createByLazy(LivingEntity.class, "getCategory");
     }

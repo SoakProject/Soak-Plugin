@@ -178,6 +178,11 @@ public class SoakBlock extends AbstractBlock<ServerLocation> {
     }
 
     @Override
+    public void fluidTick() {
+        throw NotImplementedException.createByLazy(Block.class, "tick");
+    }
+
+    @Override
     public void randomTick() {
         throw NotImplementedException.createByLazy(Block.class, "randomTick");
     }

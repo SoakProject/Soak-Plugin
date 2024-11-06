@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 public class NotImplementedException extends RuntimeException {
 
-    private Method interfaceMethod;
+    private final Method interfaceMethod;
 
     public NotImplementedException(Class<?> from, String methodName, Class<?>... parameters) throws NoSuchMethodException {
         this(from.getDeclaredMethod(methodName, parameters));
@@ -25,6 +25,7 @@ public class NotImplementedException extends RuntimeException {
         }
     }
 
+    @Deprecated(forRemoval = true)
     public static NotImplementedException createByLazy(Class<?>... parameterTypes) {
         StackTraceElement stacktrace = Thread.currentThread().getStackTrace()[0];
         String className = stacktrace.getClassName();

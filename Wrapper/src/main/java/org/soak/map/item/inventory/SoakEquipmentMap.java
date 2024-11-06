@@ -10,9 +10,9 @@ public class SoakEquipmentMap {
     public static DefaultedRegistryReference<EquipmentType> toSponge(EquipmentSlot slot) {
         switch (slot) {
             case HAND:
-                return EquipmentTypes.MAIN_HAND;
+                return EquipmentTypes.MAINHAND;
             case OFF_HAND:
-                return EquipmentTypes.OFF_HAND;
+                return EquipmentTypes.OFFHAND;
             case FEET:
                 return EquipmentTypes.FEET;
             case LEGS:

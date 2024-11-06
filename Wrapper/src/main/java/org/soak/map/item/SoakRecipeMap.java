@@ -15,18 +15,18 @@ import org.spongepowered.api.item.recipe.single.StoneCutterRecipe;
 import org.spongepowered.api.registry.RegistryTypes;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SoakRecipeMap {
 
-    public static Recipe toBukkit(org.spongepowered.api.item.recipe.Recipe recipe) {
-        NamespacedKey key = SoakResourceKeyMap.mapToBukkit(recipe.key());
+    public static Recipe toBukkit(org.spongepowered.api.item.recipe.Recipe<?> recipe) {
+        NamespacedKey key = SoakResourceKeyMap.mapToBukkit(recipe.type().key(RegistryTypes.RECIPE_TYPE));
         var result = SoakItemStackMap.toBukkit(recipe.exemplaryResult());
-        var inputs = recipe.ingredients();
+        List<Ingredient> inputs = recipe.ingredients();
 
-        if (recipe instanceof CookingRecipe) {
-            var cooking = (CookingRecipe) recipe;
-            var input = Material.getItemMaterial(inputs.get(0).displayedItems().get(0).type());
+        if (recipe instanceof CookingRecipe cooking) {
+            var input = Material.getItemMaterial(cooking.ingredient().displayedItems().get(0).type());
             if (cooking.type().equals(RecipeTypes.SMELTING.get())) {
                 return new FurnaceRecipe(key,
                         result,
@@ -56,8 +56,8 @@ public class SoakRecipeMap {
                         (int) cooking.cookingTime().ticks());
             }
         }
-        if (recipe instanceof StoneCutterRecipe) {
-            var input = Material.getItemMaterial(inputs.get(0).displayedItems().get(0).type());
+        if (recipe instanceof StoneCutterRecipe stoneCutterRecipe) {
+            var input = Material.getItemMaterial(stoneCutterRecipe.ingredients().get(0).displayedItems().get(0).type());
             return new StonecuttingRecipe(key, result, input);
         }
 

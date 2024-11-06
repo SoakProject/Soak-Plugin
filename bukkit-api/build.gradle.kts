@@ -6,8 +6,8 @@ group = "org.soak.wrapper.api"
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_17
-        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_21
     }
 }
 
@@ -22,9 +22,9 @@ repositories {
 }
 
 dependencies {
-    api("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
+    api("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     api("org.bstats:bstats-base:3.0.2")
-    implementation("org.spongepowered:spongeapi:10.0.0")
+    implementation("org.spongepowered:spongeapi:12.0.0")
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

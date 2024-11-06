@@ -73,6 +73,8 @@ public class SoakEnchantEvent {
                 item,
                 event.levelRequirement(),
                 enchantments,
+                org.bukkit.enchantments.Enchantment.WIND_BURST, //TODO correct this
+                1, //TODO correct this
                 event.option());
         SoakManager.<WrapperManager>getManager().getServer().getSoakPluginManager().callEvent(this.singleEventListener, bukkitEvent, priority);
 

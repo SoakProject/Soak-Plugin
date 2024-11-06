@@ -11,6 +11,7 @@ import org.spongepowered.api.data.value.ValueContainer;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStackLike;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.tag.ItemTypeTags;
 
@@ -59,14 +60,14 @@ public class SoakItemStackMap {
                         .orElseThrow(() -> new RuntimeException("Could not convert ItemMeta is into ItemStack")));
     }
 
-    private static <VC extends ValueContainer> VC toSponge(@NotNull ItemMeta meta, @NotNull Function<AbstractItemMeta, VC> spongeType) {
+    private static <VC extends ItemStackLike> VC toSponge(@NotNull ItemMeta meta, @NotNull Function<AbstractItemMeta, VC> spongeType) {
         if (!(meta instanceof AbstractItemMeta)) {
             throw new RuntimeException(meta.getClass().getName() + " does not extend AbstractItemMeta");
         }
         return spongeType.apply((AbstractItemMeta) meta);
     }
 
-    private static <VC extends ValueContainer> VC toSponge(@NotNull org.bukkit.inventory.ItemStack stack, @NotNull Function<AbstractItemMeta, VC> spongeType) {
+    private static <VC extends ItemStackLike> VC toSponge(@NotNull org.bukkit.inventory.ItemStack stack, @NotNull Function<AbstractItemMeta, VC> spongeType) {
         if (!stack.hasItemMeta()) {
             throw new RuntimeException(
                     "ItemStack provided does not have any meta. This should be checked for in the previous method");
@@ -74,8 +75,7 @@ public class SoakItemStackMap {
         VC valueContainer = toSponge(stack.getItemMeta(), spongeType);
 
         //needs to update the quantity from Bukkit's ItemStack
-        if (valueContainer instanceof ItemStack) {
-            var spongeStack = (ItemStack) valueContainer;
+        if (valueContainer instanceof ItemStack spongeStack) {
             spongeStack.setQuantity(stack.getAmount());
             return (VC) spongeStack;
         }
@@ -83,7 +83,7 @@ public class SoakItemStackMap {
         return (VC) SnapshotHelper.copyWithQuantity(snapshot, stack.getAmount());
     }
 
-    private static org.bukkit.inventory.ItemStack toBukkit(@NotNull ItemType type, int amount, @NotNull ValueContainer container) {
+    private static org.bukkit.inventory.ItemStack toBukkit(@NotNull ItemType type, int amount, @NotNull ItemStackLike container) {
         org.bukkit.inventory.ItemStack stack = new org.bukkit.inventory.ItemStack(Material.getItemMaterial(type),
                 amount);
         stack.setItemMeta(toBukkitMeta(container));
@@ -91,8 +91,8 @@ public class SoakItemStackMap {
     }
 
     @SuppressWarnings("deprecation")
-    public static AbstractItemMeta toBukkitMeta(@NotNull ValueContainer container) {
-        ItemType type = container instanceof ItemStack ? ((ItemStack) container).type() : ((ItemStackSnapshot) container).type();
+    public static AbstractItemMeta toBukkitMeta(@NotNull ItemStackLike container) {
+        ItemType type = container.type();
         if (container.supports(Keys.POTION_EFFECTS)) {
             return new SoakPotionItemMeta(container);
         }
@@ -102,7 +102,7 @@ public class SoakItemStackMap {
         if (type.equals(ItemTypes.PLAYER_HEAD.get()) || container.supports(Keys.SKIN_PROFILE_PROPERTY)) {
             return new SoakSkullMeta(container);
         }
-        if(type.equals(ItemTypes.LEATHER_BOOTS) || type.equals(ItemTypes.LEATHER_CHESTPLATE) || type.equals(ItemTypes.LEATHER_HELMET) || type.equals(ItemTypes.LEATHER_LEGGINGS)){
+        if (type.equals(ItemTypes.LEATHER_BOOTS.get()) || type.equals(ItemTypes.LEATHER_CHESTPLATE.get()) || type.equals(ItemTypes.LEATHER_HELMET.get()) || type.equals(ItemTypes.LEATHER_LEGGINGS.get())) {
             return new SoakLeatherArmorMeta(container);
         }
         return new SoakItemMeta(container);

@@ -24,7 +24,7 @@ public class SoakItemFlagMap {
             return ItemFlag.HIDE_PLACED_ON;
         }
         if (Keys.HIDE_MISCELLANEOUS.equals(key)) {
-            return ItemFlag.HIDE_POTION_EFFECTS;
+            return ItemFlag.HIDE_ADDITIONAL_TOOLTIP;
         }
         throw new RuntimeException("Unknown mapping from sponge key to ItemFlag of " + key.key().formatted());
     }
@@ -41,7 +41,7 @@ public class SoakItemFlagMap {
                 return Keys.HIDE_CAN_DESTROY;
             case HIDE_PLACED_ON:
                 return Keys.HIDE_CAN_PLACE;
-            case HIDE_POTION_EFFECTS:
+            case HIDE_ADDITIONAL_TOOLTIP:
                 return Keys.HIDE_MISCELLANEOUS;
             case HIDE_DYE:
                 throw new IllegalStateException("Unknown key map for HIDE_DYE on ItemFlag");

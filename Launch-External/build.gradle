@@ -11,8 +11,8 @@ repositories {
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_17
-        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.valueOf("VERSION_" + property("JAVA_VERSION"))
+        sourceCompatibility = JavaVersion.valueOf("VERSION_" + property("JAVA_VERSION"))
     }
 }
 
@@ -23,7 +23,7 @@ dependencies {
     implementation project(':MoseStream')
     implementation project(':Launch-Common')
 
-    implementation 'org.spongepowered:spongeapi:10.0.0'
+    implementation 'org.spongepowered:spongeapi:' + property("SPONGE_VERSION")
 
     implementation 'net.minecraftforge:fmlcore:1.19.4-45.2.8'
     implementation 'net.minecraftforge:forgespi:6.0.0'

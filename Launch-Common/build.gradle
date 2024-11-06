@@ -11,8 +11,8 @@ repositories {
 
 java {
     toolchain {
-        targetCompatibility = JavaVersion.VERSION_17
-        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.valueOf("VERSION_" + property("JAVA_VERSION"))
+        sourceCompatibility = JavaVersion.valueOf("VERSION_" + property("JAVA_VERSION"))
     }
 }
 
@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":bukkit-api"))
     implementation(project(":Wrapper"))
     implementation(project(':Common'))
-    implementation 'org.spongepowered:spongeapi:10.0.0'
+    implementation 'org.spongepowered:spongeapi:' + property("SPONGE_VERSION")
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

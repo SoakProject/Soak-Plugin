@@ -12,13 +12,14 @@ import org.soak.utils.GenericHelper;
 import org.soak.wrapper.plugin.SoakPluginManager;
 import org.spongepowered.api.Sponge;
 
+import java.util.Collections;
 import java.util.Objects;
 
 public class SoakCommandMap extends SimpleCommandMap {
 
 
     public SoakCommandMap() {
-        super(Bukkit.getServer());
+        super(Bukkit.getServer(), Collections.emptyMap());
     }
 
     @Override

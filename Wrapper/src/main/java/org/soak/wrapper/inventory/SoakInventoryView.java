@@ -2,19 +2,24 @@ package org.soak.wrapper.inventory;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.soak.WrapperManager;
 import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakMessageMap;
+import org.soak.map.item.SoakItemStackMap;
 import org.soak.plugin.SoakManager;
 import org.soak.utils.ReflectionHelper;
 import org.spongepowered.api.item.inventory.Container;
+import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 
-public class SoakInventoryView extends InventoryView {
+public class SoakInventoryView implements InventoryView {
 
     private final Container spongeContainer;
 
@@ -46,6 +51,90 @@ public class SoakInventoryView extends InventoryView {
     @Override
     public @NotNull InventoryType getType() {
         return InventoryType.container(this.spongeContainer);
+    }
+
+    @Override
+    public void setItem(int i, @Nullable ItemStack itemStack) {
+        //TODO check this
+        var slot = this.spongeContainer.slot(i).orElseThrow(() -> new IndexOutOfBoundsException("Slot index of '" + i + "' is out of range"));
+        if (itemStack == null) {
+            slot.set(ItemStackSnapshot.empty());
+            return;
+        }
+        var spongeStack = SoakItemStackMap.toSponge(itemStack);
+        slot.set(spongeStack);
+    }
+
+    @Override
+    public @Nullable ItemStack getItem(int i) {
+        //TODO check this
+        var spongeItem = this.spongeContainer.slot(i).orElseThrow(() -> new IndexOutOfBoundsException("Slot index of '" + i + "' is out of range")).peek();
+        return SoakItemStackMap.toBukkit(spongeItem);
+    }
+
+    @Override
+    public void setCursor(@Nullable ItemStack itemStack) {
+        if (itemStack == null) {
+            this.spongeContainer.setCursor(ItemStackSnapshot.empty());
+            return;
+        }
+        var spongeItem = SoakItemStackMap.toSponge(itemStack);
+        this.spongeContainer.setCursor(spongeItem);
+    }
+
+    @Override
+    public @NotNull ItemStack getCursor() {
+        var opSpongeItem = this.spongeContainer.cursor();
+        return opSpongeItem.map(SoakItemStackMap::toBukkit).orElseGet(() -> new ItemStack(Material.AIR));
+    }
+
+    @Override
+    public @Nullable Inventory getInventory(int i) {
+        //TODO check this
+        var opSlot = this.spongeContainer.slot(i);
+        if (opSlot.isEmpty()) {
+            return null;
+        }
+        var slot = opSlot.get();
+        var isTopInventory = this.spongeContainer.viewed().stream().anyMatch(inv -> inv.containsChild(slot));
+        if (isTopInventory) {
+            return getTopInventory();
+        }
+        return getBottomInventory();
+
+
+    }
+
+    @Override
+    public int convertSlot(int i) {
+        //TODO check this
+        return i;
+    }
+
+    @NotNull
+    @Override
+    public InventoryType.SlotType getSlotType(int i) {
+        //TODO check this
+        return InventoryType.SlotType.typeFor(spongeContainer.slot(i).orElseThrow(() -> new IndexOutOfBoundsException("'" + i + "' is out of bounds")));
+    }
+
+    @Override
+    public void close() {
+        var spongePlayer = this.spongeContainer.viewer();
+        if (spongePlayer.openInventory().map(container -> container.equals(this.spongeContainer)).orElse(false)) {
+            spongePlayer.closeInventory();
+        }
+    }
+
+    @Override
+    public int countSlots() {
+        //TODO check this
+        return this.spongeContainer.slots().size();
+    }
+
+    @Override
+    public boolean setProperty(@NotNull InventoryView.Property property, int i) {
+        throw NotImplementedException.createByLazy(InventoryView.class, "setProperty", InventoryView.Property.class, int.class);
     }
 
     @Override
