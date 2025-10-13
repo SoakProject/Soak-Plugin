@@ -22,7 +22,7 @@ jobs:
       - name: Build Soak
         run: ./gradlew build
       - name: Upload plugin
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Soak-Vanilla.zip
           path: plugin/build/libs/*.jar
