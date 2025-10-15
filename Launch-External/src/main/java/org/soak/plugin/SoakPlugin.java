@@ -156,36 +156,45 @@ public class SoakPlugin implements SoakExternalManager, WrapperManager {
         try {
             var classLoader = SoakPlugin.class.getClassLoader();
 
-            var materialList = MaterialList.createMaterialList();
-            MaterialList.LOADED_CLASS = materialList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
-                    .getLoaded();
-            generatedClasses.add(MaterialList.LOADED_CLASS);
+            if(MaterialList.LOADED_CLASS == null) {
+                var materialList = MaterialList.createMaterialList();
+                MaterialList.LOADED_CLASS = materialList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
+                        .getLoaded();
+                generatedClasses.add(MaterialList.LOADED_CLASS);
+            }
 
             creatingClass = "EntityType";
-            var entityTypeList = EntityTypeList.createEntityTypeList();
-            EntityTypeList.LOADED_CLASS = entityTypeList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
-                    .getLoaded();
-            generatedClasses.add(EntityTypeList.LOADED_CLASS);
+            if(EntityTypeList.LOADED_CLASS == null) {
+                var entityTypeList = EntityTypeList.createEntityTypeList();
+                EntityTypeList.LOADED_CLASS = entityTypeList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
+                        .getLoaded();
+                generatedClasses.add(EntityTypeList.LOADED_CLASS);
+            }
 
             creatingClass = "Attribute";
-            var attributeList = AttributeTypeList.createEntityTypeList();
-            AttributeTypeList.LOADED_CLASS = attributeList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
-                    .getLoaded();
-            generatedClasses.add(AttributeTypeList.LOADED_CLASS);
+            if(AttributeTypeList.LOADED_CLASS == null) {
+                var attributeList = AttributeTypeList.createEntityTypeList();
+                AttributeTypeList.LOADED_CLASS = attributeList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
+                        .getLoaded();
+                generatedClasses.add(AttributeTypeList.LOADED_CLASS);
+            }
 
             creatingClass = "InventoryType";
-            var inventoryList = InventoryTypeList.createInventoryTypeList();
-            InventoryTypeList.LOADED_CLASS = inventoryList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
-                    .getLoaded();
-            generatedClasses.add(InventoryTypeList.LOADED_CLASS);
+            if(InventoryTypeList.LOADED_CLASS == null) {
+                var inventoryList = InventoryTypeList.createInventoryTypeList();
+                InventoryTypeList.LOADED_CLASS = inventoryList.load(classLoader, ClassLoadingStrategy.Default.INJECTION)
+                        .getLoaded();
+                generatedClasses.add(InventoryTypeList.LOADED_CLASS);
+            }
 
-            creatingClass = "SlotType";
-            SlotTypeList.LOADED_CLASS =
-                    (Class<? extends Enum<?>>) Arrays.stream(InventoryTypeList.LOADED_CLASS.getDeclaredClasses())
-                    .filter(clazz -> clazz.getSimpleName().equals("SlotType"))
-                    .findFirst()
-                    .orElseThrow();
-            generatedClasses.add(SlotTypeList.LOADED_CLASS);
+            if(SlotTypeList.LOADED_CLASS == null) {
+                creatingClass = "SlotType";
+                SlotTypeList.LOADED_CLASS = (Class<? extends Enum<?>>) Arrays.stream(InventoryTypeList.LOADED_CLASS.getDeclaredClasses())
+                        .filter(clazz -> clazz.getSimpleName().equals("SlotType"))
+                        .findFirst()
+                        .orElseThrow();
+                generatedClasses.add(SlotTypeList.LOADED_CLASS);
+            }
         } catch (MethodTooLargeException e) {
             throw new IllegalStateException(
                     "This is a problem with Bukkit's design: PaperMC seem to be making a fix with its hardfork: Too " +

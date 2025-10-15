@@ -62,6 +62,30 @@ public class InventoryTypeList {
             if (name.equals("CARTOGRAPHY_TABLE")) {
                 name = "CARTOGRAPHY";
             }
+            if(name.equals("GENERIC_3X3")){
+                containerTypes.add("DISPENSER");
+                INVENTORY_TYPE_MAPPINGS.add(new InventoryTypeEntry("DISPENSER", container -> {
+                    var dispenserClassName = container.getClass().getName();
+                    System.out.println("Dispenser container className: " + dispenserClassName);
+                    return false;
+                }, carrier -> {
+                    var dispenserClassName = carrier.getClass().getName();
+                    System.out.println("Dispenser carrier className: " + dispenserClassName);
+                    return false;
+                }, () -> Component.text("Dispenser")));
+
+                containerTypes.add("DROPPER");
+                INVENTORY_TYPE_MAPPINGS.add(new InventoryTypeEntry("DROPPER", container -> {
+                    var dispenserClassName = container.getClass().getName();
+                    System.out.println("Dropper container className: " + dispenserClassName);
+                    return false;
+                }, carrier -> {
+                    var dispenserClassName = carrier.getClass().getName();
+                    System.out.println("Dropper carrier className: " + dispenserClassName);
+                    return false;
+                }, () -> Component.text("Dropper")));
+                continue;
+            }
             containerTypes.add(name);
             INVENTORY_TYPE_MAPPINGS.add(InventoryTypeEntry.fromContainerType(name, containerType));
         }

@@ -13,13 +13,28 @@ import java.util.function.Supplier;
 public class InventoryTypeEntry {
 
     private final @NotNull String enumId;
-    private @Nullable Predicate<Carrier> fromCarrier;
     private final @NotNull Predicate<Container> fromContainer;
+    private @Nullable Predicate<Carrier> fromCarrier;
     private @Nullable Supplier<Component> defaultName;
 
     public InventoryTypeEntry(@NotNull String enumId, @NotNull Predicate<Container> fromContainer) {
+        this(enumId, fromContainer, null, null);
+    }
+
+    public InventoryTypeEntry(@NotNull String enumId, @NotNull Predicate<Container> fromContainer,
+                              @Nullable Predicate<Carrier> fromCarrier, @Nullable Supplier<Component> defaultName) {
         this.enumId = enumId;
         this.fromContainer = fromContainer;
+        this.fromCarrier = fromCarrier;
+        this.defaultName = defaultName;
+    }
+
+    public static InventoryTypeEntry fromContainerType(String name, ContainerType type) {
+        Predicate<Container> predicate = container -> container.type().map(t -> t.equals(type)).orElse(false);
+        return new InventoryTypeEntry(name,
+                                      predicate,
+                                      null,
+                                      () -> Component.text(name.toLowerCase().replaceAll("_", " ")));
     }
 
     public @NotNull Component defaultName() {
@@ -68,15 +83,5 @@ public class InventoryTypeEntry {
                 .filter(enu -> enu.name().equals(this.enumId))
                 .findFirst()
                 .orElseThrow();
-    }
-
-    public static InventoryTypeEntry fromContainerType(String name, ContainerType type) {
-        return new InventoryTypeEntry(name,
-                                      container -> container.type()
-                                              .map(t -> t.equals(type))
-                                              .orElse(false)).setDefaultName(() -> Component.text(name.toLowerCase()
-                                                                                                          .replaceAll(
-                                                                                                                  "_",
-                                                                                                                  " ")));
     }
 }

@@ -74,7 +74,6 @@ jar {
     dependsOn(":NMSBounce:jar")
 
     var fat = configurations.runtimeClasspath.filter {
-        System.out.println("Name: " + it.name)
         return it.name.startsWith("Launch-Common")
                 || it.name.startsWith("Common-")
                 || it.name.startsWith("Wrapper-")
@@ -87,10 +86,12 @@ jar {
                 || it.name.startsWith("adventure-text-logger-slf4j-")
                 || it.name.startsWith("bungeecord-chat-")
                 || it.name.equals("commons-lang-2.6.jar")
+                || it.name.startsWith("snakeyaml")
+
     }.collect(element -> {
         if (element.name.startsWith("paper-api-")) {
-            return zipTree(element).matching {
-                exclude "org/bukkit/configuration/file/YamlConfiguration.class"
+            return zipTree(element).matching{
+                exclude("org/bukkit/Material.class")
             }
         }
         if (element.name.startsWith("commons-lang-")) {
@@ -115,6 +116,7 @@ jar {
         if (files != null && files.length != 0) {
 
             var file = files[0]
+            System.out.println("Inserted: " + file.absolutePath)
             fat.add(zipTree(file))
         } else {
             new RuntimeException(folder.absolutePath + " was not found, this may lead to some compatibility issues").printStackTrace()

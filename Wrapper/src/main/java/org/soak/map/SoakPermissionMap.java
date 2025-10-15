@@ -13,6 +13,7 @@ import org.spongepowered.api.util.Tristate;
 import org.spongepowered.plugin.PluginContainer;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class SoakPermissionMap {
 
@@ -55,12 +56,17 @@ public class SoakPermissionMap {
                 .stream()
                 .filter(entry -> alreadyRegistered.stream().noneMatch(desc -> desc.id().equals(entry.getKey())))
                 .map(entry -> {
+                    var pattern = Pattern.compile("^[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)*(\\.<[a-zA-Z0-9_-]+>)?$");
+                    if(!pattern.asMatchPredicate().test( entry.getKey())){
+                        return null;
+                    }
                     return permissionService.newDescriptionBuilder(plugin)
                             .id(entry.getKey())
                             .description(SoakMessageMap.toComponent(perm.getDescription()))
                             .defaultValue(Tristate.fromBoolean(entry.getValue()))
                             .register();
                 })
+                .filter(Objects::nonNull)
                 .toList();
 
         Collection<PermissionDescription> result = new LinkedList<>(alreadyRegistered);
