@@ -4,3 +4,6 @@
 [submodule "MoseStream"]
 	path = MoseStream
 	url = https://github.com/mosemister/MoseStream.git
+[submodule "MultiBuild"]
+	path = MultiBuild
+	url = https://github.com/SoakProject/MultiBuild.git
