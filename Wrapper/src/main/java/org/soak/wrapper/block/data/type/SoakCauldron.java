@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.soak.wrapper.block.data.AbstractBlockData;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.data.BlockStateKeys;
-import org.spongepowered.api.data.Keys;
 
 public class SoakCauldron extends AbstractBlockData implements Levelled {
 

@@ -24,4 +24,4 @@ findProject(':Launch-External:Neo')?.name = 'Neo'
 include 'NMSBounce'
 include 'Launch-External:Lex'
 findProject(':Launch-External:Lex')?.name = 'Lex'
-
+include 'MultiBuild:annotations'

@@ -71,6 +71,7 @@ jar {
     dependsOn(":CollectionStream:jar")
     dependsOn(":Override:jar")
     dependsOn(":Launch-External:Neo:jar")
+    dependsOn(":Launch-External:Lex:jar")
     dependsOn(":NMSBounce:jar")
 
     var fat = configurations.runtimeClasspath.filter {
