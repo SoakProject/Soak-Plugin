@@ -33,7 +33,7 @@ in short, yes but newer
 Pore was a Sponge plugin that allowed Bukkit plugins to run on older Sponge versions.
 Soak is a Sponge plugin that allows Bukkit plugins to run on Sponge API 8+
 
-Pore ended for a (few reasons)[https://caseif.blog/content/post.php?id=41], here are some
+Pore ended for a [few reasons](https://caseif.blog/content/post.php?id=41), here are some
 
 ### Sponge has become increasing different to Bukkit
 
@@ -52,14 +52,9 @@ This has lead to more and more plugins using pure Bukkit API code, meaning that 
 With paper's hard fork now in place, the hope is that plugins target Paper's version of the Bukkit-API. PaperMC-API has
 more methods than the Spigot-API, these methods can be used in place of interacting directly with NMS.
 
-#### NMS Bounce
+#### NMS built in mappings
 
-The Soak project has a module called ``NMSBounce``, that allows plugins that do interact with NMS to interact with Sponge
-code without any changes. This works as CraftBukkit implementations of Bukkit use Mojang mappings to map the original
-vanilla server.jar to human-readable code, but CraftBukkit implementations do not map the changes back. While in 
-NeoForge, LexForge, Sponge Vanilla and Fabric, they map the changes back. This leaves the package of ``net.minecraft.server``
-open for use. There is a little bit of Java trickery to place Soak files in place of ``net.minecraft.server`` (such as
-an isolated classloader) but allows for wrapping NMS calls in Sponge API
+Minecraft has started to ship Mojang mappings directly in the Jar, this means that no mappings are needed and that all Mojang implementations will have the same NMS mappings. While there maybe a few exceptions whereby Paper/Forge/etc may modify the original function, but for the most part, if a plugin calls a NMS function, then it should now work
 
 ### Many plugins that do work, wont work with Forge mods
 
