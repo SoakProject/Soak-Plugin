@@ -1,24 +1,24 @@
 package org.soak.wrapper.inventory;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
+import org.bukkit.inventory.view.builder.InventoryViewBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakMessageMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.utils.GeneralHelper;
 import org.soak.wrapper.entity.living.human.SoakPlayer;
 import org.soak.wrapper.inventory.view.AbstractInventoryView;
-import org.spongepowered.api.item.inventory.Container;
 import org.spongepowered.api.item.inventory.ContainerType;
 import org.spongepowered.api.item.inventory.type.ViewableInventory;
 import org.spongepowered.api.registry.RegistryTypes;
 
-public class SoakMenuType<View extends InventoryView> implements MenuType.Typed<View> {
+public class SoakMenuType<View extends InventoryView, Builder extends InventoryViewBuilder<View>> implements MenuType.Typed<View, Builder> {
 
     private final ContainerType type;
     private final @Nullable Class<?> typeClass;
@@ -46,16 +46,19 @@ public class SoakMenuType<View extends InventoryView> implements MenuType.Typed<
         return (View) AbstractInventoryView.wrap(container);
     }
 
-    @NotNull
     @Override
-    public Typed<InventoryView> typed() {
+    public Typed<InventoryView, InventoryViewBuilder<InventoryView>> typed() {
         return new SoakMenuType<>(this.type);
     }
 
-    @NotNull
     @Override
-    public <V extends InventoryView> Typed<V> typed(@NotNull Class<V> aClass) throws IllegalArgumentException {
-        return new SoakMenuType<>(this.type, aClass);
+    public <V extends InventoryView, B extends InventoryViewBuilder<V>> Typed<V, B> typed(Class<V> viewClass) throws IllegalArgumentException {
+        return new SoakMenuType<>(this.type, viewClass);
+    }
+
+    @Override
+    public Builder builder() {
+        throw NotImplementedException.createByLazy(MenuType.Typed.class, "builder");
     }
 
     @Override

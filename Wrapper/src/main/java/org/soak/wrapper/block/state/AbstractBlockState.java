@@ -52,6 +52,13 @@ public abstract class AbstractBlockState implements BlockState {
         this.state = state;
     }
 
+    public static AbstractBlockState wrap(@Nullable ServerLocation location, org.spongepowered.api.block.BlockState state, boolean isSnapshot) {
+        if (state.type().is(BlockTypeTags.ALL_SIGNS)) {
+            return new SignBlockState(location, state, isSnapshot);
+        }
+        return new BasicBlockState(location, state);
+    }
+
     public @NotNull org.spongepowered.api.block.BlockState spongeState() {
         return this.state;
     }
@@ -65,13 +72,6 @@ public abstract class AbstractBlockState implements BlockState {
             return Optional.empty();
         }
         return this.location.blockEntity();
-    }
-
-    public static AbstractBlockState wrap(@Nullable ServerLocation location, org.spongepowered.api.block.BlockState state, boolean isSnapshot) {
-        if (state.type().is(BlockTypeTags.ALL_SIGNS)) {
-            return new SignBlockState(location, state, isSnapshot);
-        }
-        return new BasicBlockState(location, state);
     }
 
     protected abstract AbstractBlockState createCopy(@Nullable ServerLocation location, @NotNull org.spongepowered.api.block.BlockState state);
@@ -228,7 +228,7 @@ public abstract class AbstractBlockState implements BlockState {
 
     @Override
     public boolean isPlaced() {
-        if(this.location == null){
+        if (this.location == null) {
             return false;
         }
         return this.location.block().type().equals(this.state.type());
@@ -265,5 +265,10 @@ public abstract class AbstractBlockState implements BlockState {
     @Override
     public void removeMetadata(@NotNull String metadataKey, @NotNull Plugin owningPlugin) {
         throw NotImplementedException.createByLazy(AbstractBlockState.class, "metadataKey", String.class, Plugin.class);
+    }
+
+    @Override
+    public boolean isSuffocating() {
+        throw NotImplementedException.createByLazy(AbstractBlockState.class, "isSuffocating");
     }
 }

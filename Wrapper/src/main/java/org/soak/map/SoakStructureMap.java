@@ -37,7 +37,7 @@ public class SoakStructureMap {
 
 
     public static org.bukkit.generator.structure.StructureType toBukkit(StructureType structure) {
-        NamespacedKey namespace = SoakResourceKeyMap.mapToBukkit(structure.key(RegistryTypes.STRUCTURE));
+        NamespacedKey namespace = SoakResourceKeyMap.mapToBukkit(structure.key(RegistryTypes.STRUCTURE_TYPE));
         Collection<org.bukkit.generator.structure.StructureType> fakeReg = FakeRegistryHelper.getFields(org.bukkit.generator.structure.StructureType.class, org.bukkit.generator.structure.StructureType.class);
         var opConstant = fakeReg.stream().filter(Objects::nonNull).filter(str -> str.getKey().equals(namespace)).findAny();
         //orElseGet should only be used on the register

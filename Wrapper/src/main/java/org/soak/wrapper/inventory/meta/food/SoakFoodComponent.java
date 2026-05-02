@@ -53,41 +53,6 @@ public class SoakFoodComponent implements FoodComponent {
     }
 
     @Override
-    public float getEatSeconds() {
-        return this.meta.sponge().get(Keys.EATING_TIME).map(ticks -> ticks.ticks() / 20.0).orElse(0.0).floatValue();
-    }
-
-    @Override
-    public void setEatSeconds(float v) {
-        this.meta.set(Keys.EATING_TIME, Ticks.of((long) v * 20));
-    }
-
-    @Override
-    public @Nullable ItemStack getUsingConvertsTo() {
-        return this.meta.sponge().get(Keys.FOOD_CONVERTS_TO).map(SoakItemStackMap::toBukkit).orElse(null);
-    }
-
-    @Override
-    public void setUsingConvertsTo(@Nullable ItemStack itemStack) {
-        this.meta.set(Keys.FOOD_CONVERTS_TO, itemStack == null ? null : SoakItemStackMap.toSponge(itemStack));
-    }
-
-    @Override
-    public @NotNull List<FoodEffect> getEffects() {
-        throw NotImplementedException.createByLazy(FoodComponent.class, "getEffects");
-    }
-
-    @Override
-    public void setEffects(@NotNull List<FoodEffect> list) {
-        throw NotImplementedException.createByLazy(FoodComponent.class, "setEffects", List.class);
-    }
-
-    @Override
-    public @NotNull FoodEffect addEffect(@NotNull PotionEffect potionEffect, float v) {
-        throw NotImplementedException.createByLazy(FoodComponent.class, "addEffect", PotionEffect.class, float.class);
-    }
-
-    @Override
     public @NotNull Map<String, Object> serialize() {
         throw NotImplementedException.createByLazy(FoodComponent.class, "serialize");
     }

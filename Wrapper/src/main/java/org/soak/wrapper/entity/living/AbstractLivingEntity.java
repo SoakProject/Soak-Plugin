@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.soak.Constants;
 import org.soak.exception.NotImplementedException;
-import org.soak.map.SoakBlockMap;
+import org.soak.map.SoakRegistryMap;
 import org.soak.plugin.SoakManager;
 import org.soak.utils.GeneralHelper;
 import org.soak.wrapper.block.SoakBlock;
@@ -164,10 +164,10 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public void knockback(double v, double v1, double v2) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "knockback",
-                                                   double.class,
-                                                   double.class,
-                                                   double.class);
+                "knockback",
+                double.class,
+                double.class,
+                double.class);
     }
 
     @Override
@@ -178,9 +178,9 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public void broadcastSlotBreak(@NotNull EquipmentSlot equipmentSlot, @NotNull Collection<Player> collection) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "broadcastSlotBreak",
-                                                   EquipmentSlot.class,
-                                                   Collection.class);
+                "broadcastSlotBreak",
+                EquipmentSlot.class,
+                Collection.class);
     }
 
     @Override
@@ -191,9 +191,9 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public void damageItemStack(@NotNull EquipmentSlot equipmentSlot, int i) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "damageItemStack",
-                                                   EquipmentSlot.class,
-                                                   int.class);
+                "damageItemStack",
+                EquipmentSlot.class,
+                int.class);
     }
 
     @Override
@@ -224,9 +224,9 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public RayTraceResult rayTraceBlocks(double arg0, @NotNull FluidCollisionMode arg1) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "rayTraceBlocks",
-                                                   double.class,
-                                                   FluidCollisionMode.class);
+                "rayTraceBlocks",
+                double.class,
+                FluidCollisionMode.class);
     }
 
     @Override
@@ -243,9 +243,9 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public void playPickupItemAnimation(@NotNull Item arg0, int arg1) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "playPickupItemAnimation",
-                                                   Item.class,
-                                                   int.class);
+                "playPickupItemAnimation",
+                Item.class,
+                int.class);
     }
 
     @Override
@@ -284,8 +284,7 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
                         return false;
                     }
                     return transparent.stream()
-                            .map(mat -> SoakBlockMap.toSponge(mat)
-                                    .orElseThrow(() -> new RuntimeException(mat.name() + " is not a block")))
+                            .map(SoakRegistryMap::toSpongeBlock)
                             .anyMatch(type -> type.equals(locatableBlock.blockState().type()));
                 }))
                 .limit(maxDistance)
@@ -293,34 +292,34 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
         return opBlock.flatMap(block -> block.selectedObject().location().onServer())
                 .map(SoakBlock::new)
                 .orElseGet(() -> new SoakBlock((ServerWorld) this.spongeEntity().world(),
-                                               this.spongeEntity().eyePosition().get().toInt()));
+                        this.spongeEntity().eyePosition().get().toInt()));
     }
 
     @Override
     @Deprecated
     public @Nullable Block getTargetBlock(int maxDistance, @NotNull TargetBlockInfo.FluidMode fluidMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "getTargetBlockExact",
-                                                   int.class,
-                                                   FluidCollisionMode.class);
+                "getTargetBlockExact",
+                int.class,
+                FluidCollisionMode.class);
     }
 
     @Override
     @Deprecated
     public @Nullable BlockFace getTargetBlockFace(int maxDistance, @NotNull TargetBlockInfo.FluidMode fluidMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "getTargetBlockFace",
-                                                   int.class,
-                                                   TargetBlockInfo.FluidMode.class);
+                "getTargetBlockFace",
+                int.class,
+                TargetBlockInfo.FluidMode.class);
     }
 
     @Override
     @Deprecated
     public @Nullable TargetBlockInfo getTargetBlockInfo(int maxDistance, @NotNull TargetBlockInfo.FluidMode fluidMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "getTargetBlockInfo",
-                                                   int.class,
-                                                   TargetBlockInfo.FluidMode.class);
+                "getTargetBlockInfo",
+                int.class,
+                TargetBlockInfo.FluidMode.class);
     }
 
     @Override
@@ -331,9 +330,9 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public @Nullable Block getTargetBlockExact(int maxDistance, @NotNull FluidCollisionMode fluidCollisionMode) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "getTargetBlockExact",
-                                                   int.class,
-                                                   FluidCollisionMode.class);
+                "getTargetBlockExact",
+                int.class,
+                FluidCollisionMode.class);
     }
 
     @Override
@@ -426,8 +425,8 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
         SoakManager.getManager()
                 .getLogger()
                 .warn(badPlugin.metadata()
-                              .id() + " attempted to set minecraft data off thread. This should not be done. Moving " +
-                              "action to main thread");
+                        .id() + " attempted to set minecraft data off thread. This should not be done. Moving " +
+                        "action to main thread");
         Sponge.server().scheduler().executor(badPlugin).submit(() -> setNoDamageTicks(arg0));
     }
 
@@ -455,9 +454,9 @@ public abstract class AbstractLivingEntity<E extends Living> extends AbstractEnt
     @Override
     public boolean addPotionEffect(@NotNull PotionEffect arg0, boolean arg1) {
         throw NotImplementedException.createByLazy(LivingEntity.class,
-                                                   "addPotionEffect",
-                                                   PotionEffect.class,
-                                                   boolean.class);
+                "addPotionEffect",
+                PotionEffect.class,
+                boolean.class);
     }
 
     @Override

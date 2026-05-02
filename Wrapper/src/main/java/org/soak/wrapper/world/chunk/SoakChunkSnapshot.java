@@ -7,7 +7,6 @@ import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 import org.soak.WrapperManager;
 import org.soak.exception.NotImplementedException;
-import org.soak.map.SoakBiomeMap;
 import org.soak.plugin.SoakManager;
 import org.spongepowered.api.world.LightTypes;
 import org.spongepowered.api.world.chunk.ChunkStates;

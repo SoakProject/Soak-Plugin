@@ -14,6 +14,7 @@ import org.spongepowered.api.item.recipe.crafting.SpecialCraftingRecipe;
 import org.spongepowered.api.item.recipe.single.StoneCutterRecipe;
 import org.spongepowered.api.registry.RegistryTypes;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,9 +24,10 @@ public class SoakRecipeMap {
     public static Recipe toBukkit(org.spongepowered.api.item.recipe.Recipe<?> recipe) {
         NamespacedKey key = SoakResourceKeyMap.mapToBukkit(recipe.type().key(RegistryTypes.RECIPE_TYPE));
         var result = SoakItemStackMap.toBukkit(recipe.exemplaryResult());
-        List<Ingredient> inputs = recipe.ingredients();
+        List<Ingredient> inputs = new ArrayList<>();
 
         if (recipe instanceof CookingRecipe cooking) {
+            inputs.add(cooking.ingredient());
             var input = SoakItemStackMap.toBukkit(cooking.ingredient().displayedItems().getFirst().type());
             if (cooking.type().equals(RecipeTypes.SMELTING.get())) {
                 return new FurnaceRecipe(key,
@@ -57,7 +59,8 @@ public class SoakRecipeMap {
             }
         }
         if (recipe instanceof StoneCutterRecipe stoneCutterRecipe) {
-            var input = SoakItemStackMap.toBukkit(stoneCutterRecipe.ingredients().getFirst().displayedItems().getFirst().type());
+            inputs.add(stoneCutterRecipe.ingredient());
+            var input = SoakItemStackMap.toBukkit(stoneCutterRecipe.ingredient().displayedItems().getFirst().type());
             return new StonecuttingRecipe(key, result, input);
         }
 
@@ -67,6 +70,7 @@ public class SoakRecipeMap {
 
 
         if (recipe instanceof ShapedCraftingRecipe shapedCrafting) {
+            inputs.addAll(shapedCrafting.ingredients());
             var shaped = new ShapedRecipe(key, result);
             int i = 0;
             Map<Integer, String> characterMap = new LinkedHashMap<>();
@@ -90,7 +94,8 @@ public class SoakRecipeMap {
             return shaped;
         }
 
-        if (recipe instanceof ShapelessCraftingRecipe) {
+        if (recipe instanceof ShapelessCraftingRecipe shapelessCrafting) {
+            inputs = shapelessCrafting.ingredients();
             var shapeless = new ShapelessRecipe(key, result);
             inputs.stream()
                     .map(Ingredient::displayedItems)
@@ -100,7 +105,7 @@ public class SoakRecipeMap {
                     .forEach(shapeless::addIngredient);
             return shapeless;
         }
-        throw new RuntimeException("Unknown mapping for recipetype " + recipe.type()
+        throw new RuntimeException("Unknown mapping for recipe type " + recipe.type()
                 .key(RegistryTypes.RECIPE_TYPE)
                 .formatted() + ": " + recipe.getClass().getName());
     }

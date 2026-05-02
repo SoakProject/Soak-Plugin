@@ -46,6 +46,11 @@ public abstract class AbstractBlockData implements BlockData, CommonBlockData {
     }
 
     @Override
+    public boolean isReplaceable() {
+        return this.sponge().get(Keys.IS_REPLACEABLE).orElse(false);
+    }
+
+    @Override
     public @NotNull VoxelShape getCollisionShape(@NotNull Location location) {
         throw NotImplementedException.createByLazy(BlockData.class, "getCollisionShape", Location.class);
     }
@@ -112,9 +117,9 @@ public abstract class AbstractBlockData implements BlockData, CommonBlockData {
     @Override
     public boolean isFaceSturdy(@NotNull BlockFace blockFace, @NotNull BlockSupport blockSupport) {
         throw NotImplementedException.createByLazy(BlockData.class,
-                                                   "isFaceSturdy",
-                                                   BlockFace.class,
-                                                   BlockSupport.class);
+                "isFaceSturdy",
+                BlockFace.class,
+                BlockSupport.class);
     }
 
     @Override
