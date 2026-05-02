@@ -4,7 +4,6 @@ import org.bukkit.Fluid;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.jetbrains.annotations.NotNull;
-import org.soak.map.SoakFluidTypeMap;
 import org.soak.map.SoakResourceKeyMap;
 import org.soak.utils.TagHelper;
 import org.spongepowered.api.fluid.FluidType;

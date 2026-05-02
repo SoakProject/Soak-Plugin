@@ -49,4 +49,5 @@ public class SoakBed extends AbstractBlockData implements Bed, SoakFourDirection
     public @NotNull AbstractBlockData clone() {
         return new SoakBed(this.sponge());
     }
+
 }

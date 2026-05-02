@@ -58,7 +58,7 @@ public class SoakPlayerDeathEvent extends SoakEvent<DropItemEvent.Destruct, Play
                 .map(SoakItemStackMap::toBukkit)
                 .collect(Collectors.toList());
         //TODO -> find exp
-        var bukkitEvent = new PlayerDeathEvent(entity, bukkitDamageSource, items, 0, this.deathMessage);
+        var bukkitEvent = new PlayerDeathEvent(entity, bukkitDamageSource, items, 0, this.deathMessage, false);
         fireEvent(bukkitEvent);
         //TODO -> spawn the player back in if event is cancelled
         //TODO -> cancel/change the message

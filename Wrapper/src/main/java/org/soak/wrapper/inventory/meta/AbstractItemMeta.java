@@ -26,6 +26,7 @@ import org.soak.exception.NotImplementedException;
 import org.soak.map.SoakAttributeMap;
 import org.soak.map.SoakBlockMap;
 import org.soak.map.SoakMessageMap;
+import org.soak.map.SoakRegistryMap;
 import org.soak.map.item.SoakEnchantmentTypeMap;
 import org.soak.map.item.SoakItemFlagMap;
 import org.soak.map.item.SoakItemStackMap;
@@ -48,7 +49,6 @@ import org.spongepowered.api.item.inventory.ItemStackLike;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.equipment.EquipmentType;
 import org.spongepowered.api.registry.RegistryTypes;
-import org.spongepowered.api.util.Ticks;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -229,8 +229,8 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     @Override
     public void setDisplayNameComponent(@Nullable BaseComponent[] component) {
         throw NotImplementedException.createByLazy(AbstractItemMeta.class,
-                                                   "setDisplayNameComponent",
-                                                   BaseComponent.class);
+                "setDisplayNameComponent",
+                BaseComponent.class);
     }
 
     @Override
@@ -303,24 +303,18 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public boolean hasCustomModelData() {
-        return this.container.get(Keys.CUSTOM_MODEL_DATA).isPresent();
+        throw NotImplementedException.createByLazy(ItemMeta.class, "hasCustomModelData", List.class);
     }
 
     @Override
     public int getCustomModelData() {
-        return this.container.get(Keys.CUSTOM_MODEL_DATA).orElse(-1);
+        throw NotImplementedException.createByLazy(ItemMeta.class, "getCustomModelData", List.class);
+
     }
 
     @Override
     public void setCustomModelData(@Nullable Integer data) {
-        if (this.container instanceof ItemStackSnapshot) {
-            return; //not supported on snapshot -> maybe a issue
-        }
-        if (data == null) {
-            this.remove(Keys.CUSTOM_MODEL_DATA);
-            return;
-        }
-        this.set(Keys.CUSTOM_MODEL_DATA, data);
+        throw NotImplementedException.createByLazy(ItemMeta.class, "setCustomModelData", List.class);
     }
 
     @Override
@@ -352,16 +346,16 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     public @NotNull Map<Enchantment, Integer> getEnchants() {
         List<org.spongepowered.api.item.enchantment.Enchantment> spongeEnchantments =
                 this.container.get(Keys.APPLIED_ENCHANTMENTS)
-                .orElse(new LinkedList<>());
+                        .orElse(new LinkedList<>());
         return spongeEnchantments.stream()
                 .collect(Collectors.toMap(ench -> SoakEnchantmentTypeMap.toBukkit(ench.type()),
-                                          org.spongepowered.api.item.enchantment.Enchantment::level));
+                        org.spongepowered.api.item.enchantment.Enchantment::level));
     }
 
     @Override
     public boolean addEnchant(@NotNull Enchantment ench, int level, boolean ignoreLevelRestriction) {
         var enchantment = org.spongepowered.api.item.enchantment.Enchantment.of(SoakEnchantmentTypeMap.toSponge(ench),
-                                                                                level);
+                level);
         return modifyEnchantments(enchantments -> {
             enchantments.add(enchantment);
             return enchantments;
@@ -373,8 +367,8 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
         try {
             List<org.spongepowered.api.item.enchantment.Enchantment> appliedEnchantments =
                     this.container.get(Keys.APPLIED_ENCHANTMENTS)
-                    .map(LinkedList::new)
-                    .orElse(new LinkedList<>());
+                            .map(LinkedList::new)
+                            .orElse(new LinkedList<>());
             List<org.spongepowered.api.item.enchantment.Enchantment> appliedChanges = apply.apply(appliedEnchantments);
             this.setList(Keys.APPLIED_ENCHANTMENTS, appliedChanges);
 
@@ -480,7 +474,7 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
 
     @Override
     public boolean addAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
-        var type = SoakAttributeMap.toSponge(attribute);
+        var type = SoakRegistryMap.toSponge(attribute);
         var spongeModifier = SoakAttributeMap.toSponge(modifier);
         return this.addAttribute(type, spongeModifier, SoakEquipmentMap.toSponge(modifier.getSlotGroup()));
     }
@@ -498,9 +492,9 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     @Override
     public boolean removeAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
         throw NotImplementedException.createByLazy(ItemMeta.class,
-                                                   "removeAttributeModifier",
-                                                   Attribute.class,
-                                                   AttributeModifier.class);
+                "removeAttributeModifier",
+                Attribute.class,
+                AttributeModifier.class);
     }
 
     @Override
@@ -528,11 +522,9 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     @Deprecated
     public void setCanDestroy(Set<Material> canDestroy) {
         setSet(Keys.BREAKABLE_BLOCK_TYPES,
-               canDestroy.stream()
-                       .map(SoakBlockMap::toSponge)
-                       .filter(Optional::isPresent)
-                       .map(Optional::get)
-                       .collect(Collectors.toSet()));
+                canDestroy.stream()
+                        .map(SoakRegistryMap::toSpongeBlock)
+                        .collect(Collectors.toSet()));
     }
 
     @Override
@@ -547,11 +539,9 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     @Override
     public void setCanPlaceOn(Set<Material> canPlaceOn) {
         setSet(Keys.PLACEABLE_BLOCK_TYPES,
-               canPlaceOn.stream()
-                       .map(SoakBlockMap::toSponge)
-                       .filter(Optional::isPresent)
-                       .map(Optional::get)
-                       .collect(Collectors.toSet()));
+                canPlaceOn.stream()
+                        .map(SoakRegistryMap::toSpongeBlock)
+                        .collect(Collectors.toSet()));
     }
 
     @Override
@@ -776,11 +766,11 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
             return;
         }
         set(Keys.CAN_ALWAYS_EAT, foodComponent.canAlwaysEat());
-        set(Keys.FOOD_CONVERTS_TO,
+        /*set(Keys.FOOD_CONVERTS_TO,
             foodComponent.getUsingConvertsTo() == null ?
                     null :
                     SoakItemStackMap.toSponge(foodComponent.getUsingConvertsTo()));
-        set(Keys.EATING_TIME, Ticks.of((long) foodComponent.getEatSeconds() * 20));
+        set(Keys.EATING_TIME, Ticks.of((long) foodComponent.getEatSeconds() * 20));*/
         set(Keys.SATURATION, (double) foodComponent.getSaturation());
     }
 
@@ -821,8 +811,8 @@ public abstract class AbstractItemMeta implements ItemMeta, Damageable {
     @Override
     public void setJukeboxPlayable(@Nullable JukeboxPlayableComponent jukeboxPlayableComponent) {
         throw NotImplementedException.createByLazy(ItemMeta.class,
-                                                   "setJukeboxPlayable",
-                                                   JukeboxPlayableComponent.class);
+                "setJukeboxPlayable",
+                JukeboxPlayableComponent.class);
     }
 
     @Override

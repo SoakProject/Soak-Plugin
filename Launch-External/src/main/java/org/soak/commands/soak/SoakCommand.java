@@ -8,7 +8,6 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.soak.commands.SoakArguments;
-import org.soak.generate.bukkit.AttributeTypeList;
 import org.soak.generate.bukkit.EntityTypeList;
 import org.soak.generate.bukkit.MaterialList;
 import org.soak.plugin.SoakManager;

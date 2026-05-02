@@ -8,20 +8,15 @@
  */
 
 rootProject.name = "soak"
-include("bukkit-api")
-include("VanillaMaterials")
 include("CollectionStream")
 include("MoseStream")
 include 'Wrapper'
 include 'Launch-Common'
 include 'Launch-Internal'
 include 'Launch-External'
-include 'Gradle-Annotations'
 include 'Common'
 include 'Override'
-include 'Launch-External:Neo'
+/*include 'Launch-External:Neo'
 findProject(':Launch-External:Neo')?.name = 'Neo'
-include 'NMSBounce'
 include 'Launch-External:Lex'
-findProject(':Launch-External:Lex')?.name = 'Lex'
-include 'MultiBuild:annotations'
+findProject(':Launch-External:Lex')?.name = 'Lex'*/

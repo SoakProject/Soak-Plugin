@@ -3,9 +3,14 @@ package org.soak.wrapper.entity.living.human;
 import com.destroystokyo.paper.ClientOption;
 import com.destroystokyo.paper.Title;
 import com.destroystokyo.paper.profile.PlayerProfile;
+import io.papermc.paper.connection.PlayerGameConnection;
+import io.papermc.paper.datacomponent.DataComponentType;
 import io.papermc.paper.entity.LookAnchor;
+import io.papermc.paper.entity.PlayerGiveResult;
 import io.papermc.paper.math.Position;
+import io.papermc.paper.world.damagesource.CombatTracker;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -22,6 +27,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.sign.Side;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.*;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -40,10 +46,11 @@ import org.soak.plugin.SoakManager;
 import org.soak.utils.single.SoakSingleInstance;
 import org.soak.wrapper.block.data.SoakBlockData;
 import org.soak.wrapper.block.state.AbstractBlockState;
+import org.soak.wrapper.damage.SoakDamageSource;
 import org.soak.wrapper.inventory.SoakInventory;
+import org.soak.wrapper.inventory.carrier.SoakPlayerInventory;
 import org.soak.wrapper.inventory.view.AbstractInventoryView;
 import org.soak.wrapper.inventory.view.SoakOpeningInventoryView;
-import org.soak.wrapper.inventory.carrier.SoakPlayerInventory;
 import org.soak.wrapper.world.SoakWorld;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.Keys;
@@ -65,6 +72,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Player, SoakSingleInstance<ServerPlayer> {
 
@@ -150,6 +158,36 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     public void closeInventory(InventoryCloseEvent.@NotNull Reason reason) {
         //TODO this may trigger a event .... need to look into this
         closeInventory();
+    }
+
+    @Override
+    public boolean hasCooldown(ItemStack item) {
+        return false;
+    }
+
+    @Override
+    public int getCooldown(ItemStack item) {
+        return 0;
+    }
+
+    @Override
+    public void setCooldown(ItemStack item, int ticks) {
+
+    }
+
+    @Override
+    public int getCooldown(Key key) {
+        return 0;
+    }
+
+    @Override
+    public void setCooldown(Key key, int ticks) {
+
+    }
+
+    @Override
+    public @org.jspecify.annotations.Nullable Location getPotentialRespawnLocation() {
+        return null;
     }
 
     private Optional<Container> openInventory(org.spongepowered.api.item.inventory.Inventory inv,
@@ -374,13 +412,13 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
                 .filter(entry -> entry.getKey()
                         .criterion()
                         .orElseThrow()
-                        .key(RegistryTypes.STATISTIC)
+                        .key(RegistryTypes.CRITERION)
                         .equals(spongeKey))
                 .filter(entry -> entry.getKey() instanceof org.spongepowered.api.statistic.Statistic.TypeInstance<?>)
                 .filter(entry -> {
                     var typedStatistic =
                             ((org.spongepowered.api.statistic.Statistic.TypeInstance<?>) entry.getKey()).type();
-                    if (SoakBlockMap.toSponge(material).map(typedStatistic::equals).orElse(false)) {
+                    if (SoakRegistryMap.toSpongeBlock(material).equals(typedStatistic)) {
                         return true;
                     }
                     return SoakItemStackMap.toSponge(material).map(typedStatistic::equals).orElse(false);
@@ -402,7 +440,7 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
                 .filter(entry -> entry.getKey()
                         .criterion()
                         .orElseThrow()
-                        .key(RegistryTypes.STATISTIC)
+                        .key(RegistryTypes.CRITERION)
                         .equals(spongeKey))
                 .findAny();
     }
@@ -423,7 +461,7 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
                 .filter(entry -> entry.getKey()
                         .criterion()
                         .orElseThrow()
-                        .key(RegistryTypes.STATISTIC)
+                        .key(RegistryTypes.CRITERION)
                         .equals(spongeKey))
                 .filter(entry -> entry.getKey() instanceof org.spongepowered.api.statistic.Statistic.TypeInstance<?>)
                 .filter(entry -> ((org.spongepowered.api.statistic.Statistic.TypeInstance<?>) entry.getKey()).type()
@@ -962,6 +1000,26 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     }
 
     @Override
+    public @org.jspecify.annotations.Nullable Item dropItem(int slot, int amount, boolean throwRandomly, @org.jspecify.annotations.Nullable Consumer<Item> entityOperation) {
+        return null;
+    }
+
+    @Override
+    public @org.jspecify.annotations.Nullable Item dropItem(EquipmentSlot slot, int amount, boolean throwRandomly, @org.jspecify.annotations.Nullable Consumer<Item> entityOperation) {
+        return null;
+    }
+
+    @Override
+    public @org.jspecify.annotations.Nullable Item dropItem(ItemStack itemStack, boolean throwRandomly, @org.jspecify.annotations.Nullable Consumer<Item> entityOperation) {
+        return null;
+    }
+
+    @Override
+    public void openVirtualSign(Position block, Side side) {
+
+    }
+
+    @Override
     public void showDemoScreen() {
         throw NotImplementedException.createByLazy(Player.class, "showDemoScreen");
     }
@@ -1083,6 +1141,26 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     }
 
     @Override
+    public void setVisualFire(@NotNull TriState fire) {
+
+    }
+
+    @Override
+    public @NotNull TriState getVisualFire() {
+        return null;
+    }
+
+    @Override
+    public @NotNull ItemStack getPickItemStack() {
+        return null;
+    }
+
+    @Override
+    public boolean isTrackedBy(@NotNull Player player) {
+        return false;
+    }
+
+    @Override
     public void lookAt(@NotNull Entity entity, @NotNull LookAnchor lookAnchor, @NotNull LookAnchor lookAnchor1) {
         throw NotImplementedException.createByLazy(Player.class,
                                                    "lookAt",
@@ -1179,6 +1257,26 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     }
 
     @Override
+    public PlayerGiveResult give(Collection<ItemStack> items, boolean dropIfFull) {
+        return null;
+    }
+
+    @Override
+    public int getDeathScreenScore() {
+        return 0;
+    }
+
+    @Override
+    public void setDeathScreenScore(int score) {
+
+    }
+
+    @Override
+    public PlayerGameConnection getConnection() {
+        return null;
+    }
+
+    @Override
     public void giveExp(int arg0, boolean arg1) {
         throw NotImplementedException.createByLazy(Player.class, "giveExp", int.class, boolean.class);
     }
@@ -1213,6 +1311,16 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     @Override
     public void setPlayerListName(String arg0) {
         throw NotImplementedException.createByLazy(Player.class, "setPlayerListName", String.class);
+    }
+
+    @Override
+    public int getPlayerListOrder() {
+        throw NotImplementedException.createByLazy(Player.class, "getPlayerListOrder");
+    }
+
+    @Override
+    public void setPlayerListOrder(int order) {
+throw NotImplementedException.createByLazy(Player.class, "setPlayerListOrder", int.class);
     }
 
     @Deprecated
@@ -1477,6 +1585,12 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     }
 
     @Override
+    public @org.jspecify.annotations.Nullable Location getRespawnLocation(boolean loadLocationAndValidate) {
+        throw NotImplementedException.createByLazy(Player.class, "getRespawnLocation", boolean.class);
+
+    }
+
+    @Override
     public void setRespawnLocation(@Nullable Location location) {
         throw NotImplementedException.createByLazy(Player.class, "setRespawnLocation", Location.class);
     }
@@ -1484,6 +1598,16 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     @Override
     public void setRespawnLocation(@Nullable Location location, boolean b) {
         throw NotImplementedException.createByLazy(Player.class, "setRespawnLocation", Location.class, boolean.class);
+    }
+
+    @Override
+    public Collection<EnderPearl> getEnderPearls() {
+        throw NotImplementedException.createByLazy(Player.class, "getEnderPearls");
+    }
+
+    @Override
+    public Input getCurrentInput() {
+        throw NotImplementedException.createByLazy(Player.class, "getCurrentInput");
     }
 
     @Override
@@ -1527,10 +1651,7 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     @Override
     public void playSound(@NotNull Location arg0, @NotNull String arg1, @NotNull SoundCategory arg2, float arg3,
                           float arg4) {
-        var soundType = SoakSoundMap.toSponge(arg1);
-        var soundSource = SoakSoundMap.toAdventure(arg2);
-        var sound = net.kyori.adventure.sound.Sound.sound(soundType, soundSource, arg3, arg4);
-        this.spongeEntity().playSound(sound, new Vector3d(arg0.getX(), arg0.getY(), arg0.getZ()));
+        throw NotImplementedException.createByLazy(Player.class, "playSound", Location.class, String.class, SoundCategory.class, float.class, float.class);
     }
 
     @Override
@@ -2295,5 +2416,51 @@ public class SoakPlayer extends AbstractHumanBase<ServerPlayer> implements Playe
     @Override
     public boolean isSame(ServerPlayer sponge) {
         return this.id.equals(sponge.uniqueId());
+    }
+
+    @Override
+    public @NotNull CombatTracker getCombatTracker() {
+        throw NotImplementedException.createByLazy(Player.class, "getCombatTracker");
+    }
+
+    @Override
+    public void setWaypointStyle(@Nullable Key key) {
+throw NotImplementedException.createByLazy(Player.class, "setWaypointStyle", Key.class);
+    }
+
+    @Override
+    public void setWaypointColor(@Nullable Color color) {
+throw NotImplementedException.createByLazy(Player.class, "setWaypointColor", Color.class);
+    }
+
+    @Override
+    public @NotNull Key getWaypointStyle() {
+        throw NotImplementedException.createByLazy(Player.class, "getWaypointStyle");
+    }
+
+    @Override
+    public @Nullable Color getWaypointColor() {
+        throw NotImplementedException.createByLazy(Player.class, "getWaypointColor");
+    }
+
+    @Override
+    public void kill(DamageSource damageSource) {
+        var soakSource = (SoakDamageSource)damageSource;
+this.spongeEntity().damage(Integer.MAX_VALUE, soakSource.spongeSource());
+    }
+
+    @Override
+    public @org.jspecify.annotations.Nullable <T> T getData(DataComponentType.Valued<T> type) {
+        throw NotImplementedException.createByLazy(Player.class, "getData", DataComponentType.Valued.class);
+    }
+
+    @Override
+    public @org.jspecify.annotations.Nullable <T> T getDataOrDefault(DataComponentType.Valued<? extends T> type, @org.jspecify.annotations.Nullable T fallback) {
+        throw NotImplementedException.createByLazy(Player.class, "getDataOrDefault", DataComponentType.Valued.class, Object.class);
+    }
+
+    @Override
+    public boolean hasData(DataComponentType type) {
+        throw NotImplementedException.createByLazy(Player.class, "hasData", DataComponentType.class);
     }
 }

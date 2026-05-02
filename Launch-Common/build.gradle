@@ -25,7 +25,7 @@ dependencies {
     implementation(project(':Common'))
     implementation 'org.spongepowered:spongeapi:' + property("SPONGE_VERSION")
 
-    implementation 'io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT'
+    implementation 'io.papermc.paper:paper-api:' + property("BUKKIT_VERSION") + '.build.+'
 
 
     testImplementation platform('org.junit:junit-bom:5.10.0')

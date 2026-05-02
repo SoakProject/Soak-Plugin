@@ -31,7 +31,6 @@ import org.bukkit.inventory.*;
 import org.bukkit.loot.LootTable;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
-import org.bukkit.packs.DataPackManager;
 import org.bukkit.packs.ResourcePack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicesManager;
@@ -398,8 +397,8 @@ public abstract class SoakServer implements Server {
         ResourceKey key = SoakResourceKeyMap.mapToSponge(tag);
         boolean classMatch = clazz.getName().equals(Material.class.getName());
         if (classMatch && registry.equals(Tag.REGISTRY_BLOCKS)) {
-            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.Tag<BlockType>>getFields(BlockTypeTags.class,
-                                                                                               org.spongepowered.api.tag.Tag.class)
+            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.DefaultedTag<BlockType>>getFields(BlockTypeTags.class,
+                                                                                               org.spongepowered.api.tag.DefaultedTag.class)
                     .stream()
                     .filter(spongeTag -> spongeTag.key().equals(key))
                     .findAny();
@@ -412,8 +411,8 @@ public abstract class SoakServer implements Server {
             }
         }
         if (classMatch && registry.equals(Tag.REGISTRY_ITEMS)) {
-            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.Tag<ItemType>>getFields(ItemTypeTags.class,
-                                                                                              org.spongepowered.api.tag.Tag.class)
+            var opTag = FakeRegistryHelper.<org.spongepowered.api.tag.DefaultedTag<ItemType>>getFields(ItemTypeTags.class,
+                                                                                              org.spongepowered.api.tag.DefaultedTag.class)
                     .stream()
                     .filter(spongeTag -> spongeTag.key().equals(key))
                     .findAny();
@@ -427,9 +426,9 @@ public abstract class SoakServer implements Server {
         }
         if (clazz.getName().equals(EntityType.class.getName()) && registry.equals(Tag.REGISTRY_ENTITY_TYPES)) {
             var opTag =
-                    FakeRegistryHelper.<org.spongepowered.api.tag.Tag<org.spongepowered.api.entity.EntityType<?>>>getFields(
+                    FakeRegistryHelper.<org.spongepowered.api.tag.DefaultedTag<org.spongepowered.api.entity.EntityType<?>>>getFields(
                             EntityTypeTags.class,
-                            org.spongepowered.api.tag.Tag.class)
+                            org.spongepowered.api.tag.DefaultedTag.class)
                     .stream()
                     .filter(spongeTag -> spongeTag.key().equals(key))
                     .findAny();
@@ -639,11 +638,6 @@ public abstract class SoakServer implements Server {
     @Override
     public @NotNull List<String> getInitialDisabledPacks() {
         throw NotImplementedException.createByLazy(Server.class, "getInitialDisabledPacks");
-    }
-
-    @Override
-    public @NotNull DataPackManager getDataPackManager() {
-        throw NotImplementedException.createByLazy(Server.class, "getDataPackManager");
     }
 
     @Override
